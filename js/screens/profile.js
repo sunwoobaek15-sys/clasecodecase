@@ -30,6 +30,7 @@
       '</section>';
     html +=
       '<nav class="card menu" aria-label="더 보기">' +
+      '<div class="menu-group" id="profile-rank"' + ((lastRows = rankRows()) ? '' : ' hidden') + '>' + lastRows + '</div>' +
       '<button type="button" class="menu-row" data-nav="history">' + ui.icon('history') + '<span>히스토리 <small>HISTORY</small></span><em>' + U.fmt(d.records) + '건</em>' + ui.icon('next', 'ic-sm') + '</button>' +
       '<button type="button" class="menu-row" data-nav="achievements">' + ui.icon('trophy') + '<span>업적 & 도감 <small>ACHIEVEMENTS</small></span><em>' + d.achievementsCount + '개</em>' + ui.icon('next', 'ic-sm') + '</button>' +
       '<button type="button" class="menu-row" data-nav="stats">' + ui.icon('chart') + '<span>통계 <small>STATS</small></span>' + ui.icon('next', 'ic-sm') + '</button>' +
@@ -41,6 +42,31 @@
       : '<p class="muted pad">아직 받은 배지가 없어요. 첫 절약을 기록하면 첫 배지를 받아요!</p>';
     html += '</section>';
     return html;
+  }
+
+  let lastRows = '';
+
+  /** 랭킹·관리자 메뉴 (공유된 게임에서만 보여요) */
+  function rankRows() {
+    const rk = SC.ranking;
+    if (!rk || rk.status !== 'ready') return '';
+    const my = rk.mine('week');
+    let html = '<button type="button" class="menu-row" data-nav="ranking">' + ui.icon('podium') + '<span>랭킹 <small>RANKING</small></span><em>' + (my.joined ? (my.rank ? '이번 주 ' + my.rank + '위' : '참가 중') : '참가 전') + '</em>' + ui.icon('next', 'ic-sm') + '</button>';
+    if (rk.isOwner) {
+      const review = rk.reviewCount();
+      html += '<button type="button" class="menu-row" data-nav="admin">' + ui.icon('shield') + '<span>관리자 모드 <small>ADMIN</small></span><em' + (review ? ' class="em-alert"' : '') + '>' + (review ? '확인 필요 ' + review + '명' : '참가자 ' + rk.players().length + '명') + '</em>' + ui.icon('next', 'ic-sm') + '</button>';
+    }
+    return html;
+  }
+
+  function live(rootEl) {
+    const el = rootEl.querySelector('#profile-rank');
+    if (!el) return;
+    const html = rankRows();
+    if (html === lastRows) return;
+    lastRows = html;
+    app.keepFocus(el, () => (el.innerHTML = html));
+    el.hidden = !html;
   }
 
   app.actions['profile:edit'] = () => {
@@ -102,5 +128,5 @@
     });
   };
 
-  SC.screens.profile = { title: () => '프로필', render };
+  SC.screens.profile = { title: () => '프로필', render, live };
 })(window);

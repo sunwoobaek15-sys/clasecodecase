@@ -5,6 +5,32 @@
 
   const KEY = 'savecity.v1';
   const CORRUPT_PREFIX = 'savecity.corrupt.';
+  // 저장할 때마다 내용으로 만든 확인값(seal)을 끝에 붙여 둡니다. 게임 밖에서 값을 고치면 확인값이 맞지 않아요.
+  // 비밀 열쇠가 아니라서 완벽한 보호는 아니지만, 저장 데이터를 직접 고치는 가장 쉬운 치트를 알아볼 수 있어요.
+  const SEAL_KEY = '_seal';
+  const SEAL_SALT = 'savecity.seal.v1';
+  const SEAL_TAIL = /,"_seal":"([0-9a-z]{1,20})"\}$/;
+
+  function sealOf(body) {
+    return SC.util.hash(body + SEAL_SALT);
+  }
+
+  /** 상태 → 확인값이 붙은 저장 문자열 */
+  function seal(state) {
+    const body = JSON.stringify(state);
+    if (body.length < 3 || body[body.length - 1] !== '}') return body;
+    return body.slice(0, -1) + ',"' + SEAL_KEY + '":"' + sealOf(body) + '"}';
+  }
+
+  /**
+   * 저장 문자열의 확인값 검사 → true(맞음) | false(바뀜) | null(확인값 없는 예전 데이터)
+   * 확인값을 지워도 예전에 확인값을 붙인 적이 있는 데이터(security.sealed)면 바뀐 것으로 봐요.
+   */
+  function checkSeal(text, raw) {
+    const m = SEAL_TAIL.exec(text);
+    if (m) return sealOf(text.slice(0, m.index) + '}') === m[1];
+    return raw && raw.security && raw.security.sealed === true ? false : null;
+  }
   const IMG_DB = 'savecity-images';
   const IMG_STORE = 'images';
 
@@ -21,6 +47,8 @@
 
   const storage = {
     KEY,
+    seal,
+    checkSeal,
     available: false,
     lastError: null,
     lastSavedAt: null,
@@ -30,7 +58,7 @@
       return this.available;
     },
 
-    /** { raw, status: 'ok' | 'empty' | 'corrupt' | 'unavailable' } */
+    /** { raw, status: 'ok' | 'empty' | 'corrupt' | 'unavailable', sealOk: true | false | null } */
     load() {
       if (!this.available) return { raw: null, status: 'unavailable' };
       let text;
@@ -41,7 +69,8 @@
       }
       if (text == null) return { raw: null, status: 'empty' };
       try {
-        return { raw: JSON.parse(text), status: 'ok' };
+        const raw = JSON.parse(text);
+        return { raw, status: 'ok', sealOk: checkSeal(text, raw) };
       } catch (e) {
         this.keepCorrupt(text);
         return { raw: null, status: 'corrupt' };
@@ -67,7 +96,7 @@
     save(state) {
       if (!this.available) return false;
       try {
-        root.localStorage.setItem(KEY, JSON.stringify(state));
+        root.localStorage.setItem(KEY, seal(state));
         this.lastSavedAt = new Date();
         this.lastError = null;
         return true;

@@ -10,6 +10,7 @@
   const app = SC.app;
 
   let stopAnim = null;
+  let rankHtml = '';
 
   function previewRegion(state) {
     let best = 'village';
@@ -35,6 +36,12 @@
       }).join('') +
       '</ol>'
     );
+  }
+
+  function rankSection() {
+    const inner = SC.rankingCard ? SC.rankingCard() : '';
+    rankHtml = inner;
+    return '<section class="card rank-card" id="home-rank" aria-labelledby="home-rank-h"' + (inner ? '' : ' hidden') + '>' + inner + '</section>';
   }
 
   SC.screens.home = {
@@ -121,6 +128,9 @@
         '<p class="hint">7일 → +100 TOKEN · 14일 → +250 TOKEN · 30일 → 특별 장식품</p>' +
         '</section>';
 
+      // 랭킹 (공유된 게임에서만)
+      html += rankSection();
+
       // 목표
       if (goals.length) {
         html +=
@@ -144,6 +154,16 @@
       html += '</section>';
 
       return html + '</div>';
+    },
+    /** 랭킹 데이터가 바뀌면 랭킹 카드만 바꿔요 (도시 애니메이션은 그대로) */
+    live(rootEl) {
+      const el = rootEl.querySelector('#home-rank');
+      if (!el) return;
+      const inner = SC.rankingCard ? SC.rankingCard() : '';
+      if (inner === rankHtml) return;
+      rankHtml = inner;
+      app.keepFocus(el, () => (el.innerHTML = inner));
+      el.hidden = !inner;
     },
     mount(rootEl) {
       const svg = rootEl.querySelector('.hero-map svg');

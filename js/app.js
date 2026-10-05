@@ -10,7 +10,7 @@
 
   SC.screens = SC.screens || {};
 
-  const ROUTES = ['home', 'save', 'city', 'shop', 'profile', 'history', 'achievements', 'stats', 'settings'];
+  const ROUTES = ['home', 'save', 'city', 'shop', 'profile', 'history', 'achievements', 'stats', 'settings', 'ranking', 'admin'];
   const NAV_OF = {
     home: 'home',
     save: 'save',
@@ -21,10 +21,12 @@
     achievements: 'achievements',
     stats: 'stats',
     settings: 'settings',
+    ranking: 'ranking',
+    admin: 'admin',
     record: 'history',
     edit: 'history',
   };
-  const TAB_OF = { history: 'profile', achievements: 'profile', stats: 'profile', settings: 'profile' };
+  const TAB_OF = { history: 'profile', achievements: 'profile', stats: 'profile', settings: 'profile', ranking: 'profile', admin: 'profile' };
 
   const app = {
     state: null,
@@ -41,6 +43,9 @@
       historyLimit: 50,
       ledgerLimit: 100,
       achTab: 'list',
+      rankCat: 'week',
+      adminFilter: 'all',
+      adminQuery: '',
       saveDraft: null,
       editDraft: null,
     },
@@ -75,6 +80,8 @@
       const res = fn(app.state, new Date());
       persist();
       if (o.render !== false) app.render();
+      // 랭킹에 참가 중이면 잠시 뒤 바뀐 기록을 반영해요.
+      if (SC.ranking) SC.ranking.schedule();
       return res || {};
     } catch (e) {
       app.state = JSON.parse(backup);
@@ -187,6 +194,7 @@
     });
     const banner = document.getElementById('storage-banner');
     if (banner) banner.hidden = app.storageStatus !== 'unavailable';
+    if (SC.ranking) SC.ranking.updateChrome();
   }
 
   app.render = function (o) {
@@ -232,6 +240,41 @@
   app.refreshChrome = function () {
     app.d = E.derive(app.state, new Date());
     renderChrome(app.d);
+  };
+
+  /** box 안을 다시 그린 뒤에도 키보드 포커스가 같은 버튼에 남도록 합니다. */
+  function focusKey(el) {
+    const d = el.dataset || {};
+    return (d.action || '') + '|' + (d.nav || '') + '|' + (d.cat || d.filter || d.id || '');
+  }
+  app.keepFocus = function (box, fn) {
+    const a = document.activeElement;
+    const key = a && a !== box && box.contains(a) ? focusKey(a) : null;
+    fn();
+    if (!key) return;
+    const el = Array.from(box.querySelectorAll('[data-action], [data-nav]')).find((x) => focusKey(x) === key);
+    if (el) {
+      try {
+        el.focus({ preventScroll: true });
+      } catch (e) {
+        /* 무시 */
+      }
+    }
+  };
+
+  /** 랭킹 데이터가 바뀌면 메뉴와, 랭킹을 보여 주는 화면의 해당 부분만 새로 그려요. */
+  app.onRankingChange = function () {
+    if (!app.state) return;
+    if (SC.ranking) SC.ranking.updateChrome();
+    const scr = app.current;
+    if (!scr || !scr.live) return;
+    const main = document.getElementById('screen');
+    const ctx = { state: app.state, d: app.d || E.derive(app.state, new Date()), app, param: app.route.param, view: app.view, now: new Date() };
+    try {
+      scr.live(main, ctx);
+    } catch (e) {
+      if (root.console) console.error(e);
+    }
   };
 
   /* ---------------- 공통 클릭 처리 ---------------- */
@@ -492,8 +535,17 @@
 
   /* ---------------- 날짜 변경, 다른 창, 시작 ---------------- */
 
+  /** 기기 시계가 뒤로 갔는지 확인 (랭킹 부정 사용 확인용) */
+  function checkClock() {
+    const ev = E.observeClock(app.state, new Date());
+    if (!ev) return;
+    persist();
+    if (SC.ranking) SC.ranking.onClockEvent(ev);
+  }
+
   function checkDay() {
     if (!app.state || !app.d) return;
+    checkClock();
     if (U.dateKey(new Date()) !== app.d.today) {
       const res = E.settleOnLoad(app.state, new Date());
       persist();
@@ -502,10 +554,23 @@
     }
   }
 
+  /** 시계 확인 시각, 랭킹 반영 기록처럼 화면과 상관없는 값은 빼고 비교해요. */
+  const VOLATILE = new Set(['lastSeenAt', 'updatedAt', 'lastSyncAt', 'syncs', 'lastHash', 'seenMod']);
+  function stableJson(s) {
+    return JSON.stringify(s, (k, v) => (VOLATILE.has(k) ? undefined : v));
+  }
+
   function reloadFromStorage() {
     const loaded = SC.storage.load();
     if (loaded.status !== 'ok') return;
-    app.state = E.normalizeState(loaded.raw, new Date());
+    const next = E.normalizeState(loaded.raw, new Date());
+    // 다른 창이 아니라 게임 밖에서 바꾼 데이터면 표시해 둡니다.
+    if (loaded.sealOk === false) E.markTampered(next, new Date());
+    const quiet = loaded.sealOk !== false && stableJson(next) === stableJson(app.state);
+    app.state = next;
+    if (loaded.sealOk === false) persist();
+    // 다른 창이 시계 확인 시각이나 랭킹 반영 기록만 저장했으면 조용히 맞춰 둡니다.
+    if (quiet) return;
     app.applySettings();
     if (!ui.hasOpen()) app.render();
     else app.refreshChrome();
@@ -530,8 +595,12 @@
     const loaded = SC.storage.load();
     const now = new Date();
     app.storageStatus = loaded.status;
-    if (loaded.status === 'ok') app.state = E.normalizeState(loaded.raw, now);
-    else {
+    if (loaded.status === 'ok') {
+      app.state = E.normalizeState(loaded.raw, now);
+      // 저장 확인값이 맞지 않으면 게임 밖에서 바뀐 데이터예요. (랭킹 부정 사용 확인용으로 기록만 해요)
+      if (loaded.sealOk === false) E.markTampered(app.state, now);
+      E.observeClock(app.state, now);
+    } else {
       app.state = E.createState(now);
       const reduce = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduce) app.state.settings.animation = false;
@@ -562,6 +631,8 @@
       SC.audio.syncVisibility();
       if (document.visibilityState === 'visible') checkDay();
     });
+    // 창을 닫을 때 마지막으로 본 시각을 저장해 두면 다음에 시계가 뒤로 갔는지 알 수 있어요.
+    root.addEventListener('pagehide', () => persist());
     setInterval(checkDay, 30000);
     if (darkQuery && darkQuery.addEventListener) {
       darkQuery.addEventListener('change', () => {
@@ -586,6 +657,11 @@
     if (!app.state.user.onboarded) app.openOnboarding(false, notice);
     else app.celebrate(res.events);
 
+    if (SC.ranking) {
+      SC.ranking.onChange(() => app.onRankingChange());
+      SC.ranking.init();
+    }
+
     SC.images.probe().then((ok) => {
       if (ok) SC.images.prune(app.state.history.filter((r) => r.hasImage).map((r) => r.id));
       if (app.route.name === 'save' || app.route.name === 'edit' || app.route.name === 'record') {
@@ -599,7 +675,7 @@
       try {
         hot.snapshot(() => ({
           route: routeKey(app.route),
-          view: { cityRegion: app.view.cityRegion, shopTab: app.view.shopTab, historyTab: app.view.historyTab, achTab: app.view.achTab, zoom: app.view.zoom },
+          view: { cityRegion: app.view.cityRegion, shopTab: app.view.shopTab, historyTab: app.view.historyTab, achTab: app.view.achTab, zoom: app.view.zoom, rankCat: app.view.rankCat, adminFilter: app.view.adminFilter },
         }));
       } catch (e) {
         /* 무시 */

@@ -110,6 +110,10 @@
       ledger: [],
       counters: { seq: 0, upgrades: 0, lucky: 0, discounts: 0 },
       settings: { sound: false, sfx: true, animation: true, theme: 'system' },
+      // 랭킹 참가 상태 (공유 랭킹은 Claude 아티팩트에서만 열려요)
+      ranking: { joined: false, uid: null, joinedAt: null, lastHash: null, lastSyncAt: null, syncs: [], seenMod: null },
+      // 부정 사용 확인용 기록: 기기 시계가 뒤로 간 흔적, 저장 데이터가 앱 밖에서 바뀐 흔적
+      security: { sealed: true, lastSeenAt: iso, clockEvents: [], clockBack: 0, tampered: false, tamperedAt: null, tamperCount: 0 },
     };
   }
 
@@ -122,6 +126,13 @@
   const isoOr = (v, fb) => (U.isIso(v) ? new Date(v).toISOString() : fb);
   const RESERVED_IDS = new Set(['__proto__', 'constructor', 'prototype']);
   const validId = (v) => typeof v === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(v) && !RESERVED_IDS.has(v);
+  /** 공유 데이터베이스 문서 이름으로 쓸 수 있는 사용자 id (글자·숫자와 _ - . ~ : @ +) */
+  const validUid = (v) => typeof v === 'string' && /^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(v) && v !== '.' && v !== '..';
+  const isoList = (v, max) =>
+    arr(v)
+      .filter((x) => U.isIso(x))
+      .slice(-max)
+      .map((x) => new Date(x).toISOString());
 
   function bySeq(a, b) {
     return a.seq - b.seq || String(a.createdAt).localeCompare(String(b.createdAt)) || String(a.id).localeCompare(String(b.id));
@@ -277,7 +288,64 @@
 
     s.longestStreak = nonNegInt(raw.longestStreak);
     s.updatedAt = isoOr(raw.updatedAt, s.createdAt);
+
+    const rk = obj(raw.ranking);
+    s.ranking.uid = validUid(rk.uid) ? rk.uid : null;
+    s.ranking.joined = rk.joined === true && !!s.ranking.uid;
+    s.ranking.joinedAt = s.ranking.joined ? isoOr(rk.joinedAt, s.updatedAt) : null;
+    s.ranking.lastHash = typeof rk.lastHash === 'string' && /^[0-9a-z]{1,20}$/.test(rk.lastHash) ? rk.lastHash : null;
+    s.ranking.lastSyncAt = U.isIso(rk.lastSyncAt) ? new Date(rk.lastSyncAt).toISOString() : null;
+    s.ranking.syncs = isoList(rk.syncs, CLOCK_LOG_MAX);
+    s.ranking.seenMod = U.isIso(rk.seenMod) ? new Date(rk.seenMod).toISOString() : null;
+
+    const sec = obj(raw.security);
+    // 예전 데이터에는 마지막 저장 시각을 시계 확인 기준으로 씁니다.
+    s.security.lastSeenAt = isoOr(sec.lastSeenAt, s.updatedAt);
+    s.security.clockEvents = arr(sec.clockEvents)
+      .filter((e) => e && U.isIso(e.at))
+      .slice(-CLOCK_LOG_MAX)
+      .map((e) => ({ at: new Date(e.at).toISOString(), back: nonNegInt(e.back) }));
+    s.security.clockBack = Math.max(nonNegInt(sec.clockBack), s.security.clockEvents.length);
+    s.security.tampered = sec.tampered === true;
+    s.security.tamperedAt = s.security.tampered ? isoOr(sec.tamperedAt, s.updatedAt) : null;
+    s.security.tamperCount = Math.max(nonNegInt(sec.tamperCount), s.security.tampered ? 1 : 0);
     return refresh(s, now);
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 부정 사용 확인 (기기 시계, 저장 데이터 변조)
+   * ------------------------------------------------------------------ */
+
+  const CLOCK_LOG_MAX = 20;
+  const CLOCK_TOLERANCE_MS = 5 * 60000;
+
+  /**
+   * 기기 시계가 마지막으로 본 시각보다 5분 넘게 뒤로 가 있으면 기록합니다.
+   * (날짜를 바꿔 하루 한도나 STREAK을 늘리는 것을 알아보기 위한 기록. 한 번 뒤로 간 것은 한 번만 셉니다.)
+   */
+  function observeClock(state, now) {
+    now = now || new Date();
+    const sec = state.security;
+    const last = Date.parse(sec.lastSeenAt);
+    const t = now.getTime();
+    let event = null;
+    if (Number.isFinite(last) && t < last - CLOCK_TOLERANCE_MS) {
+      event = { at: now.toISOString(), back: Math.round((last - t) / 60000) };
+      sec.clockEvents.push(event);
+      if (sec.clockEvents.length > CLOCK_LOG_MAX) sec.clockEvents.splice(0, sec.clockEvents.length - CLOCK_LOG_MAX);
+      sec.clockBack++;
+    }
+    sec.lastSeenAt = now.toISOString();
+    return event;
+  }
+
+  /** 저장 데이터가 게임 밖에서 바뀐 것을 확인했을 때 */
+  function markTampered(state, now) {
+    now = now || new Date();
+    state.security.tampered = true;
+    state.security.tamperedAt = now.toISOString();
+    state.security.tamperCount++;
+    return state.security;
   }
 
   function markCollected(state, itemId, at) {
@@ -1275,5 +1343,9 @@
     setSettings,
     settleOnLoad,
     nextGoals,
+    validUid,
+    observeClock,
+    markTampered,
+    CLOCK_TOLERANCE_MS,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

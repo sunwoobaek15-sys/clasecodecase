@@ -89,14 +89,23 @@
   app.actions['settings:guide'] = () => app.openOnboarding(true);
 
   app.actions['settings:reset'] = async () => {
+    const ranked = !!(SC.ranking && SC.ranking.joined());
     const ok = await ui.confirm({
       title: '데이터 초기화',
-      message: '<b>정말 모든 데이터를 삭제하시겠습니까?</b><br>절약 기록, TOKEN, 도시, 업적, 사진, 설정이 모두 지워지고 되돌릴 수 없어요.',
+      message: '<b>정말 모든 데이터를 삭제하시겠습니까?</b><br>절약 기록, TOKEN, 도시, 업적, 사진, 설정이 모두 지워지고 되돌릴 수 없어요.' + (ranked ? '<br>랭킹에 올린 내 기록도 함께 지워요.' : ''),
       confirmLabel: '모두 삭제',
       confirmId: 'confirm-reset',
       danger: true,
     });
     if (!ok) return;
+    if (ranked) {
+      try {
+        await SC.ranking.leave();
+      } catch (e) {
+        // 랭킹 기록을 못 지워도 기기 데이터 초기화는 계속해요. (나중에 랭킹 화면에서 지울 수 있어요)
+        ui.toast('랭킹 기록은 지우지 못했어요. 나중에 랭킹 화면에서 지울 수 있어요.', { type: 'error', duration: 6000 });
+      }
+    }
     SC.storage.clear();
     await SC.images.clear();
     app.state = E.createState(new Date());

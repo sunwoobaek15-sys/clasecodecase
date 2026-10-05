@@ -1,5 +1,5 @@
 /* SAVE CITY — 오프라인 지원 (네트워크 우선, 실패하면 저장된 파일 사용) */
-const CACHE = 'savecity-v1';
+const CACHE = 'savecity-v2';
 const FONT_CACHE = 'savecity-fonts-v1';
 const ASSETS = [
   './',
@@ -11,12 +11,14 @@ const ASSETS = [
   './js/util.js',
   './js/data.js',
   './js/engine.js',
+  './js/rank-rules.js',
   './js/storage.js',
   './js/audio.js',
   './js/render-city.js',
   './js/ui.js',
   './js/view.js',
   './js/app.js',
+  './js/ranking.js',
   './js/screens/home.js',
   './js/screens/save.js',
   './js/screens/city.js',
@@ -26,6 +28,8 @@ const ASSETS = [
   './js/screens/stats.js',
   './js/screens/settings.js',
   './js/screens/profile.js',
+  './js/screens/ranking.js',
+  './js/screens/admin.js',
   './js/main.js',
 ];
 
