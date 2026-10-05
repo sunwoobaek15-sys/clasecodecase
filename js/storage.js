@@ -89,6 +89,35 @@
   /* ---------------- 사진 (IndexedDB) ---------------- */
 
   let dbPromise = null;
+  const IDB_TIMEOUT = 8000;
+
+  /** IndexedDB가 응답하지 않아도 앱이 멈추지 않도록 시간 제한을 둡니다. */
+  function withTimeout(promise, ms) {
+    return new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error('IndexedDB 응답 없음')), ms || IDB_TIMEOUT);
+      promise.then(
+        (v) => {
+          clearTimeout(t);
+          resolve(v);
+        },
+        (e) => {
+          clearTimeout(t);
+          reject(e);
+        }
+      );
+    });
+  }
+
+  /** Blob → ArrayBuffer (Blob.arrayBuffer가 없는 오래된 Safari도 지원) */
+  function blobToBuffer(blob) {
+    if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = () => reject(fr.error || new Error('파일 읽기 실패'));
+      fr.readAsArrayBuffer(blob);
+    });
+  }
 
   function openDB() {
     if (dbPromise) return dbPromise;
@@ -108,7 +137,16 @@
         const db = req.result;
         if (!db.objectStoreNames.contains(IMG_STORE)) db.createObjectStore(IMG_STORE);
       };
-      req.onsuccess = () => resolve(req.result);
+      req.onsuccess = () => {
+        const db = req.result;
+        // 브라우저가 연결을 끊으면 다음 사용 때 다시 엽니다.
+        db.onclose = () => (dbPromise = null);
+        db.onversionchange = () => {
+          db.close();
+          dbPromise = null;
+        };
+        resolve(db);
+      };
       req.onerror = () => reject(req.error || new Error('IndexedDB 열기 실패'));
       req.onblocked = () => reject(new Error('IndexedDB 사용 중'));
     }).catch((e) => {
@@ -119,13 +157,14 @@
   }
 
   function request(mode, fn) {
-    return openDB().then(
+    return withTimeout(openDB()).then(
       (db) =>
         new Promise((resolve, reject) => {
           let tx;
           try {
             tx = db.transaction(IMG_STORE, mode);
           } catch (e) {
+            dbPromise = null;
             reject(e);
             return;
           }
@@ -141,7 +180,7 @@
     usable: null, // null: 아직 모름, true/false: 확인 결과
 
     probe() {
-      return openDB().then(
+      return withTimeout(openDB()).then(
         () => (this.usable = true),
         () => (this.usable = false)
       );
@@ -149,7 +188,7 @@
 
     /** Blob을 ArrayBuffer로 바꿔 저장합니다 (오래된 Safari 호환). */
     put(id, blob) {
-      return blob.arrayBuffer().then((buf) => request('readwrite', (st) => st.put({ type: blob.type || 'image/jpeg', data: buf, at: Date.now() }, id)));
+      return withTimeout(blobToBuffer(blob).then((buf) => request('readwrite', (st) => st.put({ type: blob.type || 'image/jpeg', data: buf, at: Date.now() }, id))));
     },
 
     get(id) {

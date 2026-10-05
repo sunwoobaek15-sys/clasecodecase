@@ -71,7 +71,7 @@
       '<label for="f-amount">얼마를 절약했나요?</label>' +
       '<div class="money-input"><span aria-hidden="true">₩</span><input class="input" id="f-amount" name="amount" inputmode="numeric" enterkeyhint="next" placeholder="예: 49,000" autocomplete="off" value="' + U.esc(draft.amount) + '" aria-describedby="e-amount"><span class="unit" aria-hidden="true">원</span></div>' +
       '<p class="field-error" id="e-amount" hidden></p>' +
-      '<div class="chip-row">' +
+      '<div class="chip-row wrap">' +
       [1000, 5000, 10000, 50000].map((v) => '<button type="button" class="pick pick-amount" data-action="save:add" data-v="' + v + '">+' + (v >= 10000 ? v / 10000 + '만' : v / 1000 + '천') + '</button>').join('') +
       '<button type="button" class="pick pick-ghost" data-action="save:clearAmount">지우기</button>' +
       '</div>' +
@@ -221,7 +221,7 @@
       const rec = state.history.find((r) => r.id === draft.id);
       if (!rec) return;
       pv = E.previewEdit(state, draft.id, draft.amount);
-      used = E.dayRecognized(state, rec.date) - rec.recognized;
+      used = pv.ok ? pv.othersRecognized : E.dayRecognized(state, rec.date) - rec.recognized;
       if (pv.ok) {
         $('#pv-amount').textContent = U.won(pv.amount);
         $('#pv-rec').textContent = U.won(pv.recognized);
@@ -483,6 +483,7 @@
       throw e;
     }
     busy = true;
+    const hadImage = rec.hasImage;
     const hasImage = draft.imageMode === 'new' ? true : draft.imageMode === 'remove' ? false : rec.hasImage;
     const res = app.commit((s, now) => E.updateRecord(s, draft.id, Object.assign({}, draft, { hasImage }), now), { render: false });
     if (!res) {
@@ -494,8 +495,8 @@
       try {
         await SC.images.put(id, draft.image);
       } catch (e) {
-        app.commit((s, now) => E.setRecordImage(s, id, false, now), { render: false });
-        ui.toast('사진은 저장하지 못했어요.', { type: 'error' });
+        app.commit((s, now) => E.setRecordImage(s, id, hadImage, now), { render: false });
+        ui.toast('새 사진은 저장하지 못했어요.' + (hadImage ? ' 원래 사진은 그대로 남아 있어요.' : ''), { type: 'error' });
       }
     } else if (draft.imageMode === 'remove') {
       SC.images.del(id);
@@ -505,7 +506,10 @@
     app.view.editDraft = null;
     SC.audio.play('success');
     ui.toast('기록을 수정했어요.' + (res.delta ? ' TOKEN ' + U.signed(res.delta) : ''), { type: 'success', icon: '✏️' });
-    app.navigate('record', id);
+    app.navigate('record', id, { replace: true });
+    if (res.bonusOffered) {
+      ui.toast('<b>기록 보너스</b>를 받을 수 있어요!', { type: 'success', icon: '🎁', action: { label: '받기', onClick: () => app.openBonus() } });
+    }
     app.celebrate(res.events);
   }
 
@@ -618,7 +622,6 @@
 
   SC.screens.save = {
     title: () => '절약 기록하기',
-    keepOnTick: true,
     render: renderNew,
     mount(rootEl) {
       mountForm(rootEl, 'new');
@@ -631,7 +634,6 @@
 
   SC.screens.edit = {
     title: () => '기록 수정',
-    keepOnTick: true,
     render: renderEdit,
     mount(rootEl) {
       mountForm(rootEl, 'edit');

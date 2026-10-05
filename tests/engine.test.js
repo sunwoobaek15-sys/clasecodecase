@@ -552,3 +552,82 @@ test('홈 화면 목표 추천', () => {
   goals = E.nextGoals(s, E.derive(s, at(DAY)));
   assert.ok(goals.some((g) => g.kind === 'build'));
 });
+
+test('STREAK 보상: 예전 기록을 지워 시작일이 바뀌어도 같은 보상을 다시 주지 않는다', () => {
+  const s = fresh();
+  const start = '2026-09-01';
+  const firstIds = [];
+  for (let i = 0; i < 8; i++) {
+    const r = E.addCheckin(s, at(U.addDays(start, i)));
+    firstIds.push(r.record.id);
+  }
+  const bonus = () => s.ledger.filter((e) => e.kind === 'streak').reduce((n, e) => n + e.delta, 0);
+  assert.equal(bonus(), 100);
+  // 8일째: 첫날 기록을 지우고 다시 기록해도 7일 보상은 그대로 한 번
+  E.deleteRecord(s, firstIds[0], at(U.addDays(start, 7), 20));
+  save(s, 1000, at(U.addDays(start, 7), 21));
+  assert.equal(bonus(), 100);
+  // 30일을 채운 뒤 첫 기록을 지워도 황금 저금통은 하나
+  for (let i = 8; i < 31; i++) E.addCheckin(s, at(U.addDays(start, i)));
+  E.deleteRecord(s, firstIds[1], at(U.addDays(start, 30), 20));
+  save(s, 1000, at(U.addDays(start, 30), 21));
+  assert.equal(s.buildings.filter((b) => b.itemId === 'golden_piggy').length, 1);
+  assert.equal(bonus(), 350);
+});
+
+test('STREAK이 끊겼다가 새로 7일을 채우면 7일 보상을 다시 받는다', () => {
+  const s = fresh();
+  for (let i = 0; i < 7; i++) E.addCheckin(s, at(U.addDays('2026-08-01', i)));
+  for (let i = 0; i < 7; i++) E.addCheckin(s, at(U.addDays('2026-08-20', i)));
+  const sum = s.ledger.filter((e) => e.kind === 'streak').reduce((n, e) => n + e.delta, 0);
+  assert.equal(sum, 200);
+});
+
+test('받지 않은 보너스: TOKEN 기록을 지우면 사라지고, 수정으로 TOKEN이 생기면 새로 생긴다', () => {
+  const s = fresh();
+  const r = save(s, 1000);
+  assert.deepEqual(s.pendingBonuses, [DAY]);
+  E.deleteRecord(s, r.record.id, at(DAY, 13));
+  assert.deepEqual(s.pendingBonuses, []);
+  assert.throws(() => E.claimBonus(s, 'lucky', at(DAY, 14)), (e) => e.code === 'noBonus');
+  const small = save(s, 500);
+  assert.equal(small.bonusOffered, false);
+  const up = E.updateRecord(s, small.record.id, { item: '후드티', amount: '3000', reason: 'x' }, at(DAY, 15));
+  assert.equal(up.bonusOffered, true);
+  assert.deepEqual(s.pendingBonuses, [DAY]);
+  // 이미 받은 보너스는 기록을 지워도 그대로
+  E.claimBonus(s, 'lucky', at(DAY, 16));
+  E.deleteRecord(s, small.record.id, at(DAY, 17));
+  assert.equal(s.bonusDays[DAY], 'lucky');
+});
+
+test('기록 수정 미리보기: 같은 날 다른 기록이 쓰는 인정 금액을 정확히 알려 준다', () => {
+  const s = fresh();
+  const a = save(s, 40000, at(DAY, 9)).record;
+  save(s, 20000, at(DAY, 10));
+  const pv = E.previewEdit(s, a.id, '10000');
+  assert.equal(pv.recognized, 10000);
+  assert.equal(pv.othersRecognized, 20000, '뒤 기록은 한도가 풀려 20,000원 전부 인정');
+  assert.equal(pv.delta, -300 + 100);
+});
+
+test('조작된 저장 데이터의 __proto__ / constructor 키를 무시한다', () => {
+  const s = fresh();
+  save(s, 20000);
+  const raw = JSON.parse(JSON.stringify(s));
+  raw.buildings.push({ uid: '__proto__', itemId: 'house', region: 'village', slot: 0 });
+  raw.buildings.push({ uid: 'constructor', itemId: 'house' });
+  raw.buildings.push({ uid: 'b_ok', itemId: 'constructor' });
+  raw.buildingLevels = JSON.parse('{"__proto__": 5, "b_ok": 3}');
+  raw.achievements = JSON.parse('{"constructor": "2026-10-05T00:00:00.000Z", "first_save": "2026-10-05T00:00:00.000Z"}');
+  raw.ledger.push({ id: 'l1', kind: 'constructor', label: 'x', delta: 5, at: '2026-10-05T00:00:00.000Z', date: DAY });
+  raw.regions = ['village', 'constructor', '__proto__'];
+  const n = E.normalizeState(raw, at(DAY));
+  assert.equal(n.buildings.length, 0);
+  assert.deepEqual(Object.keys(n.achievements), ['first_save']);
+  assert.ok(n.ledger.every((e) => e.kind !== 'constructor'));
+  assert.deepEqual(n.regions, ['village']);
+  const d = E.derive(n, at(DAY));
+  assert.ok(Number.isFinite(d.cityValue) && Number.isFinite(d.xp));
+  assert.equal(Object.getPrototypeOf(n.buildingLevels), Object.prototype);
+});

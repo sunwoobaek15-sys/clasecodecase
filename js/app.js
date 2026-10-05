@@ -52,15 +52,14 @@
 
   /* ---------------- 저장 ---------------- */
 
-  let warnedSave = false;
+  let lastSaveWarning = 0;
   function persist() {
     E.refresh(app.state, new Date());
     const ok = SC.storage.save(app.state);
-    if (!ok && SC.storage.available && !warnedSave) {
-      warnedSave = true;
-      ui.toast('저장 공간이 부족해서 저장하지 못했어요. 사진이 많은 기록을 지우면 도움이 돼요.', { type: 'error', duration: 5000 });
+    if (!ok && SC.storage.available && Date.now() - lastSaveWarning > 30000) {
+      lastSaveWarning = Date.now();
+      ui.toast('기기 저장 공간이 부족해서 방금 바뀐 내용을 저장하지 못했어요. 오래된 기록을 지우거나 브라우저 저장 공간을 정리해 주세요.', { type: 'error', duration: 6000 });
     }
-    if (ok) warnedSave = false;
     return ok;
   }
   app.persist = persist;
@@ -95,11 +94,21 @@
 
   /* ---------------- 화면 전환 ---------------- */
 
+  /** 주소의 #부분 → 화면. 화면 이름이 아니면 null */
   function parseHash(h) {
     h = String(h || '').replace(/^#\/?/, '');
     const m = h.match(/^(record|edit)-([A-Za-z0-9_-]{1,64})$/);
     if (m) return { name: m[1], param: m[2] };
-    return { name: ROUTES.includes(h) ? h : 'home', param: null };
+    if (!h) return { name: 'home', param: null };
+    return ROUTES.includes(h) ? { name: h, param: null } : null;
+  }
+
+  /** 수정 화면을 떠나면 고치던 내용을 버립니다. */
+  function dropEditDraftUnless(r) {
+    const draft = app.view.editDraft;
+    if (!draft || (r.name === 'edit' && r.param === draft.id)) return;
+    if (draft.imageUrl) URL.revokeObjectURL(draft.imageUrl);
+    app.view.editDraft = null;
   }
   function routeKey(r) {
     return r.param ? r.name + '-' + r.param : r.name;
@@ -112,12 +121,17 @@
     if (o.view) Object.assign(app.view, o.view);
     ui.closeAll();
     const changed = routeKey(r) !== routeKey(app.route);
+    dropEditDraftUnless(r);
     app.route = r;
     if (changed) {
       if (name !== 'city') app.view.placing = null;
       try {
         const h = '#' + routeKey(r);
-        if (root.location.hash !== h) root.history.pushState(null, '', h);
+        if (root.location.hash !== h) {
+          // 지운 기록이나 저장을 마친 수정 화면으로 '뒤로 가기' 되지 않도록 바꿔치기합니다.
+          if (o.replace) root.history.replaceState(null, '', h);
+          else root.history.pushState(null, '', h);
+        }
       } catch (e) {
         /* 주소를 바꿀 수 없는 환경에서도 화면은 바뀝니다 */
       }
@@ -125,10 +139,24 @@
     app.render({ scrollTop: changed || o.scrollTop });
   };
 
+  /** 지워진 기록의 상세·수정 주소(뒤로 가기 기록 등)는 히스토리 목록으로 바꿉니다. */
+  function liveRoute(r) {
+    if (r && (r.name === 'record' || r.name === 'edit') && !app.state.history.some((x) => x.id === r.param)) {
+      try {
+        root.history.replaceState(null, '', '#history');
+      } catch (e) {
+        /* 주소를 바꿀 수 없는 환경 */
+      }
+      return { name: 'history', param: null };
+    }
+    return r;
+  }
+
   function onLocationChange() {
-    const r = parseHash(root.location.hash);
-    if (routeKey(r) === routeKey(app.route)) return;
+    const r = liveRoute(parseHash(root.location.hash));
+    if (!r || routeKey(r) === routeKey(app.route)) return;
     ui.closeAll();
+    dropEditDraftUnless(r);
     app.route = r;
     app.view.placing = null;
     app.render({ scrollTop: true });
@@ -469,8 +497,7 @@
     if (U.dateKey(new Date()) !== app.d.today) {
       const res = E.settleOnLoad(app.state, new Date());
       persist();
-      if (!ui.hasOpen() && !(app.current && app.current.keepOnTick)) app.render();
-      else app.refreshChrome();
+      app.render();
       app.celebrate(res.events);
     }
   }
@@ -513,8 +540,18 @@
     persist();
     app.applySettings();
     if (hotData.view) Object.assign(app.view, hotData.view, { saveDraft: null, editDraft: null, placing: null });
-    app.route = parseHash(hotData.route ? '#' + hotData.route : root.location.hash);
+    app.route = liveRoute(parseHash(hotData.route ? '#' + hotData.route : root.location.hash)) || { name: 'home', param: null };
     app.render();
+
+    const skip = document.querySelector('.skip-link');
+    if (skip) {
+      skip.addEventListener('click', (e) => {
+        e.preventDefault();
+        const main = document.getElementById('screen');
+        main.focus({ preventScroll: true });
+        main.scrollIntoView();
+      });
+    }
 
     root.addEventListener('hashchange', onLocationChange);
     root.addEventListener('popstate', onLocationChange);

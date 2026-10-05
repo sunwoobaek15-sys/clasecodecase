@@ -192,7 +192,7 @@
     if (!res) return;
     if (r.hasImage) SC.images.del(id);
     SC.audio.play('tap');
-    app.navigate('history');
+    app.navigate('history', null, { replace: true });
     ui.toast('기록을 삭제했어요.' + (res.delta ? ' TOKEN ' + U.signed(res.delta) : ''), { type: 'info', icon: '🗑️' });
     app.celebrate(res.events);
   };

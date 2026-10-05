@@ -120,7 +120,8 @@
     return n > 0 ? n : 0;
   };
   const isoOr = (v, fb) => (U.isIso(v) ? new Date(v).toISOString() : fb);
-  const validId = (v) => typeof v === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(v);
+  const RESERVED_IDS = new Set(['__proto__', 'constructor', 'prototype']);
+  const validId = (v) => typeof v === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(v) && !RESERVED_IDS.has(v);
 
   function bySeq(a, b) {
     return a.seq - b.seq || String(a.createdAt).localeCompare(String(b.createdAt)) || String(a.id).localeCompare(String(b.id));
@@ -777,15 +778,25 @@
     return { events, derived: d };
   }
 
+  /**
+   * STREAK 보상은 연속 기록 한 번(run)에 목표마다 한 번만 줍니다.
+   * 키는 '보상 받은 날짜:목표일수'. 지금 이어지는 연속 기록 기간 안에 같은 목표 보상이 있으면 다시 주지 않아요.
+   * (예전 기록을 지워 시작일이 바뀌어도 중복 지급되지 않음)
+   */
+  function streakRewardGiven(state, m, runStart) {
+    return Object.keys(state.streakRewards).some((k) => {
+      const i = k.lastIndexOf(':');
+      return Number(k.slice(i + 1)) === m && k.slice(0, i) >= runStart;
+    });
+  }
+
   function applyStreakRewards(state, now, events) {
     const today = U.dateKey(now);
     const sk = streakInfo(new Set(state.history.map((r) => r.date)), today);
     if (!sk.recordedToday) return;
     for (const m of Object.keys(D.STREAK_REWARDS).map(Number).sort((a, b) => a - b)) {
-      if (sk.current < m) continue;
-      const key = sk.start + ':' + m;
-      if (state.streakRewards[key]) continue;
-      state.streakRewards[key] = now.toISOString();
+      if (sk.current < m || streakRewardGiven(state, m, sk.start)) continue;
+      state.streakRewards[today + ':' + m] = now.toISOString();
       const reward = grantReward(state, D.STREAK_REWARDS[m], now, m + '일 연속 기록 보상', 'streak');
       events.push({ type: 'streakReward', days: m, reward });
     }
@@ -827,6 +838,25 @@
    * 행동 (상태를 바꾸고 결과/이벤트를 돌려줌)
    * ------------------------------------------------------------------ */
 
+  /**
+   * 그날 TOKEN을 받은 기록이 생기면 보너스를 하나 제안하고, 그런 기록이 모두 사라지면 받지 않은 보너스를 거둬요.
+   * 새로 제안했으면 true.
+   */
+  function syncBonusForDay(state, date) {
+    const earned = state.history.some((r) => r.date === date && r.tokens > 0);
+    const status = state.bonusDays[date];
+    if (!earned && status === 'pending') {
+      delete state.bonusDays[date];
+      state.pendingBonuses = state.pendingBonuses.filter((x) => x !== date);
+    } else if (earned && !status) {
+      state.bonusDays[date] = 'pending';
+      state.pendingBonuses.push(date);
+      state.pendingBonuses.sort();
+      return true;
+    }
+    return false;
+  }
+
   function previewSave(state, amountRaw, now) {
     const today = U.dateKey(now || new Date());
     const used = dayRecognized(state, today);
@@ -864,12 +894,7 @@
     };
     state.history.push(rec);
     addLedger(state, now, 'save', '절약: ' + v.item, tokens);
-    let bonusOffered = false;
-    if (tokens > 0 && !state.bonusDays[today]) {
-      state.bonusDays[today] = 'pending';
-      state.pendingBonuses.push(today);
-      bonusOffered = true;
-    }
+    const bonusOffered = syncBonusForDay(state, today);
     const events = [];
     applyStreakRewards(state, now, events);
     const res = settle(state, now, before);
@@ -921,7 +946,9 @@
     const sim = simulateDay(state, rec.date, { id, amount: p.value });
     const delta = sim.total - dayTokens(state, rec.date);
     const balanceAfter = balanceOf(state) + delta;
-    return { ok: true, amount: p.value, recognized: sim.byId[id].recognized, tokens: sim.byId[id].tokens, oldTokens: rec.tokens, delta, balanceAfter, capped: p.value > sim.byId[id].recognized };
+    let othersRecognized = 0;
+    for (const k of Object.keys(sim.byId)) if (k !== id) othersRecognized += sim.byId[k].recognized;
+    return { ok: true, amount: p.value, recognized: sim.byId[id].recognized, tokens: sim.byId[id].tokens, oldTokens: rec.tokens, delta, balanceAfter, othersRecognized, capped: p.value > sim.byId[id].recognized };
   }
 
   function updateRecord(state, id, input, now) {
@@ -945,8 +972,9 @@
     rec.updatedAt = now.toISOString();
     recomputeDay(state, rec.date);
     addLedger(state, now, 'edit', '기록 수정: ' + v.item, delta);
+    const bonusOffered = syncBonusForDay(state, rec.date);
     const res = settle(state, now, before);
-    return { record: rec, delta, events: res.events, derived: res.derived };
+    return { record: rec, delta, bonusOffered, events: res.events, derived: res.derived };
   }
 
   function previewDelete(state, id) {
@@ -968,6 +996,7 @@
     state.history.splice(state.history.indexOf(rec), 1);
     recomputeDay(state, rec.date);
     addLedger(state, now, 'delete', '기록 삭제: ' + rec.item, p.delta);
+    syncBonusForDay(state, rec.date);
     const res = settle(state, now, before);
     return { record: rec, delta: p.delta, events: res.events, derived: res.derived };
   }
@@ -1233,6 +1262,7 @@
     updateRecord,
     deleteRecord,
     setRecordImage,
+    syncBonusForDay,
     claimBonus,
     buyItem,
     placeItem,

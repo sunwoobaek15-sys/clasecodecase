@@ -258,7 +258,7 @@
     { id: 'collect', label: '수집' },
   ];
 
-  const LEDGER_KINDS = {
+  const LEDGER_KINDS = Object.assign(Object.create(null), {
     save: '절약',
     edit: '기록 수정',
     delete: '기록 삭제',
@@ -267,9 +267,10 @@
     achievement: '업적',
     purchase: '구매',
     upgrade: '업그레이드',
-  };
+  });
 
-  const byId = (list) => list.reduce((m, x) => ((m[x.id] = x), m), {});
+  // 저장 데이터의 키로 찾아보는 표는 프로토타입 없는 객체로 만들어 'constructor' 같은 키가 끼어들지 못하게 합니다.
+  const byId = (list) => list.reduce((m, x) => ((m[x.id] = x), m), Object.create(null));
 
   SC.data = {
     RULES,

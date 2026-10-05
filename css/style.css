@@ -1430,7 +1430,15 @@ textarea.input {
   font-size: 16.5px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+}
+@media (max-width: 479px) {
+  .reward-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .reward-grid > div:first-child {
+    grid-column: 1 / -1;
+  }
 }
 .reward-grid .pv-token strong {
   color: var(--good);
