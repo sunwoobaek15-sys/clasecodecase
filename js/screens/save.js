@@ -203,7 +203,7 @@
       return;
     }
     const g = E.guessCategory(item);
-    el.textContent = '종류를 고르지 않으면 자동으로 "' + V.catIcon(g) + ' ' + V.catLabel(g) + '"(으)로 기록돼요.';
+    el.textContent = '종류를 고르지 않으면 자동으로 ' + V.catIcon(g) + ' ' + U.ro(V.catLabel(g)) + ' 기록돼요.';
   }
 
   function updatePreview(rootEl, mode) {

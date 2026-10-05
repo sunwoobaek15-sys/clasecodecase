@@ -156,6 +156,9 @@
       }
     },
     syncVisibility: syncMusic,
+    get running() {
+      return !!ctx && ctx.state === 'running';
+    },
     get musicPlaying() {
       return !!musicTimer;
     },

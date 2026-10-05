@@ -1088,7 +1088,7 @@ textarea.input {
 
 .stat-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
   gap: 10px;
 }
 .stat {
@@ -2053,6 +2053,14 @@ textarea.input {
   color: var(--ink-3);
   font-weight: 700;
 }
+@media (max-width: 479px) {
+  .seg-btn small {
+    display: none;
+  }
+  .seg-btn {
+    padding: 6px 8px;
+  }
+}
 .seg-btn.on {
   background: var(--surface);
   color: var(--brand-ink);
@@ -2562,7 +2570,7 @@ textarea.input {
 /* ---------------- 통계 ---------------- */
 .tiles {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 8px;
 }
 .tile {
@@ -2687,7 +2695,7 @@ button.tile:hover {
 }
 .hbars li {
   display: grid;
-  grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 6.6em;
   align-items: center;
   gap: 8px;
   padding: 7px 0;
@@ -2717,8 +2725,10 @@ button.tile:hover {
   text-align: right;
 }
 .hb-val small {
+  display: block;
   color: var(--ink-3);
   font-weight: 500;
+  font-size: 11.5px;
 }
 
 /* ---------------- 설정 / 프로필 ---------------- */
@@ -2891,7 +2901,7 @@ button.tile:hover {
   color: #142048;
 }
 .tiles-4 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 .badge-row {
   display: grid;
@@ -3329,13 +3339,6 @@ html.modal-open #toast-root {
   .shop-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .tiles {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .tiles-4,
-  .stat-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
   .dex-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -3546,7 +3549,7 @@ html.modal-open #toast-root {
     font-size: 17px;
   }
   .hbars li {
-    grid-template-columns: minmax(0, 6em) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 6em) minmax(0, 1fr) 6.2em;
   }
 }
 @media (prefers-reduced-motion: reduce) {

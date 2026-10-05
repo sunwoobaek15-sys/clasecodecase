@@ -237,16 +237,26 @@
   /* ---------------- 설정 적용 ---------------- */
 
   const darkQuery = root.matchMedia ? root.matchMedia('(prefers-color-scheme: dark)') : null;
+  // 앱이 직접 정한 화면 모드. '기기 설정 따르기'일 때는 페이지를 감싼 환경이 정한 값을 건드리지 않습니다.
+  let appTheme = null;
   app.isDark = function () {
     const t = app.state.settings.theme;
-    return t === 'dark' || (t === 'system' && !!(darkQuery && darkQuery.matches));
+    if (t !== 'system') return t === 'dark';
+    const attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark' || attr === 'light') return attr === 'dark';
+    return !!(darkQuery && darkQuery.matches);
   };
 
   app.applySettings = function () {
     const s = app.state.settings;
     const html = document.documentElement;
-    if (s.theme === 'system') html.removeAttribute('data-theme');
-    else html.setAttribute('data-theme', s.theme);
+    if (s.theme === 'system') {
+      if (appTheme !== null && html.getAttribute('data-theme') === appTheme) html.removeAttribute('data-theme');
+      appTheme = null;
+    } else {
+      html.setAttribute('data-theme', s.theme);
+      appTheme = s.theme;
+    }
     html.classList.toggle('no-anim', !s.animation);
     SC.audio.configure({ sound: s.sound, sfx: s.sfx });
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -521,13 +531,13 @@
         if (app.route.name === 'settings') app.render();
       });
     }
+    // 브라우저(특히 iOS)는 사용자가 화면을 누른 뒤에만 소리를 허용합니다. 소리가 켜질 때까지 매번 시도해요.
+    const gestures = ['pointerdown', 'touchend', 'click', 'keydown'];
     const unlockAudio = () => {
       SC.audio.unlock();
-      root.removeEventListener('pointerdown', unlockAudio, true);
-      root.removeEventListener('keydown', unlockAudio, true);
+      if (SC.audio.running) gestures.forEach((g) => root.removeEventListener(g, unlockAudio, true));
     };
-    root.addEventListener('pointerdown', unlockAudio, true);
-    root.addEventListener('keydown', unlockAudio, true);
+    gestures.forEach((g) => root.addEventListener(g, unlockAudio, true));
 
     if (loaded.status === 'unavailable') {
       ui.toast('이 브라우저에서는 저장 기능이 꺼져 있어요. 창을 닫으면 기록이 사라질 수 있어요.', { type: 'error', duration: 6000 });

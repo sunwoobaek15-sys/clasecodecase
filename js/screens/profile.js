@@ -64,6 +64,13 @@
     ui.sheet({
       title: '프로필 편집',
       body,
+      onOpen: (el) => {
+        const input = el.querySelector('#p-nick');
+        input.addEventListener('input', () => {
+          el.querySelector('#e-nick').hidden = true;
+          input.removeAttribute('aria-invalid');
+        });
+      },
       actions: [
         { label: '취소', kind: 'secondary' },
         {
@@ -75,6 +82,7 @@
               const err = dialog.querySelector('#e-nick');
               err.textContent = '닉네임을 1자 이상 입력해 주세요.';
               err.hidden = false;
+              dialog.querySelector('#p-nick').setAttribute('aria-invalid', 'true');
               dialog.querySelector('#p-nick').focus();
               SC.audio.play('error');
               return false;

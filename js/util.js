@@ -126,6 +126,21 @@
     return cut(t, max || 200);
   }
 
+  /** 받침에 따라 조사 고르기: josa('카페', '을', '를') → '카페를' */
+  function josa(word, withFinal, withoutFinal) {
+    const code = String(word).charCodeAt(String(word).length - 1);
+    if (code < 0xac00 || code > 0xd7a3) return word + withoutFinal;
+    return word + ((code - 0xac00) % 28 ? withFinal : withoutFinal);
+  }
+
+  /** '으로/로': 받침이 없거나 ㄹ 받침이면 '로' */
+  function ro(word) {
+    const code = String(word).charCodeAt(String(word).length - 1);
+    if (code < 0xac00 || code > 0xd7a3) return word + '로';
+    const fin = (code - 0xac00) % 28;
+    return word + (fin === 0 || fin === 8 ? '로' : '으로');
+  }
+
   function clamp(v, min, max) {
     return Math.min(max, Math.max(min, v));
   }
@@ -172,6 +187,8 @@
     cut,
     cleanText,
     cleanMultiline,
+    josa,
+    ro,
     clamp,
     toInt,
     isIso,

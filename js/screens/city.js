@@ -490,7 +490,7 @@
     if (!res) return;
     SC.audio.play('unlock');
     ui.confetti(120);
-    ui.toast('새 지역 <b>' + res.region.name + '</b>이(가) 열렸어요! 빈 땅 ' + res.region.plots + '칸이 생겼어요.', { type: 'success', icon: '🗺️' });
+    ui.toast('새 지역 <b>' + josa(res.region.name, '이', '가') + '</b> 열렸어요! 빈 땅 ' + res.region.plots + '칸이 생겼어요.', { type: 'success', icon: '🗺️' });
     app.celebrate(res.events);
   };
 

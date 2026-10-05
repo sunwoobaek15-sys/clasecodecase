@@ -102,7 +102,7 @@
       rows
         .map(
           (r) =>
-            '<li><span class="hb-label"><span aria-hidden="true">' + r.c.icon + '</span> ' + r.c.label + '</span><span class="hb-track" aria-hidden="true"><span class="hb-fill" style="width:' + ((r.v / max) * 100).toFixed(1) + '%"></span></span><span class="hb-val">' + U.won(r.v) + ' <small>' + Math.round((r.v / total) * 100) + '%</small></span></li>'
+            '<li><span class="hb-label"><span aria-hidden="true">' + r.c.icon + '</span> ' + r.c.label + '</span><span class="hb-track" aria-hidden="true"><span class="hb-fill" style="width:' + ((r.v / max) * 100).toFixed(1) + '%"></span></span><span class="hb-val">' + U.won(r.v) + '<small>' + Math.round((r.v / total) * 100) + '%</small></span></li>'
         )
         .join('') +
       '</ul>'
