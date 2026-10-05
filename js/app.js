@@ -423,7 +423,7 @@
 
   /* ---------------- 처음 시작 안내 ---------------- */
 
-  app.openOnboarding = function (again) {
+  app.openOnboarding = function (again, notice) {
     const avatars = D.AVATARS.map(
       (a, i) => '<label class="avatar-opt"><input type="radio" name="ob-avatar" value="' + a + '"' + (a === app.state.user.avatar || (!i && !D.AVATARS.includes(app.state.user.avatar)) ? ' checked' : '') + '><span>' + a + '</span></label>'
     ).join('');
@@ -442,6 +442,7 @@
       title: again ? '게임 방법' : 'SAVE CITY에 오신 걸 환영해요!',
       className: 'dialog-onboard',
       body:
+        (notice ? '<p class="ob-notice" role="alert">' + notice + '</p>' : '') +
         '<p class="ob-lead">돈을 아끼는 행동을 할수록 게임 속 도시가 자라요.</p>' +
         '<ol class="ob-steps">' +
         '<li><span class="ob-ic" aria-hidden="true">💰</span><div><b>현실에서 절약해요</b><small>사고 싶던 걸 참거나 더 싸게 해결했나요?</small></div></li>' +
@@ -539,12 +540,13 @@
     };
     gestures.forEach((g) => root.addEventListener(g, unlockAudio, true));
 
-    if (loaded.status === 'unavailable') {
-      ui.toast('이 브라우저에서는 저장 기능이 꺼져 있어요. 창을 닫으면 기록이 사라질 수 있어요.', { type: 'error', duration: 6000 });
-    } else if (loaded.status === 'corrupt') {
-      ui.toast('저장된 데이터를 읽을 수 없어서 새로 시작했어요. 이전 데이터는 따로 보관했어요.', { type: 'error', duration: 6000 });
-    }
-    if (!app.state.user.onboarded) app.openOnboarding(false);
+    const notice =
+      loaded.status === 'unavailable'
+        ? '이 브라우저에서는 저장 기능이 꺼져 있어요. (개인정보 보호 모드 등) 창을 닫으면 기록이 사라질 수 있어요.'
+        : loaded.status === 'corrupt'
+          ? '저장된 데이터를 읽을 수 없어서 새로 시작해요. 이전 데이터는 브라우저 안에 따로 보관했어요.'
+          : '';
+    if (!app.state.user.onboarded) app.openOnboarding(false, notice);
     else app.celebrate(res.events);
 
     SC.images.probe().then((ok) => {

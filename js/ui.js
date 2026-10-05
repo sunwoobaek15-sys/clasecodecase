@@ -123,6 +123,7 @@
     }
 
     wrap.addEventListener('click', (e) => {
+      if (closed) return;
       if (e.target === wrap && dismissible) {
         close();
         return;

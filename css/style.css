@@ -882,6 +882,9 @@ textarea.input {
   gap: 14px;
   min-width: 0;
 }
+.home-b {
+  container-type: inline-size;
+}
 .hero {
   position: relative;
   display: flex;
@@ -1034,15 +1037,19 @@ textarea.input {
 
 .callout {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 10px 12px;
+}
+.callout > .btn {
+  margin-left: auto;
 }
 .callout-ic {
   font-size: 30px;
   flex: none;
 }
 .callout-text {
-  flex: 1;
+  flex: 1 1 150px;
   min-width: 0;
 }
 .callout-text h2 {
@@ -1088,8 +1095,13 @@ textarea.input {
 
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+@container (min-width: 600px) {
+  .stat-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 .stat {
   display: flex;
@@ -2570,7 +2582,7 @@ textarea.input {
 /* ---------------- 통계 ---------------- */
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 .tile {
@@ -2594,6 +2606,13 @@ button.tile:hover {
 }
 .chart-box {
   position: relative;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.chart-card .chart-table {
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .chart {
   display: block;
@@ -2901,7 +2920,7 @@ button.tile:hover {
   color: #142048;
 }
 .tiles-4 {
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .badge-row {
   display: grid;
@@ -3013,6 +3032,7 @@ button.tile:hover {
 }
 .overlay.leaving {
   opacity: 0;
+  pointer-events: none;
 }
 .dialog {
   position: relative;
@@ -3154,6 +3174,15 @@ button.tile:hover {
 .mini-item .thumb {
   width: 100%;
   max-width: 64px;
+}
+.ob-notice {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 13.5px;
+  font-weight: 500;
 }
 .ob-lead {
   font-size: 15px;
@@ -3339,6 +3368,12 @@ html.modal-open #toast-root {
   .shop-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  .tiles {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .tiles-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
   .dex-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -3490,6 +3525,17 @@ html.modal-open #toast-root {
   .region-tabs {
     margin: 0;
     padding: 2px 0 6px;
+  }
+  .bld-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 18px;
+  }
+  .bld-list li + li {
+    border-top: 0;
+  }
+  .bld-list li {
+    border-bottom: 1px solid var(--line);
   }
   .chip-row.scroll-x {
     margin: 0;
