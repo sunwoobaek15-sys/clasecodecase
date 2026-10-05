@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SAVE CITY</title>
+<meta name="description" content="돈을 아끼는 행동을 할수록 게임 속 도시가 성장하는 절약 습관 게임">
+<meta name="theme-color" content="#2f6bff">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SAVE CITY">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Lilita+One&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#screen">본문으로 건너뛰기</a>
+<div class="app">
+  <aside class="sidebar" aria-label="메뉴">
+    <button type="button" class="brand" data-nav="home" aria-label="SAVE CITY 홈">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#f5b301"/><circle cx="24" cy="24" r="18" fill="#ffd23f"/><path d="M11 33V22h6v11M17 33V15h8v18M25 33V19h7v14M32 33V25h5v8" fill="#2f6bff"/><path d="M9 33h30" stroke="#1c4fd8" stroke-width="2.4" stroke-linecap="round"/><path d="M19 18h4M19 22h4M19 26h4M27 22h3M27 26h3" stroke="#bfe0ff" stroke-width="1.6"/></svg>
+      <span class="wordmark">SAVE<span>CITY</span></span>
+    </button>
+    <nav class="side-nav">
+      <button type="button" data-nav="home"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 12 3.8l8.5 6.7"/><path d="M5.5 9.2V20h5v-5.5h3V20h5V9.2"/></svg><span>홈<small>HOME</small></span></button>
+      <button type="button" data-nav="save" class="side-save"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>절약 기록하기<small>SAVE</small></span></button>
+      <button type="button" data-nav="city"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20.5h18"/><path d="M5 20.5V9l5-2.5v14"/><path d="M10 20.5V4h8v16.5"/><path d="M13 7.5h2M13 11h2M13 14.5h2M7 11.5h1M7 15h1"/></svg><span>도시<small>CITY</small></span></button>
+      <button type="button" data-nav="shop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8Z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/></svg><span>상점<small>SHOP</small></span></button>
+      <button type="button" data-nav="history"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v4h4"/><path d="M12 8v4.5l3 2"/></svg><span>히스토리<small>HISTORY</small></span></button>
+      <button type="button" data-nav="achievements"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0Z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4M8.5 20.5h7M9.5 17h5v3.5h-5z"/></svg><span>업적 &amp; 도감<small>ACHIEVEMENTS</small></span></button>
+      <button type="button" data-nav="stats"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20.5h16"/><path d="M6.5 17v-5M11 17V7M15.5 17v-8M20 17v-3"/></svg><span>통계<small>STATS</small></span></button>
+      <button type="button" data-nav="settings"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg><span>설정<small>SETTINGS</small></span></button>
+      <button type="button" data-nav="profile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.2-4 4.2-6 7.5-6s6.3 2 7.5 6"/></svg><span>프로필<small>PROFILE</small></span></button>
+    </nav>
+    <div class="side-stats">
+      <button type="button" class="side-stat" data-nav="history" data-tab="ledger"><span>TOKEN</span><b data-bind="token">0</b></button>
+      <button type="button" class="side-stat" data-action="app:streak"><span>STREAK</span><b><span data-bind="streak">0</span>일</b></button>
+      <button type="button" class="side-stat" data-action="app:level"><span>CITY LEVEL</span><b data-bind="level">1</b></button>
+    </div>
+    <p class="side-foot">작은 절약이 만드는 큰 변화!</p>
+  </aside>
+
+  <div class="main-col">
+    <header class="topbar">
+      <button type="button" class="brand brand-mini" data-nav="home" aria-label="SAVE CITY 홈">
+        <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#f5b301"/><circle cx="24" cy="24" r="18" fill="#ffd23f"/><path d="M11 33V22h6v11M17 33V15h8v18M25 33V19h7v14M32 33V25h5v8" fill="#2f6bff"/><path d="M9 33h30" stroke="#1c4fd8" stroke-width="2.4" stroke-linecap="round"/><path d="M19 18h4M19 22h4M19 26h4M27 22h3M27 26h3" stroke="#bfe0ff" stroke-width="1.6"/></svg>
+        <span class="wordmark">SAVE<span>CITY</span></span>
+      </button>
+      <div class="topbar-chips">
+        <button type="button" class="chip chip-coin" data-nav="history" data-tab="ledger" aria-label="TOKEN 내역 보기"><svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#f5b301"/><circle cx="12" cy="12" r="7.6" fill="#ffd23f"/><path d="M8.6 9.2 10 15l2-4.6L14 15l1.4-5.8M8 11.6h8" stroke="#a86b00" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><b data-bind="token">0</b></button>
+        <button type="button" class="chip chip-fire" data-action="app:streak" aria-label="STREAK 규칙 보기"><span aria-hidden="true">🔥</span><b data-bind="streak">0</b><span class="chip-unit">일</span></button>
+      </div>
+    </header>
+    <div id="storage-banner" class="storage-banner" role="alert" hidden>이 브라우저에서는 저장 기능이 꺼져 있어요. 창을 닫으면 기록이 사라질 수 있어요.</div>
+    <main id="screen" class="screen" tabindex="-1">
+      <div class="boot">
+        <p>SAVE CITY를 불러오는 중…</p>
+        <noscript><p>SAVE CITY를 하려면 브라우저에서 JavaScript를 켜 주세요.</p></noscript>
+      </div>
+    </main>
+  </div>
+
+  <nav class="tabbar" aria-label="주요 메뉴">
+    <button type="button" data-nav="home"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 12 3.8l8.5 6.7"/><path d="M5.5 9.2V20h5v-5.5h3V20h5V9.2"/></svg><span>HOME</span></button>
+    <button type="button" data-nav="city"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20.5h18"/><path d="M5 20.5V9l5-2.5v14"/><path d="M10 20.5V4h8v16.5"/><path d="M13 7.5h2M13 11h2M13 14.5h2M7 11.5h1M7 15h1"/></svg><span>CITY</span></button>
+    <button type="button" data-nav="save" class="tab-save" aria-label="절약 기록하기 SAVE"><span class="tab-save-btn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span>SAVE</span></button>
+    <button type="button" data-nav="shop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8Z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/></svg><span>SHOP</span></button>
+    <button type="button" data-nav="profile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.2-4 4.2-6 7.5-6s6.3 2 7.5 6"/></svg><span>PROFILE</span></button>
+  </nav>
+</div>
+<div id="overlay-root"></div>
+<div id="toast-root" aria-live="polite"></div>
+
+<script src="js/util.js"></script>
+<script src="js/data.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/render-city.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/view.js"></script>
+<script src="js/app.js"></script>
+<script src="js/screens/home.js"></script>
+<script src="js/screens/save.js"></script>
+<script src="js/screens/city.js"></script>
+<script src="js/screens/shop.js"></script>
+<script src="js/screens/history.js"></script>
+<script src="js/screens/achievements.js"></script>
+<script src="js/screens/stats.js"></script>
+<script src="js/screens/settings.js"></script>
+<script src="js/screens/profile.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
