@@ -1096,7 +1096,7 @@ CPS.forEach((cp, i) => {
   const F = floors[cp.f];
   cp.mark = new THREE.Mesh(cpGeo, new THREE.MeshBasicMaterial({ color: 0xffc040, fog: false, transparent: true, opacity: 0.85 }));
   cp.mark.position.set(cp.x, 1.9, cp.z); F.group.add(cp.mark);
-  interact(F, cp.x, cp.z, () => G.cps[i] ? `점검 완료 — ${cp.name}` : `순찰 점검: ${cp.name}`, () => checkCP(i), { r: 1.9 });
+  cp.it = interact(F, cp.x, cp.z, () => G.cps[i] ? `점검 완료 — ${cp.name}` : `순찰 점검: ${cp.name}`, () => checkCP(i), { r: 1.9 });
 });
 function checkCP(i) {
   if (G.cps[i]) { toast('이미 점검했다. 일지에 적혀 있다.'); return; }
@@ -1822,6 +1822,307 @@ Object.assign(AU, {
   sprayOff() { if (!this.spray) return; const { s, g } = this.spray, t = this.ctx.currentTime; g.gain.setTargetAtTime(0.0001, t, 0.05); s.stop(t + 0.3); this.spray = null; }
 });
 
+
+/* ============================================================
+   STAGE 5 — 야근 직원 유령, 괴현상, 당직실 전화, 정신력
+   ============================================================ */
+const coneGeo = new THREE.CylinderGeometry(1, 0.12, 1, 8);
+const ghostPaperTex = textTex(128, 170, { bg: '#f4f0e0', fg: '#222', head: '결재 요청', headBg: '#7a1a14', headSize: 22, headH: 36, align: 'left', pad: 10, size: 13, top: 56, lh: 1.5, bold: false,
+  lines: ['기안: 야근팀', '제목: 이것만…', '이것만 봐주세요', '이것만 봐주세요', '이것만 봐주세', '이것만'] });
+const GHOST_LINES = ['이것만 봐주세요…', '결재… 해주세요…', '이것만… 이것만…', '퇴근… 언제 해요…?', '오늘까지라고 했는데…', '팀장님은요…?'];
+function spawnGhost(fl, x, z) {
+  const F = floors[fl];
+  const mat = new THREE.MeshBasicMaterial({ color: 0xb8e0ff, transparent: true, opacity: 0.3, depthWrite: false });
+  const dark = new THREE.MeshBasicMaterial({ color: 0x050a12, transparent: true, opacity: 0.6, depthWrite: false });
+  const paperMat = new THREE.MeshBasicMaterial({ map: ghostPaperTex, transparent: true, opacity: 0.75, depthWrite: false, side: THREE.DoubleSide });
+  const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
+  const tail = new THREE.Mesh(coneGeo, mat); tail.scale.set(0.24, 1.0, 0.18); tail.position.y = 0.55; body.add(tail);
+  bx(0.5, 0.62, 0.28, mat, 0, 1.33, 0, body); bx(0.07, 0.42, 0.02, dark, 0, 1.38, 0.15, body);
+  bx(0.3, 0.32, 0.3, mat, 0, 1.84, 0, body);
+  bx(0.065, 0.075, 0.02, dark, -0.07, 1.87, 0.155, body); bx(0.065, 0.075, 0.02, dark, 0.07, 1.87, 0.155, body); bx(0.07, 0.1, 0.02, dark, 0, 1.75, 0.155, body);
+  bx(0.24, 0.02, 0.02, dark, 0, 1.9, 0.16, body); // glasses bar
+  for (const sx of [-0.32, 0.32]) { const a = new THREE.Group(); a.position.set(sx, 1.6, 0); a.rotation.x = -1.35; bx(0.12, 0.58, 0.13, mat, 0, -0.27, 0, a); body.add(a); }
+  const paper = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.42), paperMat); paper.position.set(0, 1.5, 0.55); paper.rotation.x = -0.5; body.add(paper);
+  F.group.add(root);
+  const e = { type: 'ghost', floor: fl, x, z, px: x, pz: z, yaw: 0, root, body, mats: [mat, dark, paperMat], tag: makeTag(true), state: 'chase', stun: 0, touchCd: 0,
+    whisperT: rand(1, 3), sealT: 0, kx: 0, kz: 0, offFloorT: 0, looked: false, headY() { return 2.05; } };
+  enemies.push(e);
+  return e;
+}
+function updateGhost(e, dt, F) {
+  const p = prog(), now = performance.now() / 1000;
+  if (e.state === 'sealing') {
+    e.sealT += dt; e.root.position.y = e.sealT * 1.2; e.body.rotation.y += dt * 6;
+    e.mats.forEach(m => m.opacity = Math.max(0, m.opacity - dt * 0.5)); if (e.sealT > 1.6) removeEnemy(e); return;
+  }
+  e.touchCd -= dt; if (e.stun > 0) e.stun -= dt;
+  const f = camFwd(), dx = e.x - player.x, dz = e.z - player.z, d = Math.hypot(dx, dz) || 0.01;
+  e.looked = d < 20 && (dx * f.x + dz * f.z) / d > 0.8 && hasLOS(F, player.x, player.z, e.x, e.z);
+  const speed = e.stun > 0 ? 0 : e.looked ? 0.3 : 2.3 + p * 1.5;
+  steer(e, F, dt, speed, 0.5, true);
+  e.root.position.set(e.x, Math.sin(now * 2 + e.x) * 0.08 + 0.05, e.z); e.root.rotation.y = e.yaw;
+  e.mats[0].opacity = (e.looked ? 0.22 : 0.34) + Math.sin(now * 13) * 0.04 + (Math.random() < 0.03 ? 0.25 : 0);
+  e.whisperT -= dt;
+  if (e.whisperT <= 0) { e.whisperT = rand(3.5, 6.5); bubble(e, pick(GHOST_LINES), 2.6); AU.whisper(e.x, e.z, e.floor); }
+  if (d < 0.85 && e.touchCd <= 0 && e.stun <= 0 && !player.inSafe) {
+    e.touchCd = 1.6; hurtSanity(13 + p * 6);
+    e.kx = dx / d * 5; e.kz = dz / d * 5; e.stun = 0.9;
+    $('vignette').style.background = 'radial-gradient(ellipse at center,transparent 25%,rgba(120,180,255,.75) 100%)'; setTimeout(() => $('vignette').style.background = '', 250);
+    AU.sting(); G.shake = Math.max(G.shake, 0.25); burstPapers(player.x, 1.4, player.z, 6, 0.7);
+    say('<i>"이것만… 봐주세요…"</i>', 2000);
+  }
+}
+hooks.enemyUpdate = (e, dt, F) => { if (e.type === 'ghost') updateGhost(e, dt, F); };
+hooks.hitGhost = (e, kind, dirx, dirz) => {
+  if (e.state === 'sealing') return;
+  if (kind === 'seal') {
+    ammo.seal--; updateWeaponHUD();
+    e.state = 'sealing'; e.sealT = 0; G.score += 150; player.san = Math.min(100, player.san + 12);
+    bubble(e, '…결재… 감사합니다…', 2.5); burstPapers(e.x, 1.5, e.z, 16, 1); G.hitstop = 0.1; G.shake = 0.4;
+    const seal = new THREE.Mesh(new THREE.CircleGeometry(0.09, 16), new THREE.MeshBasicMaterial({ color: 0xff1a10, transparent: true, depthWrite: false }));
+    seal.position.set(0.05, 1.52, 0.57); seal.rotation.x = -0.5; e.body.add(seal); e.mats.push(seal.material);
+    AU.chord(); toast('야근 직원 유령 봉인 — 결재 완료 (+150)');
+    return;
+  }
+  e.kx = dirx * (kind === 'spray' ? 8 : 10); e.kz = dirz * (kind === 'spray' ? 8 : 10); e.stun = kind === 'spray' ? 0.6 : 1.2;
+  if (kind !== 'spray') { hitFX(e, false); bubble(e, pick(['…아직 결재 안 끝났어요', '…다시 올게요…', '…반려하시는 거예요?']), 2); }
+  if (!G.ghostHint) { G.ghostHint = true; say('<b>나</b>: 소용없어… <b>직인 도장</b>으로만 봉인할 수 있다고 했지.', 3500); }
+};
+
+/* ---------- copier phenomenon (2F) ---------- */
+const copier = { active: false, printT: 0, soundT: 0, sheets: [], seen: false };
+const faceTex = canvasTex(200, 270, (g, w, h) => {
+  g.fillStyle = '#f2f0e8'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 1400; i++) { g.fillStyle = `rgba(0,0,0,${Math.random() * 0.25})`; g.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5); }
+  g.fillStyle = '#111'; g.beginPath(); g.ellipse(100, 105, 46, 58, 0, 0, 7); g.fill();
+  g.beginPath(); g.moveTo(20, 230); g.quadraticCurveTo(100, 140, 180, 230); g.lineTo(180, 250); g.lineTo(20, 250); g.fill();
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(82, 98, 5, 0, 7); g.arc(118, 98, 5, 0, 7); g.fill();
+  g.fillStyle = '#111'; g.font = `bold 15px ${FONT}`; g.textAlign = 'center'; g.fillText('당직자 (본인)', 100, 26); g.font = `11px ${FONT}`; g.fillText('COPY  COPY  COPY  COPY', 100, 262);
+});
+const faceMat = new THREE.MeshLambertMaterial({ map: faceTex, side: THREE.DoubleSide });
+const copierLight = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.03), new THREE.MeshBasicMaterial({ color: 0x30ff60 }));
+copierLight.position.set(34.0, 1.12, 1.49); floors[2].group.add(copierLight);
+function startCopier() {
+  if (copier.active) return; copier.active = true; copier.printT = 0.5; copier.seen = false;
+  if (player.floor === 2) toast('어디선가 복사기가 돌아가는 소리가 난다…'); else toast('…2층에서 기계 소리가 들린다');
+}
+function stopCopier() {
+  copier.active = false; G.score += 80; player.san = Math.min(100, player.san + 8);
+  AU.tone({ f: 200, f2: 60, dur: 0.4, vol: 0.2, type: 'square', lp: 600 });
+  toast('복사기 플러그를 뽑았다 (+80)'); say('<b>나</b>: …출력물은 안 보는 걸로 하자.', 3000);
+}
+interact(floors[2], 34.1, 2.0, '복사기 플러그 뽑기 (멈추지 않는다!)', stopCopier, { ok: () => copier.active, r: 2.2 });
+CPS[2].it.ok = () => !copier.active;
+function updateCopier(dt) {
+  copierLight.material.color.setHex(copier.active ? (Math.floor(performance.now() / 120) % 2 ? 0xff3020 : 0x30ff60) : 0x103010);
+  if (!copier.active) return;
+  copier.soundT -= dt;
+  if (copier.soundT <= 0) { copier.soundT = 0.55; const s = AU.sp(34.3, 1.1, 2); if (s.v > 0.13 || player.floor === 2) { AU.noise({ f: 420, q: 2.5, dur: 0.5, vol: 0.12 * s.v, pan: s.p }); AU.tone({ f: 55, dur: 0.5, vol: 0.05 * s.v, type: 'square', pan: s.p, lp: 300 }); } }
+  copier.printT -= dt;
+  if (copier.printT <= 0) {
+    copier.printT = 1.7;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.21, 0.29), faceMat); floors[2].group.add(m);
+    copier.sheets.push({ m, x: 33.6, y: 0.75, z: 1.1, vx: rand(-1.8, -0.6), vy: rand(0.6, 1.4), vz: rand(0.2, 1.8), r: Math.random() * 6, done: false });
+    if (copier.sheets.length > 14) { const o = copier.sheets.shift(); o.m.parent && o.m.parent.remove(o.m); }
+    if (player.floor === 2) { const s = AU.sp(34.3, 1.1, 2); AU.noise({ f: 2000, q: 1, dur: 0.12, vol: 0.12 * s.v, pan: s.p }); }
+  }
+  for (const sh of copier.sheets) {
+    if (sh.done) continue;
+    sh.vy -= 4 * dt; sh.x += sh.vx * dt; sh.y += Math.max(sh.vy, -1) * dt; sh.z += sh.vz * dt; sh.r += dt * 4;
+    if (sh.y <= 0.012) { sh.y = 0.012; sh.done = true; sh.m.rotation.set(-Math.PI / 2, 0, sh.r); }
+    else sh.m.rotation.set(sh.r, sh.r * 0.5, 0);
+    sh.x = clamp(sh.x, 30, 35.7); sh.z = clamp(sh.z, 0.3, 2.0);
+    sh.m.position.set(sh.x, sh.y, sh.z);
+  }
+  if (player.floor === 2) {
+    const d = Math.hypot(player.x - 34.3, player.z - 1.1);
+    if (d < 5) { hurtSanity(2.2 * dt); if (!copier.seen && d < 3.5) { copier.seen = true; say('<b>나</b>: …이거, 내 얼굴이잖아?', 3500); AU.sting(); } }
+  }
+}
+
+/* ---------- ticket machine / projector / blackout ---------- */
+function setTicket(txt) { const F = floors[1], g = F.ticketTex.userData.ctx; g.fillStyle = '#100404'; g.fillRect(0, 0, 256, 128); g.fillStyle = '#ff4422'; g.font = `bold 70px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, 128, 64); F.ticketTex.needsUpdate = true; }
+function ticketEvent(spawn) {
+  setTicket('0444'); setTimeout(() => setTicket('0001'), 12000);
+  const s = AU.sp(24, 2, 1); AU.tone({ f: 784, dur: 0.5, vol: 0.18 * s.v, pan: s.p }); AU.tone({ f: 622, dur: 0.8, vol: 0.18 * s.v, pan: s.p, delay: 0.45 });
+  if (player.floor === 1) say('<b>안내 음성</b>: 444번 고객님, 4번 창구로 오세요.', 3500); else toast('아래층에서 "딩동" 소리가 울린다…');
+  if (spawn) { const e = spawnComplainant(1, rand(17, 30), 1.6 + Math.random()); e.x = e.px = rand(16, 32); e.z = e.pz = rand(4.2, 4.6); e.rage = 60; }
+}
+function setScreen(lines, bg = '#0a0a14', fg = '#2a2a40') { const F = floors[3], g = F.screenTex.userData.ctx; g.fillStyle = bg; g.fillRect(0, 0, 512, 300); g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; lines.forEach((l, i) => { g.font = `bold ${i ? 32 : 50}px ${FONT}`; g.fillText(l, 256, 120 + i * 60 - (lines.length - 1) * 25); }); F.screenTex.needsUpdate = true; }
+function doBlackout(sec) { blackout = sec; AU.tone({ f: 60, dur: 0.15, vol: 0.2, type: 'square', lp: 400 }); AU.noise({ f: 3000, q: 0.5, dur: 0.08, vol: 0.12 }); hurtSanity(2); }
+
+/* ---------- 4층 ---------- */
+let f4fig = null;
+function setup4F() {
+  const F = floors[4]; G.came4 = true;
+  if (!f4fig) {
+    f4fig = buildPerson({ shirt: 0x0a0a0a, pants: lam(0x050505), skin: 0x0a0a0a, hair: 0x000000 });
+    f4fig.eyes.forEach(m => m.material = PM.eyeRed);
+    F.group.add(f4fig.root);
+  }
+  f4fig.root.visible = true; f4fig.root.position.set(31.5, 0, 11); f4fig.root.rotation.y = Math.PI / 2; f4fig.gone = false;
+  G.desk4 = false;
+}
+hooks.floor.push((n, why) => { if (n === 4 && why === 'arrive4') { setup4F(); AU.sting(); setTimeout(() => say('<b>나</b>: …4층? 이 건물은 3층까지인데.', 3500), 1500); } });
+interact(floors[4], 34.6, 11.9, () => G.desk4 ? '…다시 보고 싶지 않다' : '책상 위 당직 일지 읽기', () => {
+  if (G.desk4) return; G.desk4 = true;
+  say('<b>당직 일지</b>: 02:00 이상 없음. 02:00 이상 없음. 02:00 이상 없음…', 3500);
+  setTimeout(() => say('<b>나</b>: …이 글씨, 내 글씨다.', 3500), 3000);
+  hurtSanity(10); ammo.seal = Math.min(AMMO_MAX.seal, ammo.seal + 2); G.gotSeal = true; updateWeaponHUD();
+  setTimeout(() => toast('책상 서랍에서 직인 도장을 발견했다 (+2)'), 1500);
+}, { r: 1.8 });
+interact(floors[4], 7.5, 12.2, '엘리베이터 타기 (…아마 1층)', () => rideElevator(1));
+function update4F(dt) {
+  if (player.floor !== 4) return;
+  hurtSanity(0.8 * dt);
+  if (f4fig && !f4fig.gone && player.x > 23) {
+    f4fig.gone = true; doBlackout(0.5);
+    setTimeout(() => { f4fig.root.visible = false; }, 200);
+    AU.sting(); hurtSanity(12); G.shake = 0.5;
+    setTimeout(() => say('<b>나</b>: …방금 그거, 당직 근무복이었어.', 3000), 900);
+  }
+}
+
+/* ---------- 당직실 전화 ---------- */
+const phone = { ringing: false, ringT: 0, next: 45, burstT: 0 };
+const CALLS = [
+  { hint: '지금 2층 복사기 앞에 있어요. …복사가 끝나질 않네요.', loc: [2, 34.3, 1.1], run: () => startCopier() },
+  { hint: '3층 문서고예요. 서류를 찾고 있는데… 같이 봐주실래요?', loc: [3, 20, 18.6], run: () => spawnGhost(3, 21, 18.6) },
+  { hint: '민원실에 번호표 뽑아놨어요. 444번이요.', loc: [1, 24, 4], run: () => ticketEvent(true) },
+  { hint: '엘리베이터… 4층 버튼 누르셨죠? 다들 기다리고 있어요.', loc: null, run: () => { elevNext4 = true; } },
+  { hint: '회의실에 다들 모여 계세요. 당직자님만 오시면 돼요.', loc: [3, 24, 7], run: () => { setScreen(['당직자님 환영합니다', '— 야근팀 일동 —'], '#1a0404', '#ff5040'); spawnGhost(3, 22, 7.2); setTimeout(() => setScreen(['NO SIGNAL']), 60000); } },
+  { hint: '(숨소리) …………뒤에요.', loc: [1, 5, 10.6], run: () => { if (player.floor === 1) spawnGhost(1, 5, 10.8); else spawnGhost(player.floor === 4 ? 1 : player.floor, 3, 15); } }
+];
+let lastCall = -1, hotLoc = null, hotT = 0;
+function updatePhone(dt) {
+  if (!phone.ringing) {
+    phone.next -= dt;
+    if (phone.next <= 0) { phone.ringing = true; phone.ringT = 20; phone.burstT = 0; toast('☎ 당직실 전화가 울린다! (1층)'); }
+    return;
+  }
+  phone.ringT -= dt; phone.burstT -= dt;
+  if (phone.burstT <= 0) { phone.burstT = 2.6; AU.ring(floors[1].phonePos.x, floors[1].phonePos.z); }
+  if (phone.ringT <= 0) {
+    phone.ringing = false; phone.next = rand(55, 90) * (1 - prog() * 0.4);
+    hurtSanity(15); toast('전화가 끊겼다… 받지 못했다 (정신력 -15)');
+  }
+}
+interact(floors[1], 1.1, 5.4, '☎ 전화 받기', () => {
+  phone.ringing = false; phone.next = rand(55, 90) * (1 - prog() * 0.4); G.score += 30;
+  let k; do k = Math.floor(Math.random() * CALLS.length); while (k === lastCall); lastCall = k;
+  const c = CALLS[k];
+  AU.tone({ f: 400, dur: 0.06, vol: 0.1, type: 'square' }); AU.voice();
+  say('<b>나</b>: 네, 한밤시청 당직실입니다.', 2200);
+  setTimeout(() => { say(`<b>수화기 너머</b>: <i>"${c.hint}"</i>`, 5000); AU.voice(); }, 2100);
+  setTimeout(() => { c.run(); if (c.loc) { hotLoc = c.loc; hotT = 60; } toast(c.loc ? `위치 힌트: ${c.loc[0]}층 (CCTV에 표시됨)` : '…뚝. 전화가 끊겼다.'); }, 3600);
+}, { ok: () => phone.ringing, r: 1.8 });
+
+/* ---------- CCTV dots ---------- */
+hooks.cctvDots = (g, fi, ox, oy, sc) => {
+  const blink = Math.floor(performance.now() / 300) % 2;
+  for (const e of enemies) {
+    if (e.floor !== fi || e.dead) continue;
+    if (e.type === 'ghost' && blink) continue;
+    g.fillStyle = e.type === 'ghost' ? '#7fd8ff' : e.monster ? '#ff2010' : '#ff7a50';
+    g.beginPath(); g.arc(ox + e.x * sc, oy + (D - e.z) * sc, e.monster ? sc * 0.7 : sc * 0.5, 0, 7); g.fill();
+  }
+  if (hotLoc && hotLoc[0] === fi && blink) { g.strokeStyle = '#ffd040'; g.lineWidth = 2; g.beginPath(); g.arc(ox + hotLoc[1] * sc, oy + (D - hotLoc[2]) * sc, sc * 1.6, 0, 7); g.stroke(); }
+  if (copier.active && fi === 2) { g.fillStyle = blink ? '#ffd040' : '#ff3020'; g.fillRect(ox + 34.3 * sc - 3, oy + (D - 1.1) * sc - 3, 6, 6); }
+};
+
+/* ---------- ghost director + phenomena director ---------- */
+const dir2 = { ghostT: 100, phenT: 35, halluT: 8, beatT: 0, zeroWarn: false };
+hooks.update.push((dt, rdt) => {
+  const p = prog();
+  updatePhone(dt); updateCopier(dt); update4F(dt);
+  if (hotT > 0) { hotT -= dt; if (hotT <= 0) hotLoc = null; }
+  if (player.floor !== 4) {
+    dir2.ghostT -= dt;
+    if (dir2.ghostT <= 0) {
+      dir2.ghostT = rand(50, 80) * (1 - p * 0.5);
+      const alive = enemies.filter(e => e.type === 'ghost' && e.state !== 'sealing').length;
+      if (alive < 1 + Math.floor(p * 2.5)) { const sp = spawnPoint(curF(), 12); if (sp) { spawnGhost(player.floor, sp.x, sp.z); toast('…누군가 속삭인다. "이것만 봐주세요…"'); if (!G.ghostIntro) { G.ghostIntro = true; setTimeout(() => say('<b>나</b>: 야근 직원 유령… <b>쳐다보고 있으면 느려진다</b>. 등을 보이지 말자.', 4500), 1500); } } }
+    }
+    // ghosts on other floors drift to yours
+    for (const e of enemies) if (e.type === 'ghost' && e.floor !== player.floor && e.state !== 'sealing') { e.offFloorT += dt; if (e.offFloorT > 25) { const sp = spawnPoint(curF(), 10); if (sp) moveEnemyToFloor(e, player.floor, sp.x, sp.z); } }
+    dir2.phenT -= dt;
+    if (dir2.phenT <= 0) {
+      dir2.phenT = rand(28, 48) * (1 - p * 0.45);
+      const r = Math.random();
+      if (r < 0.3 && !copier.active && p > 0.08) startCopier();
+      else if (r < 0.5) ticketEvent(Math.random() < 0.5);
+      else if (r < 0.8 && p > 0.2) doBlackout(rand(0.6, 1.4 + p * 1.5));
+      else { const s = AU.sp(player.x + rand(-6, 6), player.z + rand(-6, 6)); for (let i = 0; i < 3; i++) AU.tone({ f: 90, f2: 60, dur: 0.12, vol: 0.25 * s.v, pan: s.p, delay: i * 0.28 }); toast('…똑똑똑.'); }
+    }
+  }
+  // sanity: drain, hallucinations, effects
+  if (player.inSafe) player.san = Math.min(100, player.san + 1.4 * dt);
+  else hurtSanity(0.12 * p * dt);
+  if (player.san < 50) {
+    dir2.halluT -= dt;
+    if (dir2.halluT <= 0) {
+      dir2.halluT = rand(5, 11);
+      const a = player.yaw + Math.PI + rand(-0.8, 0.8), x = player.x - Math.sin(a) * 4, z = player.z - Math.cos(a) * 4, k = Math.random();
+      if (k < 0.35) AU.whisper(x, z, player.floor); else if (k < 0.6) { const s = AU.sp(x, z); for (let i = 0; i < 4; i++) AU.noise({ f: 280, q: 0.8, dur: 0.09, vol: 0.16 * s.v, pan: s.p, ft: 'lowpass', delay: i * 0.45 }); }
+      else if (k < 0.8) AU.ring(x, z); else say('<i>"…이것만…"</i>', 1500);
+    }
+  }
+  if (player.san < 30) { dir2.beatT -= dt; if (dir2.beatT <= 0) { dir2.beatT = 0.55 + player.san / 60; AU.tone({ f: 55, f2: 35, dur: 0.12, vol: 0.3 }); AU.tone({ f: 50, f2: 32, dur: 0.12, vol: 0.22, delay: 0.16 }); } }
+  if (player.san <= 0) { player.hp = Math.max(0, player.hp - 1.5 * dt); if (!dir2.zeroWarn) { dir2.zeroWarn = true; toast('정신이 아득하다… 체력이 줄어든다! 당직실에서 쉬자'); } if (player.hp <= 0 && hooks.death) hooks.death(); }
+  else if (player.san > 10) dir2.zeroWarn = false;
+  sanityFX(rdt);
+});
+let sfxT = 0;
+function sanityFX(dt) {
+  const s = player.san, w = clamp((60 - s) / 60, 0, 1);
+  $('vignette').style.opacity = (w * (0.7 + Math.sin(performance.now() / 300) * 0.25)).toFixed(2);
+  sfxT -= dt; if (sfxT > 0) return; sfxT = 0.08;
+  if (s < 35) {
+    const k = (35 - s) / 35, t = performance.now() / 1000;
+    canvas.style.filter = `saturate(${(1 - k * 0.6).toFixed(2)}) hue-rotate(${(Math.sin(t * 0.7) * 40 * k).toFixed(0)}deg) contrast(${(1 + k * 0.3).toFixed(2)})`;
+    canvas.style.transform = `scale(${(1 + k * 0.04).toFixed(3)}) rotate(${(Math.sin(t * 1.3) * 1.2 * k).toFixed(2)}deg) skewX(${(Math.sin(t * 0.9) * 3 * k).toFixed(2)}deg)`;
+  } else if (canvas.style.filter) { canvas.style.filter = ''; canvas.style.transform = ''; }
+}
+function resetFX() { canvas.style.filter = ''; canvas.style.transform = ''; $('vignette').style.opacity = 0; }
+hooks.reset.push(() => {
+  copier.active = false; copier.sheets.forEach(s => s.m.parent && s.m.parent.remove(s.m)); copier.sheets.length = 0;
+  Object.assign(phone, { ringing: false, next: 45 }); Object.assign(dir2, { ghostT: 100, phenT: 35, halluT: 8 }); hotLoc = null;
+  setTicket('0001'); setScreen(['NO SIGNAL']); G.ghostHint = G.ghostIntro = false; G.gotSeal = false; resetFX(); blackout = 0; elevNext4 = false;
+});
+
+/* ---------- recovery points ---------- */
+const recCd = { water: 0, kit: 0, coffee: 0 };
+hooks.update.push(dt => { for (const k in recCd) recCd[k] -= dt; });
+interact(floors[1], 35.3, 7.6, () => recCd.water > 0 ? '정수기 (물이 데워지는 중…)' : '정수기: 물 한 잔 (체력 +25)', () => {
+  if (recCd.water > 0) return toast(`${Math.ceil(recCd.water)}초 뒤 다시`); recCd.water = 45; player.hp = Math.min(100, player.hp + 25);
+  AU.noise({ f: 900, q: 3, dur: 0.8, vol: 0.08 }); toast('시원하다. (체력 +25)');
+});
+interact(floors[1], 9.3, 4.0, () => recCd.kit > 0 ? '구급함 (비어 있음)' : '구급함: 응급처치 (체력 +45)', () => {
+  if (recCd.kit > 0) return toast(`구급함이 비었다. ${Math.ceil(recCd.kit)}초 뒤`); recCd.kit = 150; player.hp = Math.min(100, player.hp + 45);
+  AU.noise({ f: 3000, q: 1, dur: 0.3, vol: 0.08 }); toast('반창고를 붙였다. (체력 +45)');
+});
+interact(floors[2], 1.5, 3.0, () => recCd.coffee > 0 ? '커피 머신 (예열 중…)' : '커피 머신: 믹스커피 (정신력 +30)', () => {
+  if (recCd.coffee > 0) return toast(`${Math.ceil(recCd.coffee)}초 뒤 다시`); recCd.coffee = 60; player.san = Math.min(100, player.san + 30);
+  AU.noise({ f: 500, q: 2, dur: 1.2, vol: 0.08 }); toast('달다… 정신이 돌아온다. (정신력 +30)');
+});
+hooks.reset.push(() => { recCd.water = recCd.kit = recCd.coffee = 0; });
+
+/* ---------- phenomenon sounds ---------- */
+Object.assign(AU, {
+  whisper(x, z, f) {
+    if (!this.ctx) return; const s = this.sp(x, z, f);
+    for (let i = 0; i < 7; i++) this.noise({ f: 2600 + Math.random() * 1400, q: 5, dur: 0.16, vol: 0.13 * s.v, pan: s.p, delay: i * 0.17 + Math.random() * 0.04, a: 0.05 });
+    this.noise({ f: 700, q: 0.7, dur: 1.3, vol: 0.05 * s.v, pan: s.p, ft: 'lowpass', a: 0.4 });
+  },
+  sting() { this.tone({ f: 1480, f2: 1400, type: 'sawtooth', dur: 0.9, vol: 0.06, lp: 3000 }); this.tone({ f: 1568, dur: 0.9, vol: 0.05, type: 'sawtooth', lp: 3000 }); this.noise({ f: 200, q: 0.5, dur: 0.7, vol: 0.18, ft: 'lowpass' }); },
+  chord() { [523, 659, 784, 1046].forEach((f, i) => this.tone({ f, dur: 1.2, vol: 0.06, delay: i * 0.06, a: 0.05 })); },
+  ring(x, z) {
+    if (!this.ctx) return; const s = this.sp(x, z, 1), v = Math.max(0.1, s.v) * 0.16;
+    for (let i = 0; i < 16; i++) this.tone({ f: i % 2 ? 1300 : 1050, dur: 0.06, vol: v, type: 'square', pan: s.p, delay: i * 0.06, lp: 2500 });
+  },
+  voice() { for (let i = 0; i < 10; i++) this.tone({ f: rand(140, 220), dur: 0.1, vol: 0.05, type: 'sawtooth', lp: 700, delay: i * 0.12 }); this.noise({ f: 1500, q: 0.4, dur: 1.4, vol: 0.03 }); }
+});
+
 /*@@SYSTEMS@@*/
 
 /* ============================================================
@@ -1871,7 +2172,7 @@ setFloor(1); player.x = 14; player.z = 11; player.yaw = Math.PI / 2;
 requestAnimationFrame(frame);
 showScreen('title', true);
 
-window.__dbg = { ready: true, ammo, wpn, selectWeapon, attack, hitEnemy, burstPapers, sim(sec) { for (let i = 0; i < sec * 30; i++) tick(1 / 30, 1 / 30); updateCamera(0); }, enemies, spawnComplainant, monsterize, penaltyStamp, talkTo, G, player, floors, setFloor, travel, newGame, startPlay, hooks, camera, renderer, input, keys, get prog() { return prog(); } };
+window.__dbg = { ready: true, spawnGhost, startCopier, phone, ticketEvent, doBlackout, rideElevator, copier, get elevNext4(){return elevNext4}, set elevNext4(v){elevNext4=v}, ammo, wpn, selectWeapon, attack, hitEnemy, burstPapers, sim(sec) { for (let i = 0; i < sec * 30; i++) tick(1 / 30, 1 / 30); updateCamera(0); }, enemies, spawnComplainant, monsterize, penaltyStamp, talkTo, G, player, floors, setFloor, travel, newGame, startPlay, hooks, camera, renderer, input, keys, get prog() { return prog(); } };
 </script>
 </body>
 </html>
