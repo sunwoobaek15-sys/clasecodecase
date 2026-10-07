@@ -1445,12 +1445,15 @@ function animPerson(e, dt) {
     e.head.rotation.z = Math.sin(performance.now() / 70) * 0.25; e.head.rotation.x = -0.35;
   }
   e.neckMesh.scale.y = e.neckLen; e.neckMesh.position.y = 0.62 + e.neckLen / 2; e.head.position.y = 0.62 + e.neckLen;
+  const fl = e.flash > 0 ? 0x993333 : 0; if (e.flash > 0) e.flash -= dt;
+  if (e.shirt.emissive.getHex() !== fl) { e.shirt.emissive.setHex(fl); e.skin.emissive.setHex(fl); }
   e.root.position.set(e.x, 0, e.z); e.root.rotation.y = e.yaw;
   if (e.stun > 0) e.root.rotation.z = Math.sin(performance.now() / 40) * 0.08; else e.root.rotation.z = 0;
 }
 function updateComplainant(e, dt, F) {
   e.talkCd -= dt; e.penaltyCd -= dt; e.atkCd -= dt; if (e.stun > 0) e.stun -= dt;
   const p = prog();
+  if (e.state === 'dying') { hooks.dying(e, dt); return; }
   if (e.state === 'talk') { e.speedNow = 0; e.yaw = Math.atan2(player.x - e.x, player.z - e.z); animPerson(e, dt); if (G.mode !== 'dialog') e.state = 'chase'; return; }
   if (e.state === 'morph') { e.morph += dt; e.speedNow = 0; animPerson(e, dt); if (e.morph > 1.1) e.state = 'chase'; return; }
   if (e.state === 'leave') {
@@ -1539,6 +1542,286 @@ hooks.update.push((dt, rdt) => {
 function moveEnemyToFloor(e, fl, x, z) { floors[e.floor].group.remove(e.root); e.floor = fl; floors[fl].group.add(e.root); e.x = e.px = x; e.z = e.pz = z; e.offFloorT = 0; }
 hooks.reset.push(() => { for (const e of enemies.slice()) removeEnemy(e); director.compT = 22; director.firstComp = true; });
 
+
+/* ============================================================
+   STAGE 4 — WEAPONS, COMBAT, HIT FEEL
+   ============================================================ */
+const WPN = [
+  { name: '결재판', melee: true, range: 2.4, dmg: 34, cd: 0.42 },
+  { name: '스테이플러', cd: 0.2, dmg: 17, ammo: 'staple' },
+  { name: '소화기', hold: true, ammo: 'fuel' },
+  { name: '직인 도장', melee: true, range: 2.6, cd: 0.6, ammo: 'seal' }
+];
+const AMMO_MAX = { staple: 40, fuel: 100, seal: 5 };
+const ammo = { staple: 12, fuel: 100, seal: 0 };
+const wpn = { cur: 0, cd: 0, anim: 0, sw: 0, spraying: false, sprayTick: 0 };
+
+/* ---------- viewmodels ---------- */
+const vmRoot = new THREE.Group(); camera.add(vmRoot); vmRoot.position.set(0.3, -0.3, -0.55);
+const vmMat = c => new THREE.MeshLambertMaterial({ color: c, depthTest: false, fog: false });
+function vbx(w, h, d, c, x, y, z, parent) { const m = bx(w, h, d, vmMat(c), x, y, z, parent); m.renderOrder = 999; return m; }
+const VM = [];
+{ // 결재판 clipboard
+  const g = new THREE.Group(); vbx(0.26, 0.36, 0.02, 0x1c2c4a, 0, 0, 0, g); vbx(0.22, 0.29, 0.005, 0xf2f0e6, 0, -0.02, 0.012, g); vbx(0.1, 0.035, 0.03, 0xb0b4b8, 0, 0.16, 0.015, g);
+  for (let i = 0; i < 6; i++) vbx(0.16, 0.008, 0.002, 0x555555, 0, 0.08 - i * 0.035, 0.016, g);
+  g.rotation.set(-0.5, 0.35, 0.15); VM.push(g);
+}
+{ // 스테이플러
+  const g = new THREE.Group(); vbx(0.07, 0.04, 0.26, 0x222226, 0, 0, 0, g); const top = vbx(0.06, 0.035, 0.24, 0xc02020, 0, 0.04, -0.01, g); vbx(0.05, 0.01, 0.06, 0xb0b0b0, 0, 0.02, -0.12, g);
+  g.userData.top = top; g.rotation.set(0.05, 0.08, 0); VM.push(g);
+}
+{ // 소화기
+  const g = new THREE.Group(); const c = new THREE.Mesh(GEO.cyl, vmMat(0xc01a14)); c.scale.set(0.09, 0.42, 0.09); c.renderOrder = 999; g.add(c);
+  vbx(0.06, 0.06, 0.06, 0x222222, 0, 0.24, 0, g); vbx(0.03, 0.03, 0.22, 0x111111, -0.02, 0.26, -0.12, g); vbx(0.04, 0.04, 0.06, 0x333333, -0.02, 0.26, -0.25, g);
+  vbx(0.08, 0.12, 0.005, 0xf0f0e0, 0, 0.0, 0.091, g);
+  g.position.set(0, -0.08, 0.05); g.rotation.set(0.25, 0.25, 0); VM.push(g);
+}
+{ // 직인 도장
+  const g = new THREE.Group(); const h = new THREE.Mesh(GEO.cyl, vmMat(0x7a4a22)); h.scale.set(0.035, 0.18, 0.035); h.position.y = 0.09; h.renderOrder = 999; g.add(h);
+  const k = new THREE.Mesh(GEO.cyl, vmMat(0x5a3010)); k.scale.set(0.05, 0.04, 0.05); k.position.y = 0.2; k.renderOrder = 999; g.add(k);
+  vbx(0.09, 0.05, 0.09, 0x9a1a10, 0, -0.025, 0, g); vbx(0.07, 0.005, 0.07, 0xff2010, 0, -0.052, 0, g);
+  g.rotation.set(-1.25, 0, 0.1); VM.push(g);
+}
+VM.forEach((g, i) => { g.visible = i === 0; g.userData.base = { px: g.position.x, py: g.position.y, pz: g.position.z, rx: g.rotation.x, ry: g.rotation.y, rz: g.rotation.z }; vmRoot.add(g); });
+
+function selectWeapon(i) {
+  if (G.mode !== 'play' || i === wpn.cur) return;
+  wpn.cur = i; wpn.sw = 0.25; wpn.anim = 0; stopSpray();
+  AU.noise({ f: 1400, q: 1, dur: 0.12, vol: 0.06 });
+  if (i === 3 && ammo.seal <= 0) toast('직인 도장이 없다 — 3층 문서고 직인함에서 챙기자');
+  updateWeaponHUD();
+}
+hooks.weapon = selectWeapon;
+function updateWeaponHUD() {
+  const w = WPN[wpn.cur];
+  $('wName').textContent = w.name;
+  $('wAmmo').textContent = !w.ammo ? '무제한' : w.ammo === 'fuel' ? `잔량 ${Math.ceil(ammo.fuel)}%` : w.ammo === 'staple' ? `심 ${ammo.staple}/${AMMO_MAX.staple}` : `직인 ${ammo.seal}회`;
+  document.querySelectorAll('#tWpns .tb').forEach(b => b.classList.toggle('sel', +b.dataset.w === wpn.cur));
+}
+
+/* ---------- particles: flying papers + extinguisher spray (instanced) ---------- */
+const PAPER_N = 90, SPRAY_N = 70;
+const paperMesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.21, 0.28), new THREE.MeshLambertMaterial({ color: 0xf4f1e6, side: THREE.DoubleSide }), PAPER_N);
+const sprayMesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xe8eef2, transparent: true, opacity: 0.22, depthWrite: false }), SPRAY_N);
+paperMesh.frustumCulled = sprayMesh.frustumCulled = false; paperMesh.count = sprayMesh.count = 0;
+scene.add(paperMesh); scene.add(sprayMesh);
+const papers = [], sprays = [];
+const _o = new THREE.Object3D();
+function burstPapers(x, y, z, n = 10, power = 1) {
+  for (let i = 0; i < n; i++) {
+    if (papers.length >= PAPER_N) papers.shift();
+    const a = Math.random() * Math.PI * 2, s = rand(1.5, 4) * power;
+    papers.push({ x, y, z, vx: Math.cos(a) * s, vy: rand(1.5, 4.5) * power, vz: Math.sin(a) * s, rx: Math.random() * 6, ry: Math.random() * 6, rz: Math.random() * 6, sr: rand(-8, 8), life: rand(3, 5), ground: false, ph: Math.random() * 6 });
+  }
+}
+function updateParticles(dt) {
+  let n = 0;
+  for (let i = papers.length - 1; i >= 0; i--) {
+    const p = papers[i]; p.life -= dt; if (p.life <= 0) { papers.splice(i, 1); continue; }
+    if (!p.ground) {
+      p.vy -= 5 * dt; const drag = Math.pow(0.25, dt); p.vx *= drag; p.vz *= drag; if (p.vy < -1.2) p.vy = -1.2; // paper flutters down
+      p.x += (p.vx + Math.sin(p.ph + p.life * 5) * 0.6) * dt; p.y += p.vy * dt; p.z += p.vz * dt;
+      p.rx += p.sr * dt; p.rz += p.sr * 0.7 * dt;
+      if (p.y < 0.02) { p.y = 0.015; p.ground = true; p.rx = -Math.PI / 2; p.rz = 0; }
+    }
+    _o.position.set(p.x, p.y, p.z); _o.rotation.set(p.rx, p.ry, p.rz); _o.scale.setScalar(p.life < 0.5 ? p.life * 2 : 1); _o.updateMatrix();
+    paperMesh.setMatrixAt(n++, _o.matrix);
+  }
+  paperMesh.count = n; paperMesh.instanceMatrix.needsUpdate = true;
+  n = 0;
+  for (let i = sprays.length - 1; i >= 0; i--) {
+    const p = sprays[i]; p.life -= dt; if (p.life <= 0) { sprays.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; const k = Math.pow(0.15, dt); p.vx *= k; p.vy *= k; p.vz *= k;
+    _o.position.set(p.x, p.y, p.z); _o.quaternion.copy(camera.quaternion); _o.scale.setScalar(0.12 + (1 - p.life / p.max) * 1.1); _o.updateMatrix();
+    sprayMesh.setMatrixAt(n++, _o.matrix);
+  }
+  sprayMesh.count = n; sprayMesh.instanceMatrix.needsUpdate = true;
+}
+hooks.floor.push(() => { papers.length = 0; sprays.length = 0; projs.forEach(p => p.m.visible = false); projs.length = 0; });
+
+/* ---------- targeting & damage ---------- */
+function camFwd() { return { x: -Math.sin(player.yaw), z: -Math.cos(player.yaw) }; }
+function meleeTargets(range, cosArc) {
+  const F = curF(), f = camFwd(), out = [];
+  for (const e of enemies) {
+    if (e.floor !== player.floor || e.dead || e.state === 'dying') continue;
+    const dx = e.x - player.x, dz = e.z - player.z, d = Math.hypot(dx, dz);
+    if (d > range + 0.3) continue;
+    if (d > 0.5 && (dx * f.x + dz * f.z) / d < cosArc) continue;
+    if (!hasLOS(F, player.x, player.z, e.x, e.z)) continue;
+    out.push({ e, d });
+  }
+  return out.sort((a, b) => a.d - b.d);
+}
+function hitFX(e, heavy) {
+  G.hitstop = heavy ? 0.085 : 0.05; G.shake = Math.max(G.shake, heavy ? 0.35 : 0.2);
+  burstPapers(e.x, 1.3, e.z, heavy ? 14 : 8, heavy ? 1.2 : 0.9);
+  AU.hit(heavy);
+}
+/* kind: 'melee' | 'staple' | 'spray' | 'seal' */
+function hitEnemy(e, kind, dmg, dirx, dirz) {
+  if (e.type === 'comp' && !e.monster) {           // a human: no reward, only a filed complaint
+    if (kind === 'seal') { bubble(e, '어디다 도장을 찍어?!', 2); }
+    penaltyStamp(e); burstPapers(e.x, 1.2, e.z, 4, 0.6);
+    return;
+  }
+  if (e.type === 'ghost') { hooks.hitGhost && hooks.hitGhost(e, kind, dirx, dirz); return; }
+  if (kind === 'seal') { toast('직인은 유령 봉인 전용이다!'); return; }
+  e.hp -= dmg; e.stun = Math.max(e.stun, kind === 'spray' ? 0.35 : 0.22);
+  const kb = kind === 'spray' ? 7 : kind === 'staple' ? 2.5 : 5.5; e.kx = dirx * kb; e.kz = dirz * kb;
+  if (kind !== 'spray') hitFX(e, kind === 'melee'); else if (Math.random() < 0.3) burstPapers(e.x, 1.3, e.z, 2, 0.6);
+  e.flash = 0.12;
+  if (e.hp <= 0) killMonster(e);
+}
+function killMonster(e) {
+  e.state = 'dying'; e.dieT = 0; G.score += 100; player.san = Math.min(100, player.san + 5);
+  bubble(e, pick(['내… 세금…', '내일… 9시에…', '팀장… 불러…']), 2);
+  burstPapers(e.x, 1.5, e.z, 22, 1.5); G.hitstop = 0.12; G.shake = 0.6;
+  AU.tone({ f: 300, f2: 40, type: 'sawtooth', dur: 0.9, vol: 0.25, lp: 1200 });
+  toast('괴물 민원인 처리 완료 (+100)');
+}
+hooks.dying = (e, dt) => {
+  e.dieT += dt; e.root.rotation.x = -Math.min(1, e.dieT * 2.5) * Math.PI / 2; e.root.position.y = -Math.max(0, e.dieT - 0.8) * 0.8;
+  e.root.position.x = e.x; e.root.position.z = e.z;
+  if (e.dieT > 2.2) removeEnemy(e);
+};
+
+/* ---------- stapler projectiles ---------- */
+const projs = [];
+const projGeo = new THREE.BoxGeometry(0.04, 0.012, 0.12), projMat = new THREE.MeshBasicMaterial({ color: 0xe8f0ff });
+function fireStaple() {
+  const f = camFwd(), cp = Math.cos(player.pitch);
+  const m = new THREE.Mesh(projGeo, projMat); m.rotation.copy(camera.rotation); curF().group.add(m);
+  const p = { x: player.x + f.x * 0.4, y: EYE - 0.12, z: player.z + f.z * 0.4, vx: f.x * cp * 38, vy: Math.sin(player.pitch) * 38, vz: f.z * cp * 38, life: 0.8, m };
+  m.position.set(p.x, p.y, p.z); projs.push(p);
+}
+function updateProjs(dt) {
+  const F = curF();
+  for (let i = projs.length - 1; i >= 0; i--) {
+    const p = projs[i]; let done = false; p.life -= dt;
+    const steps = 4;
+    for (let s = 0; s < steps && !done; s++) {
+      p.x += p.vx * dt / steps; p.y += p.vy * dt / steps; p.z += p.vz * dt / steps;
+      if (p.x < 0 || p.z < 0 || p.x > W || p.z > D || p.y < 0 || p.y > H || F.los[cellOf(p.x, p.z)]) { done = true; AU.noise({ f: 3000, q: 3, dur: 0.03, vol: 0.04 }); break; }
+      for (const e of enemies) {
+        if (e.floor !== player.floor || e.dead || e.state === 'dying') continue;
+        if (Math.hypot(e.x - p.x, e.z - p.z) < 0.42 && p.y < e.headY() + 0.1) { const l = Math.hypot(p.vx, p.vz) || 1; hitEnemy(e, 'staple', WPN[1].dmg, p.vx / l, p.vz / l); done = true; break; }
+      }
+    }
+    if (done || p.life <= 0) { p.m.parent && p.m.parent.remove(p.m); projs.splice(i, 1); }
+    else p.m.position.set(p.x, p.y, p.z);
+  }
+}
+
+/* ---------- attack ---------- */
+function attack() {
+  const w = WPN[wpn.cur];
+  if (wpn.cd > 0 || wpn.sw > 0) return;
+  if (wpn.cur === 0) {
+    wpn.cd = w.cd; wpn.anim = 1; AU.swing();
+    const t = meleeTargets(w.range, 0.6)[0];
+    if (t) { const dx = t.e.x - player.x, dz = t.e.z - player.z, d = Math.hypot(dx, dz) || 1; setTimeout(() => !t.e.dead && hitEnemy(t.e, 'melee', w.dmg, dx / d, dz / d), 70); }
+  } else if (wpn.cur === 1) {
+    if (ammo.staple <= 0) { wpn.cd = 0.4; AU.tone({ f: 1200, dur: 0.03, vol: 0.06, type: 'square' }); toast('스테이플러 심이 없다 — 2층 사무실 비품함'); return; }
+    wpn.cd = w.cd; wpn.anim = 1; ammo.staple--; AU.staple(); fireStaple(); updateWeaponHUD();
+  } else if (wpn.cur === 3) {
+    if (ammo.seal <= 0) { wpn.cd = 0.5; toast('직인이 없다 — 3층 문서고 직인함'); return; }
+    wpn.cd = w.cd; wpn.anim = 1; AU.swing();
+    const t = meleeTargets(w.range, 0.55)[0];
+    setTimeout(() => {
+      AU.stamp();
+      if (t && !t.e.dead) { const dx = t.e.x - player.x, dz = t.e.z - player.z, d = Math.hypot(dx, dz) || 1; hitEnemy(t.e, 'seal', 0, dx / d, dz / d); }
+    }, 110);
+  }
+}
+function sprayTick(dt) {
+  const want = input.attack && wpn.cur === 2 && G.mode === 'play' && G.travel === 0;
+  if (want && ammo.fuel > 0) {
+    if (!wpn.spraying) { wpn.spraying = true; AU.sprayOn(); }
+    ammo.fuel = Math.max(0, ammo.fuel - 16 * dt);
+    const f = camFwd(), cp = Math.cos(player.pitch);
+    for (let i = 0; i < 3; i++) {
+      if (sprays.length >= SPRAY_N) sprays.shift();
+      const sp = 7 + Math.random() * 3, j = 0.18;
+      sprays.push({ x: player.x + f.x * 0.6 + Math.cos(player.yaw) * 0.12, y: EYE - 0.25, z: player.z + f.z * 0.6 - Math.sin(player.yaw) * 0.12,
+        vx: (f.x * cp + rand(-j, j)) * sp, vy: (Math.sin(player.pitch) + rand(-j, j)) * sp, vz: (f.z * cp + rand(-j, j)) * sp, life: 0.6, max: 0.6 });
+    }
+    wpn.sprayTick -= dt;
+    if (wpn.sprayTick <= 0) {
+      wpn.sprayTick = 0.12;
+      for (const t of meleeTargets(5, 0.8)) { const dx = t.e.x - player.x, dz = t.e.z - player.z, d = Math.hypot(dx, dz) || 1; hitEnemy(t.e, 'spray', 4, dx / d, dz / d); }
+    }
+    if (Math.floor(ammo.fuel) % 5 === 0) updateWeaponHUD();
+  } else {
+    if (wpn.spraying) stopSpray();
+    if (want && input.attackPressed) { toast('소화기가 비었다 — 복도 소화전함에서 교체'); }
+  }
+}
+function stopSpray() { if (wpn.spraying) { wpn.spraying = false; AU.sprayOff(); updateWeaponHUD(); } }
+
+function updateWeapon(dt) {
+  wpn.cd -= dt; if (wpn.sw > 0) wpn.sw -= dt;
+  if (input.attackPressed && G.mode === 'play' && !WPN[wpn.cur].hold) attack();
+  else if (input.attack && G.mode === 'play' && wpn.cur === 1 && wpn.cd <= 0) attack(); // hold to keep stapling
+  sprayTick(dt);
+  input.attackPressed = false;
+  updateProjs(dt);
+  // viewmodel animation
+  VM.forEach((g, i) => g.visible = i === wpn.cur);
+  const g = VM[wpn.cur], b = g.userData.base, a = wpn.anim;
+  const bobX = Math.cos(player.bob) * 0.012 * Math.min(1, player.moving / 3), bobY = Math.abs(Math.sin(player.bob)) * 0.015 * Math.min(1, player.moving / 3);
+  g.position.set(b.px + bobX, b.py - bobY - Math.max(0, wpn.sw) * 1.2, b.pz); g.rotation.set(b.rx, b.ry, b.rz);
+  if (a > 0) {
+    wpn.anim = Math.max(0, a - dt * (wpn.cur === 1 ? 7 : 3.4));
+    const t = 1 - wpn.anim, k = Math.sin(t * Math.PI);
+    if (wpn.cur === 0) { g.rotation.y = b.ry + 1.4 * k - 0.4 * t; g.rotation.z = b.rz + 0.9 * k; g.position.x = b.px - 0.3 * k; g.position.z = b.pz - 0.15 * k; }
+    if (wpn.cur === 1) { g.position.z = b.pz + 0.06 * k; g.userData.top.position.y = 0.04 - 0.02 * k; }
+    if (wpn.cur === 3) { g.position.z = b.pz - 0.32 * k; g.position.y = g.position.y - 0.05 * k; g.position.x = b.px - 0.2 * k; }
+  }
+  if (wpn.spraying) { g.position.x += (Math.random() - .5) * 0.01; g.position.y += (Math.random() - .5) * 0.01; }
+}
+hooks.update.push((dt) => { updateWeapon(dt); updateParticles(dt); });
+hooks.reset.push(() => { ammo.staple = 12; ammo.fuel = 100; ammo.seal = 0; wpn.cur = 0; stopSpray(); updateWeaponHUD(); });
+
+
+/* ---------- resupply points ---------- */
+const supplyCd = { staple: 0, seal: 0, fuel: {} };
+hooks.update.push(dt => { supplyCd.staple -= dt; supplyCd.seal -= dt; for (const k in supplyCd.fuel) supplyCd.fuel[k] -= dt; });
+interact(floors[2], floors[2].supply.x, floors[2].supply.z, () => supplyCd.staple > 0 ? '비품함 (비어 있음…)' : '비품함: 스테이플러 심 챙기기', () => {
+  if (supplyCd.staple > 0) { toast(`비품함이 비었다. ${Math.ceil(supplyCd.staple)}초 뒤 다시 확인`); return; }
+  ammo.staple = Math.min(AMMO_MAX.staple, ammo.staple + 20); supplyCd.staple = 40; AU.noise({ f: 2500, q: 2, dur: 0.2, vol: 0.08 }); toast(`스테이플러 심 +20 (${ammo.staple})`); updateWeaponHUD();
+});
+interact(floors[3], floors[3].sealBox.x, floors[3].sealBox.z, () => supplyCd.seal > 0 ? '직인함 (잠겨 있음…)' : '직인함: 직인 도장 챙기기', () => {
+  if (supplyCd.seal > 0) { toast(`직인함이 잠겼다. ${Math.ceil(supplyCd.seal)}초 뒤 다시`); return; }
+  const first = ammo.seal === 0 && !G.gotSeal; G.gotSeal = true;
+  ammo.seal = Math.min(AMMO_MAX.seal, ammo.seal + 3); supplyCd.seal = 75; AU.stamp(); updateWeaponHUD();
+  toast(`직인 도장 +3 (${ammo.seal}회)`);
+  if (first) say('<b>나</b>: 직인 도장… 야근하는 <b>그것</b>들한테 결재를 해 주면 된다고 했지. (4번)', 4500);
+});
+[1, 2, 3].forEach(fi => {
+  const F = floors[fi];
+  interact(F, F.hydrant.x, F.hydrant.z, () => (supplyCd.fuel[fi] || 0) > 0 ? '소화전함 (빈 소화기뿐)' : '소화전함: 새 소화기로 교체', () => {
+    if ((supplyCd.fuel[fi] || 0) > 0) { toast(`이 층 소화기는 다 썼다. ${Math.ceil(supplyCd.fuel[fi])}초 뒤`); return; }
+    ammo.fuel = 100; supplyCd.fuel[fi] = 60; AU.noise({ f: 300, q: 1, dur: 0.3, vol: 0.12, ft: 'lowpass' }); toast('소화기 교체 완료 (100%)'); updateWeaponHUD();
+  });
+});
+
+/* ---------- combat sounds ---------- */
+Object.assign(AU, {
+  hit(heavy) { this.tone({ f: heavy ? 150 : 220, f2: 45, dur: heavy ? 0.22 : 0.14, vol: heavy ? 0.4 : 0.28 }); this.noise({ f: 1600, q: 0.8, dur: 0.12, vol: heavy ? 0.3 : 0.2 }); this.noise({ f: 4000, q: 1.5, dur: 0.25, vol: 0.08, delay: 0.03 }); },
+  swing() { this.noise({ f: 500, f2: 2200, q: 1.2, dur: 0.16, vol: 0.12 }); },
+  staple() { this.tone({ f: 2400, dur: 0.02, vol: 0.1, type: 'square' }); this.noise({ f: 5000, q: 2, dur: 0.04, vol: 0.12 }); this.tone({ f: 160, f2: 80, dur: 0.06, vol: 0.18 }); },
+  stamp() { this.tone({ f: 110, f2: 45, dur: 0.25, vol: 0.4 }); this.noise({ f: 600, q: 0.6, dur: 0.12, vol: 0.25, ft: 'lowpass' }); },
+  sprayOn() {
+    if (!this.ctx) return; const c = this.ctx;
+    const s = c.createBufferSource(); s.buffer = this.noiseBuf; s.loop = true;
+    const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800;
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, c.currentTime); g.gain.linearRampToValueAtTime(0.14, c.currentTime + 0.05);
+    s.connect(f); f.connect(g); g.connect(this.master); s.start(); this.spray = { s, g };
+  },
+  sprayOff() { if (!this.spray) return; const { s, g } = this.spray, t = this.ctx.currentTime; g.gain.setTargetAtTime(0.0001, t, 0.05); s.stop(t + 0.3); this.spray = null; }
+});
+
 /*@@SYSTEMS@@*/
 
 /* ============================================================
@@ -1588,7 +1871,7 @@ setFloor(1); player.x = 14; player.z = 11; player.yaw = Math.PI / 2;
 requestAnimationFrame(frame);
 showScreen('title', true);
 
-window.__dbg = { ready: true, sim(sec) { for (let i = 0; i < sec * 30; i++) tick(1 / 30, 1 / 30); updateCamera(0); }, enemies, spawnComplainant, monsterize, penaltyStamp, talkTo, G, player, floors, setFloor, travel, newGame, startPlay, hooks, camera, renderer, input, keys, get prog() { return prog(); } };
+window.__dbg = { ready: true, ammo, wpn, selectWeapon, attack, hitEnemy, burstPapers, sim(sec) { for (let i = 0; i < sec * 30; i++) tick(1 / 30, 1 / 30); updateCamera(0); }, enemies, spawnComplainant, monsterize, penaltyStamp, talkTo, G, player, floors, setFloor, travel, newGame, startPlay, hooks, camera, renderer, input, keys, get prog() { return prog(); } };
 </script>
 </body>
 </html>
