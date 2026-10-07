@@ -51,16 +51,16 @@ button{font:inherit;color:inherit;cursor:pointer}
 #cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:rgba(255,255,255,.65);box-shadow:0 0 3px #000}
 #prompt{position:absolute;left:50%;top:60%;transform:translateX(-50%);background:rgba(0,0,0,.7);border:1px solid #806a48;padding:6px 14px;font-size:15px;white-space:nowrap;display:none}
 #prompt b{color:#ffcf6a}
-#subs{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);max-width:80vw;text-align:center;font-size:18px;line-height:1.5;
+#subs{position:fixed;z-index:27;pointer-events:none;left:50%;bottom:84px;transform:translateX(-50%);max-width:80vw;text-align:center;font-size:18px;line-height:1.5;
   text-shadow:0 0 4px #000,0 0 8px #000}
 #subs div{background:rgba(0,0,0,.55);padding:3px 12px;margin-top:4px;display:inline-block}
 #toasts{position:absolute;left:50%;top:70px;transform:translateX(-50%);text-align:center}
 #toasts div{background:rgba(20,0,0,.72);border-left:3px solid #c03020;padding:5px 14px;margin-top:6px;font-size:14px;animation:toastIn .25s}
 @keyframes toastIn{from{opacity:0;transform:translateY(-6px)}}
-#vignette{position:fixed;inset:0;pointer-events:none;z-index:9;opacity:0;
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:9;opacity:0;display:none;
   background:radial-gradient(ellipse at center,transparent 45%,rgba(60,0,30,.85) 100%)}
-#hurt{position:fixed;inset:0;pointer-events:none;z-index:9;opacity:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(200,0,0,.6) 100%);transition:opacity .35s}
-#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:25;transition:opacity .35s}
+#hurt{position:fixed;inset:0;pointer-events:none;z-index:9;opacity:0;display:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(200,0,0,.6) 100%);transition:opacity .35s}
+#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:25;transition:opacity .35s;display:none}
 #stamp{position:fixed;left:50%;top:42%;z-index:26;pointer-events:none;display:none;transform:translate(-50%,-50%) rotate(-14deg);
   border:7px double #e0161b;color:#e0161b;font-weight:900;font-size:clamp(34px,7vw,74px);padding:8px 26px;letter-spacing:6px;
   background:rgba(255,240,230,.08);text-shadow:0 0 2px #e0161b;border-radius:10px}
@@ -165,8 +165,8 @@ body.touch #prompt{top:auto;bottom:34%}
   <div id="cross"></div>
   <div id="prompt"></div>
   <div id="toasts"></div>
-  <div id="subs"></div>
 </div>
+<div id="subs"></div>
 
 <div id="stamp">민원 접수됨</div>
 <div id="fade"></div>
@@ -825,7 +825,8 @@ function updateLights(dt, time) {
   MAT.lampBad.emissiveIntensity = badLvl; MAT.lampOn.emissiveIntensity = blackout > 0 ? 0 : 1;
   MAT.lamp4.emissiveIntensity = 0.4 + Math.random() * 0.6 * (Math.sin(time * 9) > 0 ? 1 : 0.3);
   ambient.intensity = is4 ? 0.2 : 0.3 - p * 0.12; ambient.color.setHex(is4 ? 0x803030 : 0x6a7488);
-  flash.intensity = player.light ? (player.san < 30 && Math.random() < 0.06 ? 4 : 40) : 0;
+  if (G.dawn) { ambient.intensity = 0.9; ambient.color.setHex(0x9ab0d8); MAT.win.color.setHex(0x6a8ab8); } else MAT.win.color.setHex(0x0b1830);
+  flash.intensity = player.light ? (player.san < 30 && Math.random() < 0.06 ? 3 : 24) : 0;
   AU.setHum(blackout > 0 || is4 ? 0 : badLvl);
 }
 
@@ -893,7 +894,12 @@ const AU = {
 function toast(msg, ms = 2600) { const d = document.createElement('div'); d.textContent = msg; $('toasts').appendChild(d); setTimeout(() => d.remove(), ms); while ($('toasts').children.length > 4) $('toasts').firstChild.remove(); }
 let subTimer = 0;
 function say(msg, ms = 3200) { const box = $('subs'); const d = document.createElement('div'); d.innerHTML = msg; box.appendChild(d); setTimeout(() => d.remove(), ms); while (box.children.length > 3) box.firstChild.remove(); }
-function fadeTo(v, ms = 350) { const f = $('fade'); f.style.transition = `opacity ${ms}ms`; f.style.opacity = v; }
+function fadeTo(v, ms = 350) {
+  const f = $('fade'); clearTimeout(fadeTo.t);
+  if (v > 0 && f.style.display !== 'block') { f.style.display = 'block'; void f.offsetWidth; }
+  f.style.transition = `opacity ${ms}ms`; f.style.opacity = v;
+  if (v <= 0) fadeTo.t = setTimeout(() => { f.style.display = 'none'; }, ms + 30);
+}
 function showScreen(id, on) { $(id).classList.toggle('on', on); }
 const clockStr = () => { const m = 120 + Math.floor(prog() * 240), h = Math.floor(m / 60), mm = m % 60; return `0${h}:${mm < 10 ? '0' : ''}${mm}`; };
 
@@ -930,7 +936,7 @@ function openElevator() {
 }
 function rideElevator(n) {
   AU.tone({ f: 880, dur: 0.5, vol: 0.12 }); AU.tone({ f: 660, dur: 0.7, vol: 0.12, delay: 0.25 });
-  let target = n;
+  let target = n; const from4 = player.floor === 4;
   if (player.floor !== 4) {
     const chance = 0.08 + prog() * 0.3;
     if (elevNext4 || (elev4Cd <= 0 && prog() > 0.1 && Math.random() < chance)) { target = 4; elevNext4 = false; elev4Cd = 90; }
@@ -943,7 +949,7 @@ function rideElevator(n) {
     AU.tone({ f: target === 4 ? 415 : 988, dur: 0.6, vol: 0.14 });
     fadeTo(0, 600); setTimeout(() => G.travel = 0, 600);
     if (target === 4) { say('<b>엘리베이터</b>: 4층입니다.', 3000); toast('이 건물은 3층까지밖에 없다…'); hooks.floor.forEach(f => f(4, 'arrive4')); }
-    else if (n === 1 && player.floor === 1 && G.came4) { say('<b>엘리베이터</b>: …1층입니다.'); }
+    else if (from4) { say('<b>엘리베이터</b>: …1층입니다. <i>또 오세요.</i>', 3000); }
   }, 1400);
 }
 
@@ -981,12 +987,15 @@ addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; input.attack = false; });
 canvas.addEventListener('mousedown', e => {
   if (IS_TOUCH) return;
-  if (!locked() && (G.mode === 'play' || G.mode === 'dialog')) { requestLock(); return; }
+  if (!locked() && !lockFailed && (G.mode === 'play' || G.mode === 'dialog')) { requestLock(); return; }
   if (e.button === 0 && G.mode === 'play') { input.attack = true; input.attackPressed = true; }
 });
 addEventListener('mouseup', e => { if (e.button === 0) input.attack = false; });
+let lockFailed = false;
+document.addEventListener('pointerlockerror', () => { lockFailed = true; });
 addEventListener('mousemove', e => {
-  if (!locked() || G.mode !== 'play' && G.mode !== 'dialog') return;
+  if (G.mode !== 'play' && G.mode !== 'dialog') return;
+  if (!locked() && !(lockFailed && e.buttons)) return;
   const s = 0.0022 * settings.sens;
   player.yaw -= e.movementX * s; player.pitch = clamp(player.pitch - e.movementY * s, -1.35, 1.35);
 });
@@ -995,12 +1004,13 @@ document.addEventListener('pointerlockchange', () => {
 });
 function onKeyDown(code) {
   if (G.mode === 'dialog') { const n = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 }[code]; if (n != null) chooseOpt(n); return; }
+  if (G.mode === 'pause' && (code === 'Escape' || code === 'KeyP')) { closePause(); return; }
   if (G.mode === 'journal' || G.mode === 'cctv') { if (code === 'Tab' || code === 'Escape' || code === 'KeyE') closeOverlay(); return; }
   if (G.mode !== 'play') return;
   if (code === 'KeyE') doInteract();
   if (code === 'KeyF') toggleLight();
   if (code === 'Tab') openJournal();
-  if (code === 'Escape' && IS_TOUCH) openPause();
+  if ((code === 'Escape' && (IS_TOUCH || !locked())) || code === 'KeyP') { if (locked()) { document.exitPointerLock(); } else openPause(); }
   const w = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 }[code]; if (w != null) hooks.weapon && hooks.weapon(w);
 }
 function toggleLight() { player.light = !player.light; AU.tone({ f: 1800, dur: 0.03, vol: 0.08, type: 'square' }); }
@@ -1076,7 +1086,6 @@ function updateHUD() {
 /* ============================================================
    STUBS (filled by later stages)
    ============================================================ */
-function openPause() { }
 
 
 /* ============================================================
@@ -1427,7 +1436,7 @@ function penaltyStamp(e) {
 function hurtPlayer(n, fx, fz) {
   if (player.inSafe || G.mode !== 'play' && G.mode !== 'dialog') return;
   player.hp = Math.max(0, player.hp - n); G.shake = Math.max(G.shake, 0.45);
-  $('hurt').style.opacity = 1; setTimeout(() => $('hurt').style.opacity = 0, 160);
+  const hu = $('hurt'); hu.style.display = 'block'; void hu.offsetWidth; hu.style.opacity = 1; clearTimeout(hurtPlayer.t); hurtPlayer.t = setTimeout(() => { hu.style.opacity = 0; hurtPlayer.t = setTimeout(() => hu.style.display = 'none', 400); }, 160);
   AU.tone({ f: 140, f2: 50, dur: 0.25, vol: 0.3 }); AU.noise({ f: 800, q: 1, dur: 0.15, vol: 0.2 });
   if (fx != null) { const dx = player.x - fx, dz = player.z - fz, d = Math.hypot(dx, dz) || 1; player.kbx = dx / d * 7; player.kbz = dz / d * 7; }
   if (player.hp <= 0 && hooks.death) hooks.death();
@@ -1867,7 +1876,7 @@ function updateGhost(e, dt, F) {
   if (d < 0.85 && e.touchCd <= 0 && e.stun <= 0 && !player.inSafe) {
     e.touchCd = 1.6; hurtSanity(13 + p * 6);
     e.kx = dx / d * 5; e.kz = dz / d * 5; e.stun = 0.9;
-    $('vignette').style.background = 'radial-gradient(ellipse at center,transparent 25%,rgba(120,180,255,.75) 100%)'; setTimeout(() => $('vignette').style.background = '', 250);
+    const vg = $('vignette'); vg.dataset.flash = '1'; vg.style.background = 'radial-gradient(ellipse at center,transparent 25%,rgba(120,180,255,.75) 100%)'; setTimeout(() => { vg.style.background = ''; delete vg.dataset.flash; }, 250);
     AU.sting(); G.shake = Math.max(G.shake, 0.25); burstPapers(player.x, 1.4, player.z, 6, 0.7);
     say('<i>"이것만… 봐주세요…"</i>', 2000);
   }
@@ -2075,7 +2084,9 @@ hooks.update.push((dt, rdt) => {
 let sfxT = 0;
 function sanityFX(dt) {
   const s = player.san, w = clamp((60 - s) / 60, 0, 1);
-  $('vignette').style.opacity = (w * (0.7 + Math.sin(performance.now() / 300) * 0.25)).toFixed(2);
+  const vg = $('vignette'), vo = w * (0.7 + Math.sin(performance.now() / 300) * 0.25), show = vo > 0.01 || vg.dataset.flash;
+  if ((vg.style.display === 'block') !== !!show) vg.style.display = show ? 'block' : 'none';
+  vg.style.opacity = vg.dataset.flash ? 1 : vo.toFixed(2);
   sfxT -= dt; if (sfxT > 0) return; sfxT = 0.08;
   if (s < 35) {
     const k = (35 - s) / 35, t = performance.now() / 1000;
@@ -2083,7 +2094,7 @@ function sanityFX(dt) {
     canvas.style.transform = `scale(${(1 + k * 0.04).toFixed(3)}) rotate(${(Math.sin(t * 1.3) * 1.2 * k).toFixed(2)}deg) skewX(${(Math.sin(t * 0.9) * 3 * k).toFixed(2)}deg)`;
   } else if (canvas.style.filter) { canvas.style.filter = ''; canvas.style.transform = ''; }
 }
-function resetFX() { canvas.style.filter = ''; canvas.style.transform = ''; $('vignette').style.opacity = 0; }
+function resetFX() { canvas.style.filter = ''; canvas.style.transform = ''; $('vignette').style.opacity = 0; $('vignette').style.display = 'none'; }
 hooks.reset.push(() => {
   copier.active = false; copier.sheets.forEach(s => s.m.parent && s.m.parent.remove(s.m)); copier.sheets.length = 0;
   Object.assign(phone, { ringing: false, next: 45 }); Object.assign(dir2, { ghostT: 100, phenT: 35, halluT: 8 }); hotLoc = null;
@@ -2123,6 +2134,141 @@ Object.assign(AU, {
   voice() { for (let i = 0; i < 10; i++) this.tone({ f: rand(140, 220), dur: 0.1, vol: 0.05, type: 'sawtooth', lp: 700, delay: i * 0.12 }); this.noise({ f: 1500, q: 0.4, dur: 1.4, vol: 0.03 }); }
 });
 
+
+/* ============================================================
+   STAGE 6 — SAVE / CONTINUE, PAUSE, GAME OVER, ENDINGS
+   ============================================================ */
+function snapshot() {
+  return { v: 1, t: G.t, score: G.score, cps: G.cps.slice(), cpTimes: cpTimes.slice(), hp: Math.max(player.hp, 50), san: Math.max(player.san, 40),
+    ammo: Object.assign({}, ammo), gotSeal: !!G.gotSeal, floor: player.floor === 4 ? 1 : player.floor,
+    x: player.floor === 4 ? 5 : player.x, z: player.floor === 4 ? 4.5 : player.z, yaw: player.yaw };
+}
+function readSave() { const s = store.get(SAVE_KEY, null); return s && s.v === 1 ? s : null; }
+function writeSave(which) { const s = readSave() || { v: 1 }; const snap = snapshot(); if (which === 'cp' || !s.cp) s.cp = snap; s.cur = snap; store.set(SAVE_KEY, s); }
+hooks.checkpoint = () => { writeSave('cp'); toast('자동 저장됨'); };
+function loadSnap(sn) {
+  newGame();
+  G.t = sn.t; G.score = sn.score; G.cps = sn.cps.slice(); cpTimes.length = 0; (sn.cpTimes || []).forEach((v, i) => cpTimes[i] = v);
+  Object.assign(ammo, sn.ammo); G.gotSeal = sn.gotSeal; player.hp = sn.hp; player.san = sn.san;
+  setFloor(sn.floor); player.x = sn.x; player.z = sn.z; player.yaw = sn.yaw; player.pitch = 0;
+  director.compT = 15; director.firstComp = false; dir2.ghostT = 40; G.ghostIntro = true;
+  updateWeaponHUD();
+}
+let autoT = 30;
+hooks.update.push(dt => { autoT -= dt; if (autoT <= 0) { autoT = 30; writeSave('cur'); } });
+function refreshTitle() { $('bCont').disabled = !readSave(); }
+
+/* ---------- pause ---------- */
+function openPause() {
+  if (G.mode !== 'play') return;
+  G.mode = 'pause'; stopSpray(); input.attack = false; showScreen('pause', true);
+  $('sens').value = settings.sens; $('vol').value = settings.vol; $('sensO').textContent = (+settings.sens).toFixed(1); $('volO').textContent = Math.round(settings.vol * 100) + '%';
+  if (AU.ctx) AU.ctx.suspend();
+}
+function closePause() {
+  showScreen('pause', false); G.mode = 'play'; if (AU.ctx) AU.ctx.resume(); requestLock();
+}
+$('sens').oninput = e => { settings.sens = +e.target.value; $('sensO').textContent = settings.sens.toFixed(1); store.set(SET_KEY, settings); };
+$('vol').oninput = e => { settings.vol = +e.target.value; $('volO').textContent = Math.round(settings.vol * 100) + '%'; AU.setVol(settings.vol); store.set(SET_KEY, settings); };
+$('bResume').onclick = closePause;
+$('bToTitle').onclick = () => { writeSave('cur'); showScreen('pause', false); toTitle(); };
+function toTitle() {
+  G.mode = 'title'; hooks.reset.forEach(f => f());
+  ['journal', 'cctv', 'pause', 'gameover', 'badend', 'credits'].forEach(id => showScreen(id, false));
+  closeChoice(); G.mode = 'title';
+  $('hud').classList.remove('on'); $('touch').classList.remove('on'); $('dialog').classList.remove('on');
+  setFloor(1); player.x = 14; player.z = 11; player.yaw = Math.PI / 2; player.pitch = 0; blackout = 0; G.dawn = 0;
+  if (cut.npc) { cut.npc.root.parent && cut.npc.root.parent.remove(cut.npc.root); cut.npc = null; }
+  resetFX(); fadeTo(0, 300); if (AU.ctx) AU.ctx.resume();
+  if (document.pointerLockElement) { G.noPauseOnUnlock = true; document.exitPointerLock(); setTimeout(() => G.noPauseOnUnlock = false, 200); }
+  refreshTitle(); showScreen('title', true);
+}
+
+/* ---------- game over ---------- */
+const GO_MSGS = ['사유: 괴물 민원인에게 목덜미를 잡힘', '사유: 정신력 고갈로 당직실을 뛰쳐나감', '사유: "이것만 봐주세요"를 너무 많이 봐줌', '사유: 새벽 감성에 압도됨'];
+hooks.death = () => {
+  if (G.mode === 'gameover') return;
+  closeChoice(); G.mode = 'gameover'; stopSpray(); input.attack = false;
+  $('goMsg').textContent = player.san <= 0 ? GO_MSGS[1] : pick([GO_MSGS[0], GO_MSGS[3]]);
+  AU.tone({ f: 200, f2: 30, type: 'sawtooth', dur: 2, vol: 0.25, lp: 800 }); AU.noise({ f: 300, q: 0.4, dur: 1.5, vol: 0.2, ft: 'lowpass' });
+  fadeTo(0.6, 600); showScreen('gameover', true);
+  if (document.pointerLockElement) { G.noPauseOnUnlock = true; document.exitPointerLock(); setTimeout(() => G.noPauseOnUnlock = false, 200); }
+};
+$('bRetry').onclick = () => {
+  showScreen('gameover', false); fadeTo(0, 300);
+  const sv = readSave();
+  if (sv && sv.cp) { loadSnap(sv.cp); toast('마지막 체크포인트에서 다시 시작'); } else newGame();
+  startPlay();
+};
+$('bGoTitle').onclick = () => { showScreen('gameover', false); toTitle(); };
+$('bCont').onclick = () => { const sv = readSave(); if (!sv) return; loadSnap(sv.cur || sv.cp); startPlay(); toast(`이어하기 — ${clockStr()} · 일지 ${G.cps.filter(Boolean).length}/6`); };
+
+/* ---------- endings ---------- */
+const cut = { t: 0, npc: null, step: 0 };
+hooks.timeUp = () => {
+  closeChoice(); showScreen('journal', false); showScreen('cctv', false);
+  stopSpray(); input.attack = false; phone.ringing = false; copier.active = false;
+  store.del(SAVE_KEY);
+  if (document.pointerLockElement) { G.noPauseOnUnlock = true; document.exitPointerLock(); setTimeout(() => G.noPauseOnUnlock = false, 200); }
+  if (G.cps.every(Boolean)) goodEnding(); else badEnding();
+};
+function goodEnding() {
+  G.mode = 'cutscene'; cut.t = 0; cut.step = 0; fadeTo(1, 900);
+  $('hud').classList.remove('on'); $('touch').classList.remove('on');
+  setTimeout(() => {
+    for (const e of enemies.slice()) removeEnemy(e);
+    setFloor(1); Object.assign(player, { x: 29.5, z: 17.5, yaw: -Math.PI / 2, pitch: 0.02, light: false }); G.dawn = 1; blackout = 0;
+    cut.npc = buildPerson({ shirt: 0x2e3c52, tie: 0x8a1a1a, hair: 0x2a1a10 }); cut.npc.brows.forEach(b => b.rotation.z = 0);
+    cut.npc.root.position.set(35.6, 0, 17.5); cut.npc.root.rotation.y = -Math.PI / 2; floors[1].group.add(cut.npc.root);
+    const clip = bx(0.22, 0.3, 0.02, lam(0x1c2c4a), 0, -0.55, 0.12, cut.npc.armR); clip.rotation.x = -0.4;
+    AU.tone({ f: 660, dur: 0.3, vol: 0.1 }); AU.noise({ f: 800, q: 0.5, dur: 0.6, vol: 0.1 });
+    fadeTo(0, 1500); cut.step = 1;
+  }, 1000);
+}
+function updateCutscene(dt) {
+  if (cut.step < 1) return;
+  cut.t += dt; const n = cut.npc, t = cut.t;
+  if (n) {
+    const walk = t < 3.2; const x = 35.6 - Math.min(t, 3.2) * 1.2;
+    n.root.position.x = x; const sw = walk ? Math.sin(t * 7) * 0.5 : 0;
+    n.legL.rotation.x = sw; n.legR.rotation.x = -sw; n.armL.rotation.x = -sw;
+    n.armR.rotation.x = t > 4.5 && t < 9 ? -1.0 : 0; n.head.rotation.y = t > 7 ? Math.sin(t * 2) * 0.2 : 0;
+  }
+  player.yaw = -Math.PI / 2 + Math.sin(t * 0.3) * 0.02;
+  const at = (k, f) => { if (cut.step === k && t > [0, 1.5, 4.6, 7.6, 11.5, 13.5][k]) { cut.step++; f(); } };
+  at(1, () => say('<b>교대자</b>: 수고하셨습니다~ 교대하러 왔어요. 밤새 별일 없었죠?', 3200));
+  at(2, () => say('<b>교대자</b>: (근무 명단을 넘기며) …어? 근데요.', 3000));
+  at(3, () => { say('<b>교대자</b>: 어제 당직 누구였어요? <b>명단에 없는데.</b>', 4000); AU.sting(); });
+  at(4, () => { blackout = 3; fadeTo(1, 1500); AU.tone({ f: 60, dur: 0.2, vol: 0.2, type: 'square', lp: 400 }); });
+  at(5, () => { G.score += 500; showCredits('교대 (정상 퇴근…?)'); });
+}
+function badEnding() {
+  G.mode = 'ending'; fadeTo(0.7, 800);
+  $('hud').classList.remove('on'); $('touch').classList.remove('on');
+  const n = G.cps.filter(Boolean).length;
+  $('badMemo').innerHTML = `<b>[부서장 메모]</b><br>당직 일지 미작성 (${n}/6).<br>오늘 08:30까지 경위서 3장 제출 바람.<br>빈칸: ${CPS.filter((c, i) => !G.cps[i]).map(c => c.short).join(', ')}<br><br>추신. 당직실 시계는 왜 또 2시에 멈춰 있지?<br><span style="opacity:.7">최종 점수 ${G.score}</span>`;
+  AU.tone({ f: 330, dur: 0.4, vol: 0.12 }); AU.tone({ f: 262, dur: 0.8, vol: 0.12, delay: 0.35 });
+  showScreen('badend', true);
+}
+$('bBadNext').onclick = () => { showScreen('badend', false); showCredits('당직 일지 미작성'); };
+function showCredits(endName) {
+  G.mode = 'ending'; fadeTo(0, 200); showScreen('credits', true);
+  const roll = $('credRoll');
+  const L = (a, b) => `<div>${a} <span style="opacity:.55">····</span> ${b}</div>`;
+  roll.innerHTML = `<h3>새벽 2시 당직</h3><div style="color:#ffb070">엔딩 — ${endName}</div><div>최종 점수 ${G.score} · 일지 ${G.cps.filter(Boolean).length}/6</div><br>
+    <div style="opacity:.7">출 연</div>${L('신규 당직자', '당신')}${L('진상 민원인', '동네 주민 여러분 (가상)')}${L('야근 직원 유령', '아직 퇴근 못 한 분들')}${L('복사기', '본인 역')}
+    ${L('당직실 벽시계', '2:00 (고정 출연)')}${L('4층', '(존재하지 않음)')}${L('교대자', '명단 확인 담당')}<br>
+    <div style="opacity:.7">도 움</div>${L('형광등', '깜빡임 연기')}${L('스테이플러 심', '소모품')}${L('직인 도장', '결재 담당')}<br>
+    <div style="opacity:.7">이 작품의 기관·인물·사건은 모두 가상입니다.</div><div style="opacity:.7">실제 민원인을 때리면 안 됩니다. 정말로.</div>
+    <div class="last">기획·감독: 새벽두시 / 코드: 0줄</div>`;
+  roll.style.transition = 'none'; roll.style.transform = 'translateY(0)'; void roll.offsetWidth;
+  const h = roll.scrollHeight + innerHeight * 0.6;
+  roll.style.transition = 'transform 26s linear'; roll.style.transform = `translateY(${-h}px)`;
+  clearTimeout(showCredits.t); showCredits.t = setTimeout(toTitle, 28000);
+  [262, 330, 392, 523, 392, 330].forEach((f, i) => AU.tone({ f, dur: 1.4, vol: 0.05, delay: i * 0.9, a: 0.2 }));
+}
+$('credSkip').onclick = () => { clearTimeout(showCredits.t); toTitle(); };
+
 /*@@SYSTEMS@@*/
 
 /* ============================================================
@@ -2140,7 +2286,7 @@ function startPlay() {
   if (IS_TOUCH) $('touch').classList.add('on');
   G.mode = 'play'; requestLock();
 }
-$('bStart').onclick = () => { newGame(); startPlay(); say('<b>나</b>: 새벽 2시… 당직 시작이다. 일지부터 채우자.', 4000); };
+$('bStart').onclick = () => { store.del(SAVE_KEY); newGame(); writeSave('cp'); startPlay(); say('<b>나</b>: 새벽 2시… 당직 시작이다. 일지부터 채우자.', 4000); };
 $('bHow').onclick = () => $('howto').classList.toggle('on');
 
 /* ============================================================
@@ -2153,6 +2299,8 @@ function frame(now) {
   let dt = rdt;
   if (G.hitstop > 0) { G.hitstop -= rdt; dt = 0; }
   tick(dt, rdt);
+  if (G.mode === 'cutscene') updateCutscene(rdt);
+  vmRoot.visible = G.mode !== 'title' && G.mode !== 'cutscene' && G.mode !== 'ending';
   if (G.mode !== 'title') updateLights(rdt, now / 1000); else AU.setHum(0);
   updateCamera(rdt);
   renderer.render(scene, camera);
@@ -2170,9 +2318,9 @@ function tick(dt, rdt) {
 /* title backdrop: slow pan through the dark lobby */
 setFloor(1); player.x = 14; player.z = 11; player.yaw = Math.PI / 2;
 requestAnimationFrame(frame);
-showScreen('title', true);
+showScreen('title', true); refreshTitle();
 
-window.__dbg = { ready: true, spawnGhost, startCopier, phone, ticketEvent, doBlackout, rideElevator, copier, get elevNext4(){return elevNext4}, set elevNext4(v){elevNext4=v}, ammo, wpn, selectWeapon, attack, hitEnemy, burstPapers, sim(sec) { for (let i = 0; i < sec * 30; i++) tick(1 / 30, 1 / 30); updateCamera(0); }, enemies, spawnComplainant, monsterize, penaltyStamp, talkTo, G, player, floors, setFloor, travel, newGame, startPlay, hooks, camera, renderer, input, keys, get prog() { return prog(); } };
+window.__dbg = { ready: true, readSave, loadSnap, toTitle, openPause, cut, get mode(){return G.mode}, spawnGhost, startCopier, phone, ticketEvent, doBlackout, rideElevator, copier, get elevNext4(){return elevNext4}, set elevNext4(v){elevNext4=v}, ammo, wpn, selectWeapon, attack, hitEnemy, burstPapers, sim(sec) { for (let i = 0; i < sec * 30; i++) tick(1 / 30, 1 / 30); updateCamera(0); }, enemies, spawnComplainant, monsterize, penaltyStamp, talkTo, G, player, floors, setFloor, travel, newGame, startPlay, hooks, camera, renderer, input, keys, get prog() { return prog(); } };
 </script>
 </body>
 </html>
