@@ -987,15 +987,16 @@ addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; input.attack = false; });
 canvas.addEventListener('mousedown', e => {
   if (IS_TOUCH) return;
-  if (!locked() && !lockFailed && (G.mode === 'play' || G.mode === 'dialog')) { requestLock(); return; }
+  if (!locked() && (G.mode === 'play' || G.mode === 'dialog')) { requestLock(); if (!lockFailed) return; }
   if (e.button === 0 && G.mode === 'play') { input.attack = true; input.attackPressed = true; }
 });
 addEventListener('mouseup', e => { if (e.button === 0) input.attack = false; });
 let lockFailed = false;
 document.addEventListener('pointerlockerror', () => { lockFailed = true; });
+document.addEventListener('pointerlockchange', () => { if (locked()) lockFailed = false; });
 addEventListener('mousemove', e => {
   if (G.mode !== 'play' && G.mode !== 'dialog') return;
-  if (!locked() && !(lockFailed && e.buttons)) return;
+  if (!locked() && !e.buttons) return; // unlocked: drag to look (fallback for frames without pointer lock)
   const s = 0.0022 * settings.sens;
   player.yaw -= e.movementX * s; player.pitch = clamp(player.pitch - e.movementY * s, -1.35, 1.35);
 });
@@ -1087,6 +1088,8 @@ function updateHUD() {
    STUBS (filled by later stages)
    ============================================================ */
 
+
+let updateHUDThrottled = () => updateHUD();
 
 /* ============================================================
    STAGE 2 — TIME, PATROL CHECKPOINTS, DUTY LOG
@@ -1874,8 +1877,8 @@ function updateGhost(e, dt, F) {
   e.whisperT -= dt;
   if (e.whisperT <= 0) { e.whisperT = rand(3.5, 6.5); bubble(e, pick(GHOST_LINES), 2.6); AU.whisper(e.x, e.z, e.floor); }
   if (d < 0.85 && e.touchCd <= 0 && e.stun <= 0 && !player.inSafe) {
-    e.touchCd = 1.6; hurtSanity(13 + p * 6);
-    e.kx = dx / d * 5; e.kz = dz / d * 5; e.stun = 0.9;
+    e.touchCd = 1.8; hurtSanity(10 + p * 6);
+    e.kx = dx / d * 6; e.kz = dz / d * 6; e.stun = 1.3;
     const vg = $('vignette'); vg.dataset.flash = '1'; vg.style.background = 'radial-gradient(ellipse at center,transparent 25%,rgba(120,180,255,.75) 100%)'; setTimeout(() => { vg.style.background = ''; delete vg.dataset.flash; }, 250);
     AU.sting(); G.shake = Math.max(G.shake, 0.25); burstPapers(player.x, 1.4, player.z, 6, 0.7);
     say('<i>"이것만… 봐주세요…"</i>', 2000);
@@ -1955,7 +1958,8 @@ function ticketEvent(spawn) {
   setTicket('0444'); setTimeout(() => setTicket('0001'), 12000);
   const s = AU.sp(24, 2, 1); AU.tone({ f: 784, dur: 0.5, vol: 0.18 * s.v, pan: s.p }); AU.tone({ f: 622, dur: 0.8, vol: 0.18 * s.v, pan: s.p, delay: 0.45 });
   if (player.floor === 1) say('<b>안내 음성</b>: 444번 고객님, 4번 창구로 오세요.', 3500); else toast('아래층에서 "딩동" 소리가 울린다…');
-  if (spawn) { const e = spawnComplainant(1, rand(17, 30), 1.6 + Math.random()); e.x = e.px = rand(16, 32); e.z = e.pz = rand(4.2, 4.6); e.rage = 60; }
+  const comps = enemies.filter(e => e.type === 'comp' && e.state !== 'leave').length;
+  if (spawn && comps < 2 + Math.floor(prog() * 3)) { const e = spawnComplainant(1, rand(17, 30), 1.6 + Math.random()); e.x = e.px = rand(16, 32); e.z = e.pz = rand(4.2, 4.6); e.rage = 60; }
 }
 function setScreen(lines, bg = '#0a0a14', fg = '#2a2a40') { const F = floors[3], g = F.screenTex.userData.ctx; g.fillStyle = bg; g.fillRect(0, 0, 512, 300); g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; lines.forEach((l, i) => { g.font = `bold ${i ? 32 : 50}px ${FONT}`; g.fillText(l, 256, 120 + i * 60 - (lines.length - 1) * 25); }); F.screenTex.needsUpdate = true; }
 function doBlackout(sec) { blackout = sec; AU.tone({ f: 60, dur: 0.15, vol: 0.2, type: 'square', lp: 400 }); AU.noise({ f: 3000, q: 0.5, dur: 0.08, vol: 0.12 }); hurtSanity(2); }
@@ -2269,6 +2273,112 @@ function showCredits(endName) {
 }
 $('credSkip').onclick = () => { clearTimeout(showCredits.t); toTitle(); };
 
+
+/* ============================================================
+   STAGE 7 — MOBILE CONTROLS, ADAPTIVE QUALITY, SOUND POLISH
+   ============================================================ */
+if (IS_TOUCH) {
+  $('rotate').classList.add('need');
+  const joy = $('joy'), knob = $('joyK'), R = 55;
+  let joyId = null, jcx = 0, jcy = 0, lookId = null, lx = 0, ly = 0;
+  const opt = { passive: false };
+  const setKnob = (dx, dy) => { knob.style.transform = `translate(${dx}px,${dy}px)`; };
+  joy.addEventListener('touchstart', e => {
+    e.preventDefault(); const t = e.changedTouches[0]; joyId = t.identifier;
+    const r = joy.getBoundingClientRect(); jcx = r.left + r.width / 2; jcy = r.top + r.height / 2;
+    moveJoy(t);
+  }, opt);
+  function moveJoy(t) {
+    let dx = t.clientX - jcx, dy = t.clientY - jcy; const l = Math.hypot(dx, dy); if (l > R) { dx *= R / l; dy *= R / l; }
+    setKnob(dx, dy); input.side = dx / R; input.fwd = -dy / R;
+    input.joyRun = l > R * 1.25;
+  }
+  const lookPad = $('lookPad');
+  lookPad.addEventListener('touchstart', e => { e.preventDefault(); if (lookId !== null) return; const t = e.changedTouches[0]; lookId = t.identifier; lx = t.clientX; ly = t.clientY; }, opt);
+  addEventListener('touchmove', e => {
+    for (const t of e.changedTouches) {
+      if (t.identifier === joyId) moveJoy(t);
+      else if (t.identifier === lookId && (G.mode === 'play' || G.mode === 'dialog')) {
+        const s = 0.0052 * settings.sens; player.yaw -= (t.clientX - lx) * s; player.pitch = clamp(player.pitch - (t.clientY - ly) * s, -1.3, 1.3); lx = t.clientX; ly = t.clientY;
+      }
+    }
+    if (G.mode === 'play' || G.mode === 'dialog') e.preventDefault();
+  }, opt);
+  const endT = e => { for (const t of e.changedTouches) { if (t.identifier === joyId) { joyId = null; input.side = input.fwd = 0; input.joyRun = false; setKnob(0, 0); } if (t.identifier === lookId) lookId = null; } };
+  addEventListener('touchend', endT); addEventListener('touchcancel', endT);
+  const btn = (id, down, up) => { const b = $(id); b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); b.classList.add('act'); down(); }, opt); b.addEventListener('touchend', e => { e.preventDefault(); b.classList.remove('act'); up && up(); }, opt); b.addEventListener('touchcancel', () => { b.classList.remove('act'); up && up(); }); };
+  btn('tAtk', () => { if (G.mode === 'play') { input.attack = true; input.attackPressed = true; } }, () => { input.attack = false; });
+  btn('tUse', () => { if (G.mode === 'play') doInteract(); });
+  btn('tRun', () => { input.runToggle = !input.runToggle; $('tRun').style.borderColor = input.runToggle ? '#ffcf6a' : ''; });
+  btn('tLight', () => { if (G.mode === 'play') toggleLight(); });
+  btn('tLog', () => { if (G.mode === 'journal') closeOverlay(); else openJournal(); });
+  btn('tPause', () => { if (G.mode === 'play') openPause(); });
+  document.querySelectorAll('#tWpns .tb').forEach(b => b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); selectWeapon(+b.dataset.w); }, opt));
+  hooks.update.push(() => { input.run = input.runToggle || input.joyRun; });
+}
+function tryFullscreen() {
+  if (!IS_TOUCH) return;
+  try { const el = document.documentElement, rq = el.requestFullscreen || el.webkitRequestFullscreen; if (rq && !document.fullscreenElement) { const p = rq.call(el); if (p && p.catch) p.catch(() => { }); } } catch (e) { }
+  try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => { }); } catch (e) { }
+}
+$('bStart').addEventListener('click', tryFullscreen); $('bCont').addEventListener('click', tryFullscreen);
+
+/* ---------- adaptive resolution: keep frame time near 60fps on weak devices ---------- */
+const quality = { pr: renderer.getPixelRatio(), max: renderer.getPixelRatio(), acc: 0, n: 0, t: 0 };
+function adaptQuality(rdt) {
+  if (G.mode !== 'play') return;
+  quality.acc += rdt; quality.n++; quality.t += rdt;
+  if (quality.t < 2) return;
+  const avg = quality.acc / quality.n; quality.acc = quality.n = quality.t = 0;
+  let pr = quality.pr;
+  if (avg > 1 / 40) pr = Math.max(0.6, pr - 0.15); else if (avg < 1 / 57) pr = Math.min(quality.max, pr + 0.1);
+  if (Math.abs(pr - quality.pr) > 0.01) { quality.pr = pr; renderer.setPixelRatio(pr); renderer.setSize(innerWidth, innerHeight); }
+}
+if (IS_TOUCH) { LPOOL[3].l.visible = false; LPOOL.length = 3; } // fewer dynamic lights on mobile
+
+/* ---------- sound polish: master compressor, room tone, creaks, buzz pops ---------- */
+const _auInit = AU.init.bind(AU);
+AU.init = function () {
+  const first = !this.ctx; _auInit();
+  if (!first || !this.ctx) return;
+  try {
+    const c = this.ctx, comp = c.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4;
+    this.master.disconnect(); this.master.connect(comp); comp.connect(c.destination);
+    const s = c.createBufferSource(); s.buffer = this.noiseBuf; s.loop = true; const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 180;
+    const g = c.createGain(); g.gain.value = 0.035; s.connect(f); f.connect(g); g.connect(this.master); s.start(); this.room = g;
+  } catch (e) { }
+};
+const _step = AU.step.bind(AU);
+AU.step = function (run) {
+  if (!this.ctx) return;
+  if (player.floor === 4) { this.noise({ f: 240 + Math.random() * 80, q: 1.5, dur: 0.14, vol: run ? 0.16 : 0.11 }); this.noise({ f: 1800, q: 4, dur: 0.06, vol: 0.03, delay: 0.03 }); }
+  else _step(run);
+};
+let ambT = 6, lastBad = 1;
+hooks.update.push((dt) => {
+  ambT -= dt;
+  if (ambT <= 0) {
+    ambT = rand(7, 16) * (1 - prog() * 0.4);
+    const k = Math.random(), a = Math.random() * Math.PI * 2, x = player.x + Math.cos(a) * 8, z = player.z + Math.sin(a) * 8, sp = AU.sp(x, z);
+    if (k < 0.4) AU.tone({ f: rand(70, 110), f2: rand(50, 70), type: 'sawtooth', dur: rand(0.5, 1.1), vol: 0.06 * sp.v, pan: sp.p, lp: 300, a: 0.2 }); // building creak
+    else if (k < 0.65) AU.noise({ f: 6000, q: 1, dur: 0.05, vol: 0.05 * sp.v, pan: sp.p, delay: 0 }); // tick
+    else if (k < 0.85) AU.tone({ f: 40, f2: 30, dur: 1.6, vol: 0.12, a: 0.6 }); // low rumble
+    else for (let i = 0; i < 3; i++) AU.noise({ f: 250, q: 1, dur: 0.1, vol: 0.06 * sp.v, pan: sp.p, ft: 'lowpass', delay: i * 0.55 }); // distant steps
+  }
+  const bad = MAT.lampBad.emissiveIntensity > 0.5 ? 1 : 0;
+  if (bad !== lastBad && Math.random() < 0.35) AU.noise({ f: 3500, q: 0.8, dur: 0.035, vol: 0.035 });
+  lastBad = bad;
+});
+
+/* ---------- HUD throttle ---------- */
+const _updateHUD = updateHUD; let hudT = 0;
+updateHUDThrottled = (dt) => { hudT -= dt; if (hudT <= 0) { hudT = 0.1; _updateHUD(); } else promptOnly(); };
+function promptOnly() {
+  const p = $('prompt');
+  if (curInter && G.mode === 'play') { const lbl = typeof curInter.label === 'function' ? curInter.label() : curInter.label; const h = `<b>${IS_TOUCH ? '[조사]' : '[E]'}</b> ${lbl}`; if (p.innerHTML !== h) p.innerHTML = h; p.style.display = 'block'; }
+  else p.style.display = 'none';
+}
+
 /*@@SYSTEMS@@*/
 
 /* ============================================================
@@ -2299,8 +2409,10 @@ function frame(now) {
   let dt = rdt;
   if (G.hitstop > 0) { G.hitstop -= rdt; dt = 0; }
   tick(dt, rdt);
+  adaptQuality(rdt);
   if (G.mode === 'cutscene') updateCutscene(rdt);
   vmRoot.visible = G.mode !== 'title' && G.mode !== 'cutscene' && G.mode !== 'ending';
+  const tagsOn = G.mode === 'play' || G.mode === 'dialog'; if (tagsBox.style.display !== (tagsOn ? '' : 'none')) tagsBox.style.display = tagsOn ? '' : 'none';
   if (G.mode !== 'title') updateLights(rdt, now / 1000); else AU.setHum(0);
   updateCamera(rdt);
   renderer.render(scene, camera);
@@ -2312,7 +2424,7 @@ function tick(dt, rdt) {
   updatePlayer(dt);
   hooks.update.forEach(f => f(dt, rdt));
   curInter = findInteract();
-  updateHUD();
+  updateHUDThrottled(rdt);
   if (elev4Cd > 0) elev4Cd -= dt;
 }
 /* title backdrop: slow pan through the dark lobby */
