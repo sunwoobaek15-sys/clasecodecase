@@ -13,6 +13,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -106,6 +107,8 @@ object HudType {
         fontWeight = weight,
         fontSize = size,
         lineHeight = size * 1.45f,
+        // 한국어가 단어 중간에서 끊기지 않도록 어절 단위 줄바꿈 (Android 13+)
+        lineBreak = LineBreak(LineBreak.Strategy.HighQuality, LineBreak.Strictness.Normal, LineBreak.WordBreak.Phrase),
         color = color,
         shadow = glow(color, 8f, 0.45f),
     )

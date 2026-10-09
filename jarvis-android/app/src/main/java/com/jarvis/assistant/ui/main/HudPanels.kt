@@ -100,10 +100,12 @@ fun ClockPanel(modifier: Modifier = Modifier) {
                 Spacer(Modifier.width(8.dp))
                 Column {
                     Row(verticalAlignment = Alignment.Bottom) {
-                        Text(dt.format(DateTimeFormatter.ofPattern("HH:mm")), style = HudType.numeric(hud.secondary, 28.sp))
+                        Text(dt.format(DateTimeFormatter.ofPattern("HH:mm")), style = HudType.numeric(hud.secondary, 25.sp), maxLines = 1, softWrap = false)
                         Text(
                             dt.format(DateTimeFormatter.ofPattern(":ss")),
-                            style = HudType.numeric(hud.primary, 13.sp, weight = androidx.compose.ui.text.font.FontWeight.Medium),
+                            style = HudType.numeric(hud.primary, 11.sp, weight = androidx.compose.ui.text.font.FontWeight.Medium),
+                            maxLines = 1,
+                            softWrap = false,
                             modifier = Modifier.padding(bottom = 4.dp, start = 2.dp),
                         )
                     }
@@ -233,7 +235,7 @@ fun SystemPanel(system: SystemSnapshot?, modifier: Modifier = Modifier) {
                         b.percent <= 30 -> hud.warn
                         else -> hud.primary
                     },
-                    modifier = Modifier.size(50.dp),
+                    modifier = Modifier.size(54.dp),
                 )
                 val n = system?.network
                 CircularGauge(
@@ -241,7 +243,7 @@ fun SystemPanel(system: SystemSnapshot?, modifier: Modifier = Modifier) {
                     label = n?.type ?: "NET",
                     valueText = if (n?.connected == true) "${(n.strength * 100).toInt()}" else "OFF",
                     color = if (n?.connected == true) hud.primary else hud.danger,
-                    modifier = Modifier.size(50.dp),
+                    modifier = Modifier.size(54.dp),
                 )
                 val st = system?.storage
                 CircularGauge(
@@ -249,7 +251,7 @@ fun SystemPanel(system: SystemSnapshot?, modifier: Modifier = Modifier) {
                     label = "DISK",
                     valueText = st?.let { "${(it.usedFraction * 100).toInt()}" } ?: "--",
                     color = if ((st?.usedFraction ?: 0f) > 0.9f) hud.warn else hud.primary,
-                    modifier = Modifier.size(50.dp),
+                    modifier = Modifier.size(54.dp),
                 )
             }
         }

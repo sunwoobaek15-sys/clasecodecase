@@ -94,7 +94,7 @@ class HudScreenshotTest {
     private fun Harness(theme: HudTheme = HudTheme.CYAN, t: Float = 12.4f, content: @Composable () -> Unit) {
         JarvisTheme(theme, lite = false) {
             CompositionLocalProvider(
-                LocalFrameTime provides mutableFloatStateOf(t),
+                LocalFrameTime provides rememberTestFrameTime(t),
                 LocalTilt provides mutableStateOf(Offset.Zero),
             ) {
                 Box(Modifier.fillMaxSize()) {
@@ -103,6 +103,19 @@ class HudScreenshotTest {
                 }
             }
         }
+    }
+
+    /** 테스트 시계에 맞춰 흐르는 프레임 시간 (선 그리기/그래프 등장 애니메이션 확인용) */
+    @Composable
+    private fun rememberTestFrameTime(start: Float): androidx.compose.runtime.State<Float> {
+        val state = androidx.compose.runtime.remember { mutableFloatStateOf(start) }
+        androidx.compose.runtime.LaunchedEffect(Unit) {
+            val t0 = androidx.compose.runtime.withFrameNanos { it }
+            while (true) {
+                androidx.compose.runtime.withFrameNanos { state.floatValue = start + (it - t0) / 1_000_000_000f }
+            }
+        }
+        return state
     }
 
     private fun shoot(name: String, settleMs: Long = 2_500, content: @Composable () -> Unit) {

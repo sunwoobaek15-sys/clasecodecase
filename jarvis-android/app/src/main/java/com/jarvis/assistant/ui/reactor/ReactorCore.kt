@@ -211,20 +211,21 @@ fun ReactorCore(
                         }
                     }
 
-                    // 상태 텍스트
-                    if (processingText > 0.01f) {
-                        val blink = if ((t * 2.5f).toInt() % 2 == 0) 1f else 0.25f
-                        drawText(
-                            processingLayout,
-                            topLeft = Offset(center.x - processingLayout.size.width / 2f, center.y + R * 0.27f),
-                            alpha = processingText * blink,
-                        )
-                    } else if (spectrumAmt > 0.5f) {
-                        drawText(
-                            listeningLayout,
-                            topLeft = Offset(center.x - listeningLayout.size.width / 2f, center.y + R * 0.27f),
-                            alpha = spectrumAmt * (0.6f + 0.4f * sin(t * 4f)),
-                        )
+                    // 상태 텍스트 (링 위에서도 읽히도록 어두운 받침판)
+                    val label = when {
+                        processingText > 0.01f -> processingLayout to processingText * (if ((t * 2.5f).toInt() % 2 == 0) 1f else 0.35f)
+                        spectrumAmt > 0.5f -> listeningLayout to spectrumAmt * (0.65f + 0.35f * sin(t * 4f))
+                        else -> null
+                    }
+                    if (label != null) {
+                        val (layout, alpha) = label
+                        val pad = 6f * unit
+                        val tl = Offset(center.x - layout.size.width / 2f, center.y + R * 0.6f)
+                        val plateTl = tl - Offset(pad * 1.6f, pad * 0.7f)
+                        val plateSize = Size(layout.size.width + pad * 3.2f, layout.size.height + pad * 1.4f)
+                        drawRect(hud.bg.copy(alpha = 0.82f * alpha.coerceAtLeast(0.6f)), plateTl, plateSize)
+                        drawRect(hud.primary.copy(alpha = 0.7f), plateTl, plateSize, style = Stroke(1f * unit))
+                        drawText(layout, topLeft = tl, alpha = alpha)
                     }
                 }
             },

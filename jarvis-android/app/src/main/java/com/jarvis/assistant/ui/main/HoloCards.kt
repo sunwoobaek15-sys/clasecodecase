@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -130,8 +131,8 @@ private fun LogRow(line: LogLine) {
 /** 로그 위/아래 가장자리를 배경색으로 흐리게 */
 private fun Modifier.fadingEdges(bg: Color) = this.drawWithContent {
     drawContent()
-    val h = 14.dp.toPx()
-    drawRect(Brush.verticalGradient(listOf(bg.copy(alpha = 0.9f), Color.Transparent), startY = 0f, endY = h), size = Size(size.width, h))
+    val h = 26.dp.toPx()
+    drawRect(Brush.verticalGradient(listOf(bg, bg.copy(alpha = 0.85f), Color.Transparent), startY = 0f, endY = h), size = Size(size.width, h))
 }
 
 // ───────────────────────── 실행 중 도구 카드 ─────────────────────────
@@ -150,6 +151,7 @@ fun ExecutingCard(tool: ExecutingTool, modifier: Modifier = Modifier) {
                 scaleY = 0.2f + 0.8f * appear.value
                 translationX = (1f - appear.value) * -40f * density
             }
+            .drawBehind { drawRect(hud.bg.copy(alpha = 0.8f)) }
             .hudPanel(hud.warn, fillAlpha = 0.09f)
             .padding(8.dp),
     ) {
@@ -186,6 +188,7 @@ fun ResultCardView(entry: CardEntry, onDismiss: () -> Unit, modifier: Modifier =
                 alpha = (unfold.value * 1.4f).coerceAtMost(1f)
                 transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0f)
             }
+            .drawBehind { drawRect(hud.bg.copy(alpha = 0.86f)) }
             .hudPanel(hud.primary, fillAlpha = 0.1f, lite = lite)
             .clickable(remember { MutableInteractionSource() }, null, onClick = onDismiss)
             .padding(10.dp),
