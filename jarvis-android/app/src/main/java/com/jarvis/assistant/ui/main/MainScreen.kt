@@ -46,6 +46,30 @@ private fun Modifier.assembled(boot: BootState, fromX: Float, fromY: Float, dela
 @Composable
 fun MainScreen(vm: MainViewModel, boot: BootState, apiReady: Boolean) {
     val state by vm.state.collectAsStateWithLifecycle()
+    MainHud(
+        state = state,
+        boot = boot,
+        apiReady = apiReady,
+        micLevel = { vm.micLevel.value },
+        speech = { vm.speechEnvelope.value },
+        onCoreTap = vm::onCoreTap,
+        onCoreLongPress = { vm.openTextInput(true) },
+        onDismissCard = vm::dismissCard,
+    )
+}
+
+/** 상태만으로 그리는 메인 HUD (스크린샷 테스트에서도 사용) */
+@Composable
+fun MainHud(
+    state: HudUiState,
+    boot: BootState,
+    apiReady: Boolean,
+    micLevel: () -> Float,
+    speech: () -> Float,
+    onCoreTap: () -> Unit,
+    onCoreLongPress: () -> Unit,
+    onDismissCard: (Long) -> Unit,
+) {
     val hud = LocalHud.current
     val tiltState = LocalTilt.current
     val tilt = { tiltState.value }
@@ -67,12 +91,12 @@ fun MainScreen(vm: MainViewModel, boot: BootState, apiReady: Boolean) {
             val side = minOf(maxWidth, maxHeight)
             ReactorCore(
                 mode = state.mode,
-                level = { vm.micLevel.value },
-                speech = { vm.speechEnvelope.value },
+                level = micLevel,
+                speech = speech,
                 lowPower = state.lowPower,
                 ignition = boot.ignition.value,
-                onTap = vm::onCoreTap,
-                onLongPress = { vm.openTextInput(true) },
+                onTap = onCoreTap,
+                onLongPress = onCoreLongPress,
                 modifier = Modifier
                     .width(side)
                     .aspectRatio(1f)
@@ -99,7 +123,7 @@ fun MainScreen(vm: MainViewModel, boot: BootState, apiReady: Boolean) {
             ) {
                 state.cards.takeLast(2).forEach { entry ->
                     key(entry.id) {
-                        ResultCardView(entry, onDismiss = { vm.dismissCard(entry.id) }, modifier = Modifier.fillMaxWidth().widthIn(max = 520.dp))
+                        ResultCardView(entry, onDismiss = { onDismissCard(entry.id) }, modifier = Modifier.fillMaxWidth().widthIn(max = 520.dp))
                     }
                 }
             }

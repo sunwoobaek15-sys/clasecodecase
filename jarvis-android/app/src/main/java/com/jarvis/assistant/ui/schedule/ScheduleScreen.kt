@@ -139,7 +139,7 @@ fun ScheduleScreen(calendar: CalendarRepository, permissions: PermissionGate) {
 
 /** 원형 24시간 다이얼 위에 일정이 호(arc)로 표시되는 레이더형 타임라인 */
 @Composable
-private fun RadarDial(events: List<EventItem>, isToday: Boolean, modifier: Modifier) {
+internal fun RadarDial(events: List<EventItem>, isToday: Boolean, modifier: Modifier) {
     val hud = LocalHud.current
     val time = LocalFrameTime.current
     val measurer = rememberTextMeasurer()

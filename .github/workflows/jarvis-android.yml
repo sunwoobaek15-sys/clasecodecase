@@ -37,3 +37,28 @@ jobs:
           name: lint-report
           path: jarvis-android/app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
+      - name: HUD screenshot tests (Robolectric + Roborazzi)
+        run: ./gradlew --no-daemon testDebugUnitTest --tests "com.jarvis.assistant.HudScreenshotTest"
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hud-screenshots
+          path: jarvis-android/app/build/shots/
+          if-no-files-found: ignore
+      - name: Print screenshots (base64 JPEG, for remote review)
+        if: always()
+        run: |
+          ls -la app/build/shots || exit 0
+          for f in app/build/shots/*.png; do
+            n=$(basename "$f" .png)
+            if command -v convert >/dev/null; then
+              convert "$f" -resize 400x -quality 72 "/tmp/$n.jpg"
+            else
+              cp "$f" "/tmp/$n.jpg"
+            fi
+            echo "=====BEGIN $n====="
+            base64 -w 0 "/tmp/$n.jpg"
+            echo
+            echo "=====END $n====="
+          done

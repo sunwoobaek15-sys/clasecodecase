@@ -131,6 +131,7 @@ fun ReactorCore(
                 val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeCap = Paint.Cap.BUTT }
                 val unit = density
                 onDrawBehind {
+                    if (size.minDimension < 8f) return@onDrawBehind
                     val t = time.value
                     val dt = if (runtime.lastT < 0f) 0f else (t - runtime.lastT).coerceIn(0f, 0.1f)
                     runtime.lastT = t
