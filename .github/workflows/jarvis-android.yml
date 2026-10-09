@@ -13,6 +13,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: jarvis-android
@@ -30,6 +32,19 @@ jobs:
         with:
           name: jarvis-debug-apk
           path: jarvis-android/app/build/outputs/apk/debug/*.apk
+      - name: Publish APK (direct download link)
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk /tmp/jarvis.apk
+          gh release delete jarvis-latest --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag || true
+          gh release create jarvis-latest /tmp/jarvis.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "JARVIS 최신 빌드" \
+            --notes "폰 브라우저에서 jarvis.apk 를 눌러 바로 설치하세요. (커밋 ${GITHUB_SHA::7})"
       - name: Upload lint report
         if: always()
         uses: actions/upload-artifact@v4
