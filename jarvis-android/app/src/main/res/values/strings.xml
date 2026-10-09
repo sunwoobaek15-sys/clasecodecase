@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JARVIS</string>
+    <string name="tile_label">자비스</string>
+    <string name="widget_label">JARVIS 코어</string>
+    <string name="widget_description">미니 리액터, 시계, 다음 일정. 탭하면 바로 듣기.</string>
+    <string name="assistant_label">JARVIS 어시스턴트</string>
+</resources>
