@@ -53,9 +53,12 @@ namespace OneulDoKkwang
             _grounds.Clear();
 
             var L = Layout;
+            Sky.SetHorizon(L.horizonY);
+            Celestial.SetHorizon(L.horizonY, L.HasFarSea);
+            Water.ConfigureFar(L.horizonY);
             bool farOverride = loc != null && loc.farBackground != null;
             bool midOverride = loc != null && loc.midBackground != null;
-            Vector2 farPos = new Vector2(2f, LocationLayout.WaterY);
+            Vector2 farPos = new Vector2(2f, L.horizonY);
             Vector2 midPos = new Vector2(-8f, L.groundY);
             bool farPlaced = false, midPlaced = false;
 
@@ -81,7 +84,7 @@ namespace OneulDoKkwang
                 PlaceDecor(DecorItem.Make("custom.mid", midPos.x, midPos.y, 1f, Sorting.MidBackground), loc.midBackground);
 
             if (L.groundProfile != null)
-                _grounds.Add(GroundMesh.Create(LocationRoot, "Ground", L.groundProfile, L.groundTop, L.groundBottom, Sorting.Ground));
+                _grounds.Add(GroundMesh.Create(LocationRoot, "Ground", L.groundProfile, L.groundTop, L.groundBottom, Sorting.Ground, L.groundBand, L.groundBandDepth));
             if (L.seabedProfile != null)
                 _grounds.Add(GroundMesh.Create(LocationRoot, "Seabed", L.seabedProfile, L.seabedTop, L.seabedBottom, Sorting.Seabed));
 
@@ -115,8 +118,8 @@ namespace OneulDoKkwang
             sr.flipX = item.flipX;
             sr.transform.localScale = new Vector3(item.scale, item.scale, 1f);
             Tintable.Mode mode = Tintable.Mode.Near;
-            if (item.sprite.StartsWith("decor.cloud.")) mode = Tintable.Mode.Cloud;
-            else if (item.order <= Sorting.Horizon) mode = Tintable.Mode.Far;
+            if (item.sprite.StartsWith("decor.cloud.") || item.sprite.StartsWith("decor.cumulus.") || item.sprite.StartsWith("decor.wisps.")) mode = Tintable.Mode.Cloud;
+            else if (item.order < Sorting.WaterBody) mode = Tintable.Mode.Far; // 수평선·먼 바다·해변 뒤쪽은 대기 원근(하늘빛)
             Tintable.Attach(sr, mode, item.tint);
             sr.gameObject.AddComponent<DecorAnimator>().Setup(item);
         }

@@ -15,25 +15,45 @@ namespace OneulDoKkwang
 
         public static GroundMesh Create(Transform parent, string name, List<Vector2> profile, Color top, Color bottom, int order)
         {
+            return Create(parent, name, profile, top, bottom, order, Color.clear, 0f);
+        }
+
+        /// <param name="band">윗면 띠 색 (예: 용암 바위 위 잔디). 알파 0 이면 띠 없음.</param>
+        /// <param name="bandDepth">띠 두께 (월드). 물속으로 들어간 부분은 띠 없이 아래 색.</param>
+        public static GroundMesh Create(Transform parent, string name, List<Vector2> profile, Color top, Color bottom, int order, Color band, float bandDepth)
+        {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
             var gm = go.AddComponent<GroundMesh>();
-            gm.Build(profile, top, bottom, order);
+            gm.Build(profile, top, bottom, order, band, bandDepth);
             return gm;
         }
 
-        public void Build(List<Vector2> profile, Color top, Color bottom, int order)
+        public void Build(List<Vector2> profile, Color top, Color bottom, int order, Color band, float bandDepth)
         {
             MeshBits.CreateRenderer(transform, "Mesh", order, out _mesh);
             var pts = Densify(profile, 0.3f);
             _verts.Clear(); _baseCols.Clear();
-            Color rim = top.Shade(1.15f);
             Color mid = Color.Lerp(top, bottom, 0.45f);
-            const int rows = 4;
+            bool hasBand = band.a > 0.01f && bandDepth > 0.01f;
+            int rows = hasBand ? 6 : 4;
             foreach (var p in pts)
             {
-                _verts.Add(new Vector3(p.x, p.y + 0.03f, 0f)); _baseCols.Add(rim);
-                _verts.Add(new Vector3(p.x, p.y - 0.08f, 0f)); _baseCols.Add(top);
+                if (!hasBand)
+                {
+                    _verts.Add(new Vector3(p.x, p.y + 0.03f, 0f)); _baseCols.Add(top.Shade(1.15f));
+                    _verts.Add(new Vector3(p.x, p.y - 0.08f, 0f)); _baseCols.Add(top);
+                }
+                else
+                {
+                    // 물 밖(수면 위)에서만 띠를 보이게
+                    float w = Mathf.Clamp01((p.y - (LocationLayout.WaterY - 0.05f)) / 0.4f);
+                    Color b = Color.Lerp(top, band, w);
+                    _verts.Add(new Vector3(p.x, p.y + 0.03f, 0f)); _baseCols.Add(Color.Lerp(top.Shade(1.15f), band.Shade(1.12f), w));
+                    _verts.Add(new Vector3(p.x, p.y - 0.06f, 0f)); _baseCols.Add(b);
+                    _verts.Add(new Vector3(p.x, p.y - bandDepth, 0f)); _baseCols.Add(Color.Lerp(top, band.Shade(0.78f), w));
+                    _verts.Add(new Vector3(p.x, p.y - bandDepth - 0.05f, 0f)); _baseCols.Add(top);
+                }
                 _verts.Add(new Vector3(p.x, p.y - 2.6f, 0f)); _baseCols.Add(mid);
                 _verts.Add(new Vector3(p.x, -18f, 0f)); _baseCols.Add(bottom);
             }

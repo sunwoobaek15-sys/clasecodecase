@@ -424,6 +424,38 @@ namespace OneulDoKkwang
             }
         }
 
+        /// <summary>
+        /// 도형 안을 픽셀마다 다른 색으로 칠한다 (f: 디자인 좌표 → 색. 텍스처·음영용).
+        /// soft > 0 이면 가장자리를 그 폭(디자인 단위)만큼 부드럽게 흐린다.
+        /// </summary>
+        public void FillShaded(Shape s, Func<float, float, Color> f, float soft = 0f)
+        {
+            int px0, py0, px1, py1;
+            Range(s, 1f / Scale, out px0, out py0, out px1, out py1);
+            float softPx = Math.Max(1f, soft * Scale);
+            for (int py = py0; py <= py1; py++)
+            {
+                float y = (py + 0.5f) / Scale;
+                int row = py * Width;
+                for (int px = px0; px <= px1; px++)
+                {
+                    float x = (px + 0.5f) / Scale;
+                    float d = s.Dist(x, y) * Scale;
+                    if (d >= 0.5f) continue;
+                    float cov;
+                    if (soft > 0f) cov = Math.Min(1f, (0.5f - d) / softPx);
+                    else cov = d <= -0.5f ? 1f : 0.5f - d;
+                    Blend(row + px, f(x, y), cov);
+                }
+            }
+        }
+
+        /// <summary>가장자리가 soft 폭만큼 흐린 단색 채우기 (구름, 그림자, 산호초 얼룩).</summary>
+        public void FillSoft(Shape s, Color c, float soft)
+        {
+            FillShaded(s, (x, y) => c, soft);
+        }
+
         /// <summary>픽셀마다 색을 계산해 덮어 그린다 (방사형 그라데이션 등). 좌표는 디자인 단위.</summary>
         public void PaintFunc(Func<float, float, Color> f)
         {

@@ -166,6 +166,51 @@ namespace OneulDoKkwang.EditorTools
 
         // ------------------------------------------------------------------ data
 
+        /// <summary>이미 만들어진 장소 에셋 중 색 버전이 낮은 게 있는가.</summary>
+        public static bool LocationVisualsOutdated()
+        {
+            foreach (var guid in AssetDatabase.FindAssets("t:" + typeof(LocationData).Name, new[] { LocationDir }))
+            {
+                var l = AssetDatabase.LoadAssetAtPath<LocationData>(AssetDatabase.GUIDToAssetPath(guid));
+                if (l != null && l.visualVersion < LocationData.CurrentVisualVersion) return true;
+            }
+            return false;
+        }
+
+        /// <summary>장소 에셋의 하늘·물·색조만 새 기본값으로 바꾼다 (다른 값은 유지). 바꾼 개수를 돌려준다.</summary>
+        public static int UpgradeLocationVisuals()
+        {
+            var defaults = DefaultContent.CreateLocations();
+            int n = 0;
+            try
+            {
+                var existing = LoadExisting<LocationData>(LocationDir, l => l.id);
+                foreach (var d in defaults)
+                {
+                    LocationData a;
+                    if (!existing.TryGetValue(d.id, out a) || a == null || a.visualVersion >= d.visualVersion) continue;
+                    a.CopyVisualsFrom(d);
+                    EditorUtility.SetDirty(a);
+                    Debug.Log(Tag + a.displayName + " : 하늘·바다 색을 새 기본값(사진 기반)으로 업데이트했습니다.");
+                    n++;
+                }
+                // 기본값이 없는 (사용자가 만든) 장소는 버전만 올려서 다시 묻지 않게
+                foreach (var guid in AssetDatabase.FindAssets("t:" + typeof(LocationData).Name, new[] { LocationDir }))
+                {
+                    var l = AssetDatabase.LoadAssetAtPath<LocationData>(AssetDatabase.GUIDToAssetPath(guid));
+                    if (l == null || l.visualVersion >= LocationData.CurrentVisualVersion) continue;
+                    l.visualVersion = LocationData.CurrentVisualVersion;
+                    EditorUtility.SetDirty(l);
+                }
+                if (n > 0) AssetDatabase.SaveAssets();
+            }
+            finally
+            {
+                foreach (var d in defaults) if (d != null) Object.DestroyImmediate(d);
+            }
+            return n;
+        }
+
         static string SafeFileName(string s)
         {
             foreach (char c in Path.GetInvalidFileNameChars()) s = s.Replace(c, '_');
@@ -255,7 +300,16 @@ namespace OneulDoKkwang.EditorTools
                 foreach (var b in set.baits)
                     baitAssets.Add(Persist(b, b.id, baits, BaitDir, b.shopOrder.ToString("00") + "_" + b.id, overwrite));
                 foreach (var l in set.locations)
+                {
+                    LocationData existing;
+                    if (!overwrite && locs.TryGetValue(l.id, out existing) && existing != null && existing.visualVersion < l.visualVersion)
+                    {
+                        existing.CopyVisualsFrom(l);
+                        EditorUtility.SetDirty(existing);
+                        Debug.Log(Tag + existing.displayName + " : 하늘·바다 색을 새 기본값(사진 기반)으로 업데이트했습니다.");
+                    }
                     locAssets.Add(Persist(l, l.id, locs, LocationDir, l.order.ToString("00") + "_" + l.id, overwrite));
+                }
             }
             finally
             {

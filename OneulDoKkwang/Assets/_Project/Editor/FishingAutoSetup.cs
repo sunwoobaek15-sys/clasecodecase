@@ -44,6 +44,9 @@ namespace OneulDoKkwang.EditorTools
                 return;
             }
 
+            // 예전 버전으로 만든 장소 에셋이면 하늘·바다 색만 새 기본값으로 (사진 기반 배경)
+            if (FishingSceneSetup.LocationVisualsOutdated()) FishingSceneSetup.UpgradeLocationVisuals();
+
             // 빈 Untitled 씬이 열려 있으면 Main 씬을 열어 준다
             var active = EditorSceneManager.GetActiveScene();
             if (string.IsNullOrEmpty(active.path) && !active.isDirty && active.rootCount <= 2)

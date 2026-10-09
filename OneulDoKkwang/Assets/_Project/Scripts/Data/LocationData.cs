@@ -88,5 +88,29 @@ namespace OneulDoKkwang
         public Sprite farBackground;
         [Tooltip("중간 배경 (야자수 등) 전체를 대체할 스프라이트")]
         public Sprite midBackground;
+
+        /// <summary>
+        /// 코드 기본 색(하늘·물·색조)의 버전. 에디터 셋업이 이 값이 낮은 에셋을 찾으면 색만 새 기본값으로 바꿔 준다
+        /// (해금 가격 등 인스펙터에서 고친 다른 값은 그대로).
+        /// </summary>
+        [HideInInspector] public int visualVersion;
+
+        /// <summary>2 = 하와이 사진(와이키키·쿠알로아·포이푸) 색으로 바꾼 버전.</summary>
+        public const int CurrentVisualVersion = 2;
+
+        /// <summary>하늘·물·스프라이트 색조만 복사한다.</summary>
+        public void CopyVisualsFrom(LocationData src)
+        {
+            daySky = src.daySky;
+            sunsetSky = src.sunsetSky;
+            nightSky = src.nightSky;
+            dayWater = src.dayWater;
+            sunsetWater = src.sunsetWater;
+            nightWater = src.nightWater;
+            ambientDay = src.ambientDay;
+            ambientSunset = src.ambientSunset;
+            ambientNight = src.ambientNight;
+            visualVersion = src.visualVersion;
+        }
     }
 }

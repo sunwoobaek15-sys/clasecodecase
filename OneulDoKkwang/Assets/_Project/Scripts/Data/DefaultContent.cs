@@ -33,6 +33,14 @@ namespace OneulDoKkwang
             return db;
         }
 
+        /// <summary>장소 기본값만 만든다 (에디터의 색 업그레이드용).</summary>
+        public static List<LocationData> CreateLocations()
+        {
+            var list = new List<LocationData>();
+            AddLocations(list);
+            return list;
+        }
+
         public static ContentSet CreateAll()
         {
             var set = new ContentSet();
@@ -377,6 +385,7 @@ namespace OneulDoKkwang
             l.arrivalCaption = caption;
             l.arrivalLine = arrival;
             l.description = desc;
+            l.visualVersion = LocationData.CurrentVisualVersion;
             return l;
         }
 
@@ -397,10 +406,11 @@ namespace OneulDoKkwang
             l = Location("waikiki", "와이키키 해변", 0, 0, 0, LocationTheme.Beach,
                 "하와이 · 와이키키 해변", "냥. 모래가 따끈따끈하다냥.",
                 "야자수, 서핑보드, 훌라 추는 이웃. 휴가의 시작점.");
-            l.daySky = Sky("#3A8DDE", "#7FC4F0", "#D4F3FF");
+            // 사진 1·3: 위는 짙은 파랑, 수평선 쪽은 맑은 하늘색. 바다는 수평선 짙은 파랑 → 가까운 쪽 청록
+            l.daySky = Sky("#1F4FC2", "#3A7DE0", "#80BDF2");
             l.sunsetSky = Sky("#4B2C77", "#E0578A", "#FF9F45");
             l.nightSky = Sky("#0B1033", "#1C2457", "#38407A");
-            l.dayWater = Water("#2BB3C0", "#0B4F7A", "#E3FCFF");
+            l.dayWater = Water("#2FB6C6", "#0B4C85", "#E8FCFF");
             l.sunsetWater = Water("#C8607E", "#3A2A6A", "#FFD3A5");
             l.nightWater = Water("#1C3A66", "#050D24", "#8FA9D8");
             l.ambientDay = Color.white;
@@ -413,10 +423,11 @@ namespace OneulDoKkwang
             l = Location("coral_pier", "산호초 부두", 1, 500, 0, LocationTheme.Pier,
                 "하와이 · 산호초 앞 나무 부두", "물이 맑다냥. 거북이 지나가면 인사하라냥.",
                 "산호초가 훤히 보이는 나무 부두. 열대어와 거북이가 지나다닌다.");
-            l.daySky = Sky("#2E86DE", "#74C0FC", "#E0F7FF");
+            // 사진 2·4: 뭉게구름 낀 파란 하늘, 산호초가 비치는 청록 바다
+            l.daySky = Sky("#3577CC", "#68A8E3", "#B5D6F0");
             l.sunsetSky = Sky("#3F2A6E", "#D94F8A", "#FFA94D");
             l.nightSky = Sky("#091233", "#17255A", "#2F4B85");
-            l.dayWater = Water("#22C1C3", "#0A6E8A", "#E6FFFF");
+            l.dayWater = Water("#36C2C2", "#0E6A86", "#E8FFFF");
             l.sunsetWater = Water("#D0708A", "#40306E", "#FFE0B5");
             l.nightWater = Water("#17406B", "#041027", "#9BB8E0");
             l.ambientDay = Color.white;

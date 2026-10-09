@@ -12,12 +12,22 @@ namespace OneulDoKkwang
         public const int CloudsFar = -970;
         public const int FarBackground = -960;
         public const int Horizon = -950;
+        /// <summary>수평선 ~ 수면 사이 먼 바다 띠 (메시).</summary>
+        public const int FarSea = -940;
+        /// <summary>먼 바다 위: 흰 파도 줄, 산호초 얼룩, 요트, 노을 반짝임.</summary>
+        public const int FarSeaDecor = -937;
+        /// <summary>해변 뒤쪽 먼 모래사장 / 잔디.</summary>
+        public const int BackShore = -935;
+        /// <summary>그 위의 인명구조 탑, 텐트, 사람, 작은 야자수.</summary>
+        public const int BackShoreDecor = -933;
         public const int WaterBody = -930;
         public const int Seabed = -922;
         public const int Underwater = -920;
         public const int Swimmers = -918;
         public const int Ground = -915;
         public const int PierPost = -914;
+        /// <summary>가까운 땅 면 위의 그림자·수건·바위 (땅 앞면을 비스듬히 본 바닥으로 취급).</summary>
+        public const int GroundDecor = -913;
         public const int HookLine = -912;
         public const int Hooked = -911;
         public const int WaterOverlay = -905;
@@ -87,6 +97,11 @@ namespace OneulDoKkwang
         public const float WaterY = -1f;
 
         public LocationTheme theme;
+        /// <summary>
+        /// 수평선 높이. WaterY 보다 높으면 그 사이에 먼 바다 띠가 생긴다 (사진처럼 수평선까지 바다가 펼쳐짐).
+        /// WaterY 와 같으면 띠 없음 (화산·구름 낚시터).
+        /// </summary>
+        public float horizonY = WaterY;
         /// <summary>주인공/고양이가 서 있는 높이.</summary>
         public float groundY;
         public float playerX;
@@ -101,6 +116,9 @@ namespace OneulDoKkwang
         public List<Vector2> groundProfile;
         public Color groundTop = Color.white;
         public Color groundBottom = Color.gray;
+        /// <summary>땅 윗면 띠 (예: 검은 용암 바위 위 잔디). 알파 0 이면 없음.</summary>
+        public Color groundBand = Color.clear;
+        public float groundBandDepth;
         public List<Vector2> seabedProfile;
         public Color seabedTop = Color.gray;
         public Color seabedBottom = Color.black;
@@ -130,6 +148,8 @@ namespace OneulDoKkwang
                 return groundProfile[0].x;
             }
         }
+
+        public bool HasFarSea => horizonY > WaterY + 0.05f;
 
         public readonly List<DecorItem> decor = new List<DecorItem>();
 
@@ -177,13 +197,16 @@ namespace OneulDoKkwang
             L.decor.Add(DecorItem.Make("decor.cloud.1", 14f, 3.8f, 0.7f, Sorting.CloudsFar).Par(0.92f).Tint(c).Anim(DecorAnim.Drift, 0f, 0.11f));
         }
 
-        // ---------------------------------------------------------------- 1. 와이키키 해변
+        // ---------------------------------------------------------------- 1. 와이키키 해변 (사진 1 + 3)
+        // 짙은 파란 하늘, 하얀 모래, 아주 키 큰 야자수, 인명구조 탑·텐트·사람들, 수평선까지 짙어지는 바다와 흰 파도 줄,
+        // 해변 위로 길게 기운 야자수와 왼쪽 위를 덮는 잎.
 
         static LocationLayout Beach()
         {
             var L = new LocationLayout
             {
                 theme = LocationTheme.Beach,
+                horizonY = WaterY + 1.05f,
                 groundY = -0.75f,
                 playerX = -5.6f,
                 catX = -6.95f,
@@ -192,30 +215,53 @@ namespace OneulDoKkwang
                 castMinX = -1.2f,
                 castMaxX = 9f,
                 groundProfile = Pts(-18, -0.75f, -6.2f, -0.75f, -4.6f, -0.77f, -3.6f, -0.84f, -2.8f, -1.15f, -2f, -1.8f, -1f, -2.8f, 0.4f, -3.8f, 2f, -4.5f, 4f, -4.9f),
-                groundTop = Hex.C("#F4D9A0"),
-                groundBottom = Hex.C("#D9B26F"),
+                groundTop = Hex.C("#F3ECDD"),
+                groundBottom = Hex.C("#CDBB98"),
                 seabedProfile = Seabed(-4.55f, 0.12f),
-                seabedTop = Hex.C("#E2C48E"),
-                seabedBottom = Hex.C("#A98458"),
+                seabedTop = Hex.C("#EADCBE"),
+                seabedBottom = Hex.C("#B0956A"),
                 swimmerCount = 4,
-                swimmerColors = new[] { new Color(0.1f, 0.2f, 0.3f, 0.35f) },
+                swimmerColors = new[] { new Color(0.1f, 0.2f, 0.3f, 0.3f) },
                 hulaDancer = true,
                 hulaPosition = new Vector2(-8.05f, -0.76f),
-                overlayTopAlpha = 0.22f,
-                overlayBottomAlpha = 0.45f,
+                overlayTopAlpha = 0.18f,
+                overlayBottomAlpha = 0.42f,
             };
-            AddClouds(L, 0.95f);
-            L.decor.Add(DecorItem.Make("decor.diamondhead", 1.4f, WaterY + 0.02f, 0.72f, Sorting.FarBackground).Par(0.8f));
-            L.decor.Add(DecorItem.Make("decor.sailboat", 5.6f, WaterY + 0.02f, 0.5f, Sorting.Horizon).Par(0.75f).Anim(DecorAnim.Drift, 0f, 0.06f));
-            L.decor.Add(DecorItem.Make("decor.umbrella", -12.6f, -0.78f, 0.75f, Sorting.MidBackground));
-            L.decor.Add(DecorItem.Make("decor.palm.1", -8.95f, -0.8f, 1f, Sorting.MidBackground + 2).Anim(DecorAnim.Sway, 1.2f, 0.6f));
-            L.decor.Add(DecorItem.Make("decor.palm.0", -11f, -0.8f, 0.85f, Sorting.MidBackground + 1).Anim(DecorAnim.Sway, 1f, 0.7f, 1.3f));
-            // 서핑보드: 야자수 옆 모래에 꽂아 둠 (16:9 화면 왼쪽 끝 -9.6 안쪽에 보이게)
-            L.decor.Add(DecorItem.Make("decor.surfboard.1", -9.42f, -0.86f, 0.82f, Sorting.MidBackground + 1).Rot(-7f));
-            L.decor.Add(DecorItem.Make("decor.surfboard.0", -8.55f, -0.88f, 0.88f, Sorting.MidBackground + 3).Rot(6f));
-            L.decor.Add(DecorItem.Make("decor.surfboard.2", -12f, -0.92f, 0.5f, Sorting.MidBackground + 6).Rot(4f));
+            float hz = L.horizonY;
+            // 하늘: 수평선 근처 옅은 새털구름 + 오른쪽에 작은 뭉게구름 (사진 1·3)
+            L.decor.Add(DecorItem.Make("decor.wisps.0", -2f, hz + 0.55f, 1f, Sorting.CloudsFar).Par(0.94f).Anim(DecorAnim.Drift, 0f, 0.05f));
+            L.decor.Add(DecorItem.Make("decor.wisps.1", 8.5f, hz + 0.9f, 0.9f, Sorting.CloudsFar).Par(0.94f).Anim(DecorAnim.Drift, 0f, 0.04f));
+            L.decor.Add(DecorItem.Make("decor.cumulus.3", 5.2f, hz + 3.3f, 0.75f, Sorting.CloudsFar).Par(0.92f).Anim(DecorAnim.Drift, 0f, 0.08f));
+            L.decor.Add(DecorItem.Make("decor.cumulus.1", 11.5f, hz + 2.2f, 0.7f, Sorting.CloudsFar).Par(0.92f).Anim(DecorAnim.Drift, 0f, 0.07f));
+            // 먼 바다: 흰 파도 줄 + 수평선의 요트
+            L.decor.Add(DecorItem.Make("decor.surf.beach", 3f, hz, 1f, Sorting.FarSeaDecor).Par(0.55f));
+            L.decor.Add(DecorItem.Make("decor.sailboat.far", 6.4f, hz - 0.08f, 0.45f, Sorting.FarSeaDecor + 2).Par(0.75f).Anim(DecorAnim.Drift, 0f, 0.05f));
+            // 해변 뒤쪽 모래사장 (오른쪽 끝이 바다 쪽으로 휘어 들어감)
+            L.decor.Add(DecorItem.Make("decor.backbeach", -13.2f, -0.75f, 1f, Sorting.BackShore));
+            L.decor.Add(DecorItem.Make("decor.tent.blue", -9.15f, -0.52f, 0.45f, Sorting.BackShoreDecor));
+            L.decor.Add(DecorItem.Make("decor.people.0", -7.45f, -0.5f, 0.55f, Sorting.BackShoreDecor));
+            L.decor.Add(DecorItem.Make("decor.people.1", -6.35f, -0.52f, 0.55f, Sorting.BackShoreDecor));
+            L.decor.Add(DecorItem.Make("decor.canopy.teal", -3.95f, -0.5f, 0.5f, Sorting.BackShoreDecor));
+            L.decor.Add(DecorItem.Make("decor.people.3", -3.45f, -0.52f, 0.5f, Sorting.BackShoreDecor));
+            L.decor.Add(DecorItem.Make("decor.farpalm.0", -2.35f, -0.48f, 0.34f, Sorting.BackShoreDecor - 1));
+            L.decor.Add(DecorItem.Make("decor.farpalm.1", -1.95f, -0.55f, 0.29f, Sorting.BackShoreDecor - 1));
+            L.decor.Add(DecorItem.Make("decor.lifeguard", -2.75f, -0.56f, 0.5f, Sorting.BackShoreDecor));
+            L.decor.Add(DecorItem.Make("decor.people.2", -2.25f, -0.6f, 0.45f, Sorting.BackShoreDecor + 1));
+            // 키 큰 야자수 두 그루 (사진 1) + 해변 위로 기운 야자수 (사진 3)
+            L.decor.Add(DecorItem.Make("decor.tallpalm.1", -7.35f, -0.5f, 0.95f, Sorting.MidBackground).Anim(DecorAnim.Sway, 0.7f, 0.5f, 1.1f));
+            L.decor.Add(DecorItem.Make("decor.tallpalm.0", -8.75f, -0.8f, 1.08f, Sorting.MidBackground + 1).Anim(DecorAnim.Sway, 0.8f, 0.45f));
+            L.decor.Add(DecorItem.Make("decor.leanpalm", -11.2f, -0.78f, 0.82f, Sorting.MidBackground + 2).Anim(DecorAnim.Sway, 0.5f, 0.4f, 2f));
+            // 모래에 꽂힌 서핑보드
+            L.decor.Add(DecorItem.Make("decor.surfboard.1", -9.42f, -0.86f, 0.82f, Sorting.MidBackground + 3).Rot(-7f));
+            L.decor.Add(DecorItem.Make("decor.surfboard.0", -8.45f, -0.88f, 0.86f, Sorting.MidBackground + 4).Rot(6f));
+            // 모래 위 야자수 그림자 (땅 앞면을 비스듬히 본 바닥으로)
+            L.decor.Add(DecorItem.Make("decor.palmshadow.0", -8.6f, -1.05f, 0.75f, Sorting.GroundDecor).Rot(-7f));
+            L.decor.Add(DecorItem.Make("decor.palmshadow.1", -5.2f, -1.55f, 0.6f, Sorting.GroundDecor).Rot(-4f));
             L.decor.Add(DecorItem.Make("decor.starfish", -6.25f, -0.82f, 0.55f, Sorting.Props));
             L.decor.Add(DecorItem.Make("decor.shell", -3.55f, -0.88f, 0.55f, Sorting.Props).Rot(-10f));
+            // 앞쪽 왼쪽 위를 덮는 잎 (사진 3)
+            L.decor.Add(DecorItem.Make("decor.cornerfronds", -9.75f, 5.5f, 0.85f, Sorting.Foreground).Anim(DecorAnim.Sway, 1.2f, 0.35f));
+            // 물속 (맑은 바다)
             L.decor.Add(DecorItem.Make("decor.seaweed", 0.6f, -4.35f, 1f, Sorting.Underwater).Anim(DecorAnim.Sway, 7f, 1.1f));
             L.decor.Add(DecorItem.Make("decor.seaweed", 4.1f, -4.55f, 0.8f, Sorting.Underwater).Anim(DecorAnim.Sway, 8f, 0.9f, 1f));
             L.decor.Add(DecorItem.Make("decor.seaweed", 8.2f, -4.45f, 1.1f, Sorting.Underwater).Anim(DecorAnim.Sway, 6f, 1f, 2f));
@@ -226,13 +272,16 @@ namespace OneulDoKkwang
             return L;
         }
 
-        // ---------------------------------------------------------------- 2. 산호초 부두
+        // ---------------------------------------------------------------- 2. 산호초 부두 (사진 2 + 4)
+        // 오른쪽 수평선 위로 솟은 쿠알로아 능선과 해안 숲, 바닥의 산호초가 비치는 청록 바다, 뭉게구름,
+        // 왼쪽은 노란빛 잔디(야자수·일광욕하는 사람들)와 검은 용암 바위에서 부서지는 파도, 거기서 시작하는 나무 부두.
 
         static LocationLayout Pier()
         {
             var L = new LocationLayout
             {
                 theme = LocationTheme.Pier,
+                horizonY = WaterY + 0.9f,
                 groundY = -0.3f,
                 playerX = -4.4f,
                 catX = -5.75f,
@@ -240,27 +289,53 @@ namespace OneulDoKkwang
                 shoreX = -2.1f,
                 castMinX = -0.2f,
                 castMaxX = 9.5f,
-                groundProfile = Pts(-18, -0.72f, -10f, -0.72f, -9f, -1.1f, -7.5f, -2.3f, -5.5f, -3.4f, -3f, -4.2f, 0f, -4.6f),
-                groundTop = Hex.C("#F4D9A0"),
-                groundBottom = Hex.C("#D9B26F"),
+                groundProfile = Pts(-18, -0.42f, -7.6f, -0.42f, -7.05f, -0.6f, -6.7f, -1.15f, -6.1f, -1.9f, -5f, -2.9f, -3f, -3.9f, 0f, -4.6f),
+                groundBand = Hex.C("#9FB431"),
+                groundBandDepth = 0.32f,
+                groundTop = Hex.C("#4B4F56"),
+                groundBottom = Hex.C("#23252A"),
                 seabedProfile = Seabed(-4.6f, 0.1f),
-                seabedTop = Hex.C("#EED9A8"),
-                seabedBottom = Hex.C("#B59466"),
+                seabedTop = Hex.C("#E8DDBA"),
+                seabedBottom = Hex.C("#A98F64"),
                 swimmerCount = 6,
                 swimmerColors = new[] { Hex.C("#FFD43B", 0.8f), Hex.C("#4DABF7", 0.8f), Hex.C("#FF8787", 0.8f), Hex.C("#63E6BE", 0.8f) },
                 turtlePasses = true,
                 overlayTopAlpha = 0.08f,
                 overlayBottomAlpha = 0.28f,
             };
-            AddClouds(L, 0.95f);
-            L.decor.Add(DecorItem.Make("decor.diamondhead", 6.4f, WaterY + 0.02f, 0.45f, Sorting.FarBackground).Par(0.85f).Tint(Hex.C("#8FB8A0")));
-            L.decor.Add(DecorItem.Make("decor.diamondhead", -0.6f, WaterY + 0.02f, 0.28f, Sorting.FarBackground).Par(0.85f).Flip().Tint(Hex.C("#9CC3B5")));
-            L.decor.Add(DecorItem.Make("decor.sailboat", 3.6f, WaterY + 0.02f, 0.42f, Sorting.Horizon).Par(0.75f).Anim(DecorAnim.Drift, 0f, 0.05f));
-            L.decor.Add(DecorItem.Make("decor.palm.1", -10.6f, -0.75f, 0.9f, Sorting.MidBackground).Anim(DecorAnim.Sway, 1.2f, 0.6f));
-            for (int i = 0; i < 5; i++)
-                L.decor.Add(DecorItem.Make("decor.pier.post", -9.7f + i * 2.05f, -0.42f, 1f, Sorting.PierPost));
-            for (int i = 0; i < 5; i++)
-                L.decor.Add(DecorItem.Make("decor.pier.plank", -10.95f + i * 2f, -0.3f, 1f, Sorting.Deck));
+            float hz = L.horizonY;
+            // 뭉게구름 (사진 2·4): 일부는 능선 뒤로
+            L.decor.Add(DecorItem.Make("decor.cumulus.2", -4.5f, hz + 3.15f, 0.8f, Sorting.CloudsFar).Par(0.92f).Anim(DecorAnim.Drift, 0f, 0.06f));
+            L.decor.Add(DecorItem.Make("decor.cumulus.0", 2.2f, hz + 3.9f, 0.7f, Sorting.CloudsFar).Par(0.92f).Anim(DecorAnim.Drift, 0f, 0.07f));
+            L.decor.Add(DecorItem.Make("decor.cumulus.1", 8.4f, hz + 4.3f, 0.75f, Sorting.CloudsFar).Par(0.92f).Anim(DecorAnim.Drift, 0f, 0.05f));
+            L.decor.Add(DecorItem.Make("decor.cumulus.3", 12.5f, hz + 3.2f, 0.8f, Sorting.CloudsFar).Par(0.92f).Anim(DecorAnim.Drift, 0f, 0.08f));
+            L.decor.Add(DecorItem.Make("decor.wisps.0", -1f, hz + 0.6f, 0.9f, Sorting.CloudsFar).Par(0.94f));
+            L.decor.Add(DecorItem.Make("decor.cumulus.3", -0.6f, hz + 2.5f, 0.55f, Sorting.CloudsFar).Par(0.93f).Anim(DecorAnim.Drift, 0f, 0.09f));
+            L.decor.Add(DecorItem.Make("decor.cumulus.1", 5.6f, hz + 2.9f, 0.5f, Sorting.CloudsFar).Par(0.93f).Anim(DecorAnim.Drift, 0f, 0.06f));
+            // 쿠알로아 능선 (높은 쪽이 오른쪽) + 산 밑 해안 숲
+            L.decor.Add(DecorItem.Make("decor.kualoa", 5.9f, hz, 0.74f, Sorting.FarBackground).Par(0.85f).Flip());
+            L.decor.Add(DecorItem.Make("decor.coast", 4.5f, hz - 0.02f, 0.82f, Sorting.FarBackground + 1).Par(0.85f));
+            // 먼 바다: 산호초 얼룩 + 옅은 흰 물결
+            L.decor.Add(DecorItem.Make("decor.reef", 2.5f, hz, 1f, Sorting.FarSeaDecor).Par(0.6f));
+            L.decor.Add(DecorItem.Make("decor.surf.pier", 2.5f, hz, 1f, Sorting.FarSeaDecor + 1).Par(0.6f).Tint(new Color(1f, 1f, 1f, 0.7f)));
+            // 왼쪽 잔디 (사진 4): 키 큰 야자수, 수건 위 사람들, 잔디 가장자리, 물가의 용암 바위
+            L.decor.Add(DecorItem.Make("decor.tallpalm.2", -8.05f, -0.42f, 0.78f, Sorting.MidBackground).Anim(DecorAnim.Sway, 0.7f, 0.5f, 0.6f));
+            L.decor.Add(DecorItem.Make("decor.tallpalm.3", -9.3f, -0.45f, 0.92f, Sorting.MidBackground + 1).Anim(DecorAnim.Sway, 0.8f, 0.42f, 1.7f));
+            L.decor.Add(DecorItem.Make("decor.grass", -18f, -0.44f, 1f, Sorting.Props - 1));
+            L.decor.Add(DecorItem.Make("decor.grass", -9f, -0.44f, 0.6f, Sorting.Props - 1));
+            L.decor.Add(DecorItem.Make("decor.towel.0", -8.55f, -0.44f, 0.8f, Sorting.Props - 2));
+            L.decor.Add(DecorItem.Make("decor.towel.3", -9.75f, -0.44f, 0.8f, Sorting.Props - 2));
+            L.decor.Add(DecorItem.Make("decor.palmshadow.1", -8.3f, -0.6f, 0.6f, Sorting.GroundDecor).Rot(-3f));
+            L.decor.Add(DecorItem.Make("decor.lavarocks.0", -6.85f, -1.02f, 0.55f, Sorting.GroundDecor));
+            // 용암 바위 절벽 면의 울퉁불퉁한 바위 (물속 부분은 물 색조가 덮는다)
+            L.decor.Add(DecorItem.Make("decor.lavarocks.face", -8.7f, -1.3f, 0.85f, Sorting.GroundDecor).Tint(new Color(0.9f, 0.9f, 0.95f)));
+            L.decor.Add(DecorItem.Make("decor.lavarocks.face", -6.35f, -2.2f, 0.75f, Sorting.GroundDecor).Flip().Tint(new Color(0.85f, 0.88f, 0.92f)));
+            // 나무 부두 (잔디 끝에서 바다 쪽으로)
+            for (int i = 0; i < 4; i++)
+                L.decor.Add(DecorItem.Make("decor.pier.post", -6.5f + i * 1.65f, -0.42f, 1f, Sorting.PierPost));
+            for (int i = 0; i < 3; i++)
+                L.decor.Add(DecorItem.Make("decor.pier.plank", -6.4f + i * 2f, -0.3f, 1f, Sorting.Deck));
+            // 물속 산호초 (사진 2 의 맑은 물)
             L.decor.Add(DecorItem.Make("decor.coral.0", 1.3f, -4.5f, 1f, Sorting.Underwater));
             L.decor.Add(DecorItem.Make("decor.coral.1", 3.3f, -4.55f, 1.1f, Sorting.Underwater));
             L.decor.Add(DecorItem.Make("decor.coral.2", 5.1f, -4.5f, 1f, Sorting.Underwater));

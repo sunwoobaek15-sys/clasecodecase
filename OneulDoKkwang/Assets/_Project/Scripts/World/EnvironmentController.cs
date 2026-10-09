@@ -79,7 +79,14 @@ namespace OneulDoKkwang
             Ambient = amb;
 
             if (_sky != null) _sky.SetColors(sky.top, sky.middle, sky.horizon);
-            if (_water != null) _water.SetColors(water);
+            if (_water != null)
+            {
+                _water.SetColors(water);
+                // 먼 바다: 수평선 쪽은 깊은 색에 하늘빛이 살짝, 가까운 쪽은 수면 색 (사진처럼 짙은 파랑 → 청록)
+                var far = Color.Lerp(water.deep, sky.horizon, 0.26f);
+                var mid = Color.Lerp(Color.Lerp(water.deep, water.surface, 0.55f), sky.horizon, 0.06f);
+                _water.SetFarColors(far, mid, water.surface);
+            }
             if (_cam != null) _cam.backgroundColor = sky.horizon;
 
             Tintable.NearTint = amb;

@@ -23,8 +23,23 @@ namespace OneulDoKkwang
         public void Init()
         {
             MeshBits.CreateRenderer(transform, "SkyMesh", Sorting.Sky, out _mesh);
+            BuildVerts();
+        }
+
+        /// <summary>장소마다 수평선 높이가 다르다 (먼 바다 띠가 있으면 수평선이 수면보다 위).</summary>
+        public void SetHorizon(float y)
+        {
+            if (_mesh != null && Mathf.Abs(y - horizonY) < 0.001f) return;
+            horizonY = y;
+            middleY = Mathf.Min(y + 3.6f, topY - 0.8f);
+            if (_mesh != null) BuildVerts();
+        }
+
+        void BuildVerts()
+        {
             float[] ys = { -20f, horizonY, middleY, topY, topY + 20f };
             _verts.Clear();
+            _cols.Clear();
             for (int c = 0; c < 2; c++)
             {
                 float x = c == 0 ? -halfWidth : halfWidth;
@@ -33,6 +48,7 @@ namespace OneulDoKkwang
             _tris = MeshBits.GridTriangles(2, ys.Length);
             for (int i = 0; i < _verts.Count; i++) _cols.Add(Color.black);
             MeshBits.Push(_mesh, _verts, _cols, _tris, true);
+            _dirty = true;
         }
 
         public void SetColors(Color top, Color middle, Color horizon)

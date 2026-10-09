@@ -4,7 +4,8 @@ using UnityEngine;
 namespace OneulDoKkwang
 {
     /// <summary>
-    /// 사인파 물결 메시 (스크립트 방식). 물 본체 / 물속 색조 오버레이 / 수면 하이라이트 3겹.
+    /// 사인파 물결 메시 (스크립트 방식). 물 본체 / 물속 색조 오버레이 / 수면 하이라이트 3겹
+    /// + (수평선이 수면보다 높은 장소에서는) 수평선까지 펼쳐진 먼 바다 띠.
     /// 찌는 Height(x) 로 물결 위에 뜬다. 첨벙(Ripple)도 지원.
     /// </summary>
     public sealed class WaterSurface : MonoBehaviour
@@ -24,7 +25,13 @@ namespace OneulDoKkwang
         float _overlayBottom = 0.5f;
         WaterColors _colors;
 
-        Mesh _body, _overlay, _crest;
+        Mesh _body, _overlay, _crest, _far;
+        MeshRenderer _farRenderer;
+        float _horizonY = LocationLayout.WaterY;
+        Color _farHorizon, _farMid, _farNear;
+        bool _farDirty;
+        readonly List<Vector3> _farV = new List<Vector3>();
+        readonly List<Color> _farC = new List<Color>();
         readonly List<Vector3> _bodyV = new List<Vector3>();
         readonly List<Color> _bodyC = new List<Color>();
         readonly List<Vector3> _ovV = new List<Vector3>();
@@ -58,6 +65,45 @@ namespace OneulDoKkwang
             MeshBits.CreateRenderer(transform, "WaterBody", Sorting.WaterBody, out _body);
             MeshBits.CreateRenderer(transform, "WaterOverlay (물속 색조)", Sorting.WaterOverlay, out _overlay);
             MeshBits.CreateRenderer(transform, "WaterCrest (물결 하이라이트)", Sorting.WaterCrest, out _crest);
+            _farRenderer = MeshBits.CreateRenderer(transform, "FarSea (먼 바다)", Sorting.FarSea, out _far);
+            _farRenderer.enabled = false;
+        }
+
+        public float HorizonY => _horizonY;
+        public bool HasFarSea => _horizonY > baseY + 0.05f;
+
+        /// <summary>수평선 높이를 정한다. 수면보다 높으면 그 사이를 먼 바다 띠로 채운다.</summary>
+        public void ConfigureFar(float horizonY)
+        {
+            _horizonY = horizonY;
+            bool on = HasFarSea;
+            if (_farRenderer != null) _farRenderer.enabled = on;
+            if (!on || _far == null) return;
+            // 위 → 아래: 수평선, 40% 지점, 수면 아래 (파도 골에도 빈틈이 안 생기게)
+            float[] ys = { horizonY, Mathf.Lerp(horizonY, baseY, 0.42f), baseY - 0.45f };
+            _farV.Clear();
+            _farC.Clear();
+            for (int c = 0; c < 2; c++)
+            {
+                float x = c == 0 ? -60f : 80f;
+                foreach (var y in ys)
+                {
+                    _farV.Add(new Vector3(x, y, 0f));
+                    _farC.Add(Color.black);
+                }
+            }
+            MeshBits.Push(_far, _farV, _farC, MeshBits.GridTriangles(2, ys.Length), true);
+            _farDirty = true;
+        }
+
+        /// <summary>먼 바다 색: 수평선(짙은 파랑) → 중간 → 가까운 쪽(청록).</summary>
+        public void SetFarColors(Color horizon, Color mid, Color near)
+        {
+            if (horizon == _farHorizon && mid == _farMid && near == _farNear) return;
+            _farHorizon = horizon;
+            _farMid = mid;
+            _farNear = near;
+            _farDirty = true;
         }
 
         public void Configure(float waterStartX, float waveHeight, float waveSpeed, float overlayTopAlpha, float overlayBottomAlpha)
@@ -117,6 +163,18 @@ namespace OneulDoKkwang
         void LateUpdate()
         {
             if (_body == null) return;
+            if (_farDirty && HasFarSea && _farC.Count == 6)
+            {
+                _farDirty = false;
+                for (int r = 0; r < 3; r++)
+                {
+                    var col = SpriteFactory.VertexColor(r == 0 ? _farHorizon : (r == 1 ? _farMid : _farNear));
+                    col.a = 1f;
+                    _farC[r] = col;
+                    _farC[3 + r] = col;
+                }
+                _far.SetColors(_farC);
+            }
             int cols = Mathf.Max(2, columns);
             float span = Mathf.Max(1f, endX - startX);
             _bodyV.Clear(); _bodyC.Clear(); _ovV.Clear(); _ovC.Clear(); _crV.Clear(); _crC.Clear();

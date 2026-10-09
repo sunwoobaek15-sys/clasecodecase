@@ -849,26 +849,71 @@ namespace OneulDoKkwang
             switch (theme)
             {
                 case LocationTheme.Beach:
-                    cv.Fill(Sd.Circle(118, 72, 9), Hex.C("#FFE066"));
-                    cv.Fill(Sd.Intersect(frame, Sd.Poly(96, 40, 116, 58, 130, 52, 150, 40)), Hex.C("#6B8F71"));
+                {
+                    // 사진 1·3: 짙은 파란 하늘, 수평선까지 짙어지는 바다 + 흰 파도 줄, 하얀 모래, 키 큰 야자수, 인명구조 탑
+                    var seaBand = Sd.Intersect(frame, Sd.Box(80, 47, 80, 9));
+                    cv.FillGradient(seaBand, water.surface, Color.Lerp(water.deep, sky.horizon, 0.26f), 38, 56);
                     cv.FillGradient(sea, water.deep, water.surface, 4, 40);
-                    cv.Fill(Sd.Intersect(frame, Sd.Poly(4, 40, 70, 40, 52, 20, 4, 18)), Hex.C("#F4D9A0"));
-                    cv.Fill(Sd.Path(2.6f, 1.8f, 30, 34, 34, 56, 42, 74), Hex.C("#8D6E63"));
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < 6; i++) cv.Fill(Sd.Intersect(frame, Sd.Capsule(14 + i * 26f, 48 + (i % 2), 26 + i * 26f, 48 + (i % 2), 0.7f)), new Color(1f, 1f, 1f, 0.8f));
+                    cv.Fill(Sd.Intersect(frame, Sd.Poly(4, 44, 74, 44, 92, 38, 60, 22, 4, 18)), Hex.C("#F1EADB"));
+                    cv.Fill(Sd.Intersect(frame, Sd.Path(0.9f, 0.9f, 4, 44, 74, 44, 92, 38)), Color.white);
+                    // 인명구조 탑
+                    cv.Fill(Sd.Box(70, 47, 0.6f, 3), Hex.C("#C9C6BF"));
+                    cv.Fill(Sd.Box(75, 47, 0.6f, 3), Hex.C("#C9C6BF"));
+                    cv.Fill(Sd.Box(72.5f, 52, 4.2f, 3), Hex.C("#EEEDE8"));
+                    cv.Fill(Sd.Poly(67.5f, 55, 77.5f, 55, 75, 58, 70, 58), Hex.C("#56595F"));
+                    // 키 큰 야자수 두 그루
+                    var trunk = Hex.C("#4A413A");
+                    var leaf = Hex.C("#6E9A37");
+                    float[][] palms = { new[] { 26f, 30f, 32f, 88f }, new[] { 42f, 34f, 38f, 76f } };
+                    foreach (var pm in palms)
                     {
-                        float a = (100f + i * 40f) * Mathf.Deg2Rad;
-                        cv.Fill(Sd.Ellipse(42 + Mathf.Cos(a) * 9f, 74 + Mathf.Sin(a) * 4f, 11, 3.2f, (100f + i * 40f) * 0.5f - 20f), Hex.C("#2F9E44"));
+                        cv.Fill(Sd.Path(1.6f, 1.1f, pm[0], pm[1], pm[0] + 1.5f, (pm[1] + pm[3]) * 0.5f, pm[2], pm[3]), trunk);
+                        for (int k = 0; k < 7; k++)
+                        {
+                            float ang = (200f + k * 24f) * Mathf.Deg2Rad;
+                            float ex = pm[2] + Mathf.Cos(ang) * 13f, ey = pm[3] + Mathf.Sin(ang) * 5f - 6f;
+                            cv.Fill(Sd.Path(1.6f, 0.5f, pm[2], pm[3], (pm[2] + ex) * 0.5f, pm[3] + 2f, ex, ey), k % 2 == 0 ? leaf : leaf.Shade(0.75f));
+                        }
+                        for (int k = 0; k < 5; k++)
+                        {
+                            float ang = (20f + k * 30f) * Mathf.Deg2Rad;
+                            float ex = pm[2] + Mathf.Cos(ang) * 12f, ey = pm[3] + Mathf.Sin(ang) * 6f - 4f;
+                            cv.Fill(Sd.Path(1.6f, 0.5f, pm[2], pm[3], (pm[2] + ex) * 0.5f, pm[3] + 3f, ex, ey), leaf.Shade(0.9f));
+                        }
                     }
-                    cv.Fill(Sd.Ellipse(58, 30, 3, 10, -15), Hex.C("#FF6B6B"));
                     break;
+                }
                 case LocationTheme.Pier:
-                    cv.Fill(Sd.Circle(120, 70, 8), Hex.C("#FFE066"));
-                    cv.Fill(Sd.Intersect(frame, Sd.Ellipse(140, 40, 18, 6)), Hex.C("#5C940D"));
+                {
+                    // 사진 2·4: 뭉게구름, 오른쪽의 깎아지른 초록 능선, 산호초가 비치는 청록 바다, 잔디와 나무 부두
+                    cv.Fill(Sd.Circle(40, 80, 7), Color.white);
+                    cv.Fill(Sd.Circle(50, 82, 9), Color.white);
+                    cv.Fill(Sd.Circle(60, 79, 6), Color.white);
+                    var ridge = Sd.Intersect(frame, Sd.Poly(84, 46, 98, 60, 104, 72, 110, 70, 114, 78, 120, 74, 126, 80, 132, 75, 138, 79, 146, 70, 156, 66, 160, 46));
+                    cv.FillGradient(ridge, Hex.C("#2E4D35"), Hex.C("#4D7344"), 46, 80);
+                    for (int i = 0; i < 9; i++) cv.Fill(Sd.Intersect(ridge, Sd.Box(102 + i * 6f, 64, 0.8f, 18)), new Color(0.08f, 0.16f, 0.12f, 0.45f));
+                    cv.Fill(Sd.Intersect(frame, Sd.Box(120, 47, 40, 2.4f, 1.5f)), Hex.C("#34592F"));
+                    var seaBand = Sd.Intersect(frame, Sd.Box(80, 43, 80, 3.5f));
+                    cv.FillGradient(seaBand, water.surface, water.deep, 40, 46);
                     cv.FillGradient(sea, water.deep, water.surface, 4, 40);
-                    for (int i = 0; i < 4; i++) cv.Fill(Sd.Intersect(frame, Sd.Ellipse(70 + i * 22f, 14, 6, 9)), Hex.C(i % 2 == 0 ? "#FF8787" : "#FFA94D"));
-                    cv.Fill(Sd.Box(40, 46, 38, 3.5f), Hex.C("#A9714B"));
-                    for (int i = 0; i < 4; i++) cv.Fill(Sd.Intersect(frame, Sd.Box(10 + i * 20f, 28, 2.2f, 16)), Hex.C("#7B5134"));
+                    for (int i = 0; i < 6; i++) cv.Fill(Sd.Intersect(frame, Sd.Ellipse(70 + i * 15f, 30 - (i % 3) * 4f, 6, 2.2f)), new Color(0.24f, 0.4f, 0.35f, 0.45f));
+                    for (int i = 0; i < 4; i++) cv.Fill(Sd.Intersect(frame, Sd.Ellipse(74 + i * 22f, 10, 5, 7)), Hex.C(i % 2 == 0 ? "#FF8787" : "#FFA94D"));
+                    cv.Fill(Sd.Intersect(frame, Sd.Poly(4, 46, 30, 46, 34, 34, 4, 30)), Hex.C("#3A3D42"));
+                    cv.Fill(Sd.Intersect(frame, Sd.Box(17, 46.5f, 14, 2.2f)), Hex.C("#9FB431"));
+                    cv.Fill(Sd.Box(50, 46, 22, 2.6f), Hex.C("#A9714B"));
+                    for (int i = 0; i < 3; i++) cv.Fill(Sd.Intersect(frame, Sd.Box(34 + i * 16f, 32, 1.6f, 13)), Hex.C("#7B5134"));
+                    var trunk = Hex.C("#4A413A");
+                    var leaf = Hex.C("#6E9A37");
+                    cv.Fill(Sd.Path(1.5f, 1f, 14, 48, 16, 64, 13, 84), trunk);
+                    for (int k = 0; k < 8; k++)
+                    {
+                        float ang = (190f + k * 22f) * Mathf.Deg2Rad;
+                        float ex = 13 + Mathf.Cos(ang) * 12f, ey = 84 + Mathf.Sin(ang) * 5f - 5f;
+                        cv.Fill(Sd.Intersect(frame, Sd.Path(1.5f, 0.5f, 13, 84, (13 + ex) * 0.5f, 86, ex, ey)), k % 2 == 0 ? leaf : leaf.Shade(0.75f));
+                    }
                     break;
+                }
                 case LocationTheme.Volcano:
                     cv.Fill(Sd.Intersect(frame, Sd.Poly(60, 40, 96, 82, 112, 82, 150, 40)), Hex.C("#4A2C2A"));
                     cv.Fill(Sd.Intersect(frame, Sd.Poly(96, 82, 112, 82, 110, 76, 98, 76)), Hex.C("#FF6B1A"));

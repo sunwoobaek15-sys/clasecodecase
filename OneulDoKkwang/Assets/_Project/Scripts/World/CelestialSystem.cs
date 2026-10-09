@@ -16,6 +16,17 @@ namespace OneulDoKkwang
         public Vector2 SunPosition { get; private set; }
         public bool SunVisible { get; private set; }
 
+        float _horizon = LocationLayout.WaterY;
+        bool _farSea;
+
+        /// <summary>해와 달이 뜨고 지는 높이 (먼 바다 띠가 있으면 수평선이 수면보다 위).</summary>
+        public void SetHorizon(float horizonY, bool farSea)
+        {
+            _horizon = horizonY;
+            _farSea = farSea;
+            if (_reflection != null) _reflection.sortingOrder = farSea ? Sorting.FarSeaDecor + 1 : Sorting.Reflection;
+        }
+
         public void Init()
         {
             _sun = SpriteFactory.Renderer(transform, "Sun", SpriteFactory.Get(SpriteKeys.Sun), Sorting.Celestial);
@@ -44,7 +55,8 @@ namespace OneulDoKkwang
             float st = (hour - 6f) / 13f;
             SunVisible = hour > 5.6f && hour < 19.5f;
             float sx = Mathf.Lerp(-7.5f, 7.5f, st);
-            float sy = wy + 0.15f + Mathf.Sin(Mathf.Clamp01(st) * Mathf.PI) * 5.3f;
+            float arc = 5.3f - (_horizon - wy);
+            float sy = _horizon + 0.15f + Mathf.Sin(Mathf.Clamp01(st) * Mathf.PI) * arc;
             SunPosition = new Vector2(sx + camX * Parallax, sy);
             _sun.enabled = SunVisible;
             if (SunVisible)
@@ -58,15 +70,17 @@ namespace OneulDoKkwang
             }
 
             // 노을 반사광 (해가 낮을 때 수면에 길게)
-            float low = Mathf.Clamp01(1f - (sy - wy) / 3f);
+            float low = Mathf.Clamp01(1f - (sy - _horizon) / 3f);
             float refl = SunVisible ? sunset * low * clear : 0f;
             _reflection.enabled = refl > 0.01f;
             if (_reflection.enabled)
             {
-                _reflection.transform.position = new Vector3(SunPosition.x, wy, 0f);
-                _reflection.color = new Color(1f, 0.72f, 0.45f, 0.6f * refl);
+                // 먼 바다가 있으면 수평선에서 수면까지 반짝이는 길, 없으면 수면 아래로
+                _reflection.transform.position = new Vector3(SunPosition.x, _farSea ? _horizon : wy, 0f);
+                _reflection.color = new Color(1f, 0.72f, 0.45f, (_farSea ? 0.75f : 0.6f) * refl);
                 float w = 0.7f + 0.15f * Mathf.Sin(Time.time * 2f);
-                _reflection.transform.localScale = new Vector3(w, 1f, 1f);
+                float h = _farSea ? (_horizon - wy + 0.2f) / 4f : 1f;
+                _reflection.transform.localScale = new Vector3(w, h, 1f);
             }
 
             // 달: 19시 ~ 다음날 6.5시
@@ -77,7 +91,7 @@ namespace OneulDoKkwang
                 float hh = hour >= 19f ? hour - 19f : hour + 5f;
                 float mt = hh / 11.5f;
                 float mx = Mathf.Lerp(-7f, 7f, mt);
-                float my = wy + 0.4f + Mathf.Sin(Mathf.Clamp01(mt) * Mathf.PI) * 4.8f;
+                float my = _horizon + 0.4f + Mathf.Sin(Mathf.Clamp01(mt) * Mathf.PI) * (4.8f - (_horizon - wy));
                 _moon.transform.position = new Vector3(mx + camX * Parallax, my, 0f);
                 _moon.transform.localScale = new Vector3(0.85f, 0.85f, 1f);
                 _moon.color = new Color(1f, 0.97f, 0.82f, Mathf.Clamp01(night * 1.3f) * clear);
