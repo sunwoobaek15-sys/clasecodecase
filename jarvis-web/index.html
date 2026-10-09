@@ -180,7 +180,7 @@ body {
         <div class="bar"><i></i></div>
       </div>
     </div>
-    <div class="hint label dim" id="hint">TAP CORE TO SPEAK · TYPE BELOW</div>
+    <div class="hint label dim" id="hint">TAP CORE → KEYBOARD MIC · OR TYPE BELOW</div>
   </div>
 
   <section class="panel log" aria-label="대화 기록">
@@ -443,8 +443,9 @@ body {
   // ───────────── 음성 입력 ─────────────
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   let rec = null;
+  let micBlocked = (() => { try { return localStorage.getItem("jarvis-mic-blocked") === "1"; } catch (e) { return false; } })();
   function listen() {
-    if (!SR) { micUnavailable(); return; }
+    if (!SR || micBlocked) { dictate(); return; }
     try {
       rec = new SR();
       rec.lang = "ko-KR"; rec.interimResults = true; rec.maxAlternatives = 1;
@@ -468,9 +469,19 @@ body {
   }
   function micUnavailable(code) {
     setMode("IDLE");
-    const why = code === "no-speech" ? "음성이 감지되지 않았습니다." : "이 화면에서는 마이크를 쓸 수 없습니다. 입력창을 누르고 키보드의 마이크 버튼으로 말해 주세요.";
-    addMsg("err", why, true);
+    if (code === "no-speech") { addMsg("err", "음성이 감지되지 않았습니다.", true); return; }
+    // 브라우저가 마이크를 막은 경우: 다음부터는 바로 키보드 받아쓰기로
+    micBlocked = true;
+    try { localStorage.setItem("jarvis-mic-blocked", "1"); } catch (e) {}
+    dictate(true);
+  }
+  /** 키보드 받아쓰기 안내: 입력창에 포커스를 줘서 키보드를 띄운다 */
+  function dictate(first) {
+    setMode("IDLE");
     $("q").focus();
+    $("q").placeholder = "키보드의 🎤 버튼을 누르고 말하세요";
+    if (first) addMsg("jarvis", "이 화면에서는 마이크를 직접 쓸 수 없습니다. 대신 키보드 오른쪽 위의 마이크 버튼을 누르고 말씀하시면 받아쓴 뒤 SEND 로 보내 주세요.", true);
+    beep([1318, 1975], 0.1);
   }
 
   // ───────────── Claude 대화 + 도구 ─────────────
