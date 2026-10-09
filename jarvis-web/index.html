@@ -1,0 +1,923 @@
+<title>JARVIS Web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: one-screen phone HUD — status strip, clock/task panels, reactor core, comm log, input bar. Deliberately single dark theme (hologram). */
+:root {
+  color-scheme: dark;
+  --bg: #03070F;
+  --bg-deep: #01030A;
+  --cyan: #00E5FF;
+  --cyan-white: #B8F6FF;
+  --amber: #FFB300;
+  --red: #FF3D57;
+  --dim: #5E8A99;
+  --glass: rgba(0, 229, 255, 0.07);
+  --line: rgba(0, 229, 255, 0.22);
+  --f-display: "Orbitron", "Rajdhani", ui-monospace, monospace;
+  --f-tech: "Rajdhani", "Orbitron", system-ui, sans-serif;
+  --f-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--cyan-white);
+  font-family: var(--f-body); overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+#bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.app {
+  position: relative; z-index: 1; height: 100%;
+  display: flex; flex-direction: column; gap: 8px;
+  padding-inline: 12px; padding-block: 8px;
+  max-width: 560px; margin: 0 auto; box-sizing: border-box;
+}
+.label { font-family: var(--f-display); font-weight: 500; letter-spacing: .22em; font-size: 9px; text-transform: uppercase; color: var(--cyan); text-shadow: 0 0 8px rgba(0,229,255,.55); }
+.label.dim { color: var(--dim); text-shadow: none; }
+.strip { display: flex; align-items: center; gap: 8px; min-height: 18px; white-space: nowrap; }
+.strip .label { white-space: nowrap; }
+.strip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: pulse 1.6s ease-in-out infinite; }
+.strip .brand { font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .24em; color: var(--cyan-white); }
+.strip .spacer { flex: 1; }
+.strip button { background: none; border: 0; padding: 4px; cursor: pointer; }
+@keyframes pulse { 50% { opacity: .35; } }
+
+/* 패널: 유리 + 발광 테두리 + 모서리 브래킷 */
+.panel {
+  position: relative; background: linear-gradient(180deg, rgba(0,229,255,.10), rgba(0,229,255,.03));
+  border: 1px solid var(--line);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  padding: 9px 10px; box-sizing: border-box; min-width: 0;
+}
+.panel::before, .panel::after {
+  content: ""; position: absolute; width: 12px; height: 12px; pointer-events: none;
+  border-color: var(--cyan); border-style: solid; filter: drop-shadow(0 0 3px var(--cyan));
+}
+.panel::before { left: -1px; top: -1px; border-width: 2px 0 0 2px; }
+.panel::after { right: -1px; bottom: -1px; border-width: 0 2px 2px 0; }
+.ph { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.ph::before { content: "▸"; color: var(--cyan); font-size: 9px; }
+.ph .rule { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(0,229,255,.6), transparent); }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.clock { font-family: var(--f-display); font-weight: 700; font-size: 26px; color: var(--cyan-white); text-shadow: 0 0 14px rgba(0,229,255,.8); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.clock small { font-size: 11px; color: var(--cyan); margin-left: 2px; }
+.stat { font-family: var(--f-display); font-weight: 700; font-size: 20px; color: var(--cyan-white); text-shadow: 0 0 12px rgba(0,229,255,.7); font-variant-numeric: tabular-nums; }
+.sub { font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 리액터 */
+.core-wrap { position: relative; flex: 1 1 auto; min-height: 150px; display: grid; place-items: center; }
+#core { width: 100%; height: 100%; display: block; cursor: pointer; touch-action: manipulation; }
+.exec {
+  position: absolute; left: 0; top: 4px; display: none; align-items: center; gap: 8px;
+  background: rgba(3,7,15,.85); border: 1px solid rgba(255,179,0,.5); padding: 7px 10px;
+}
+.exec.on { display: flex; }
+.exec .label { color: var(--amber); text-shadow: 0 0 8px rgba(255,179,0,.6); }
+.exec .bar { width: 120px; height: 3px; background: rgba(255,179,0,.15); overflow: hidden; margin-top: 4px; }
+.exec .bar i { display: block; width: 40%; height: 100%; background: var(--amber); animation: slide 1s linear infinite; }
+@keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+.hint { position: absolute; bottom: 2px; left: 0; right: 0; text-align: center; }
+
+/* 로그 */
+.log { height: 30%; min-height: 130px; display: flex; flex-direction: column; }
+#log { flex: 1; overflow-y: auto; padding-top: 10px; display: flex; flex-direction: column; gap: 8px; padding-right: 2px; scrollbar-width: none;
+  mask-image: linear-gradient(180deg, transparent 0, #000 10px); -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 10px); }
+#log::-webkit-scrollbar { display: none; }
+.msg .who { font-family: var(--f-display); font-size: 8px; letter-spacing: .22em; }
+.msg.user .who { color: var(--dim); }
+.msg.jarvis .who { color: var(--cyan); text-shadow: 0 0 8px rgba(0,229,255,.6); }
+.msg.err .who { color: var(--red); }
+.msg .txt { font-size: 15px; line-height: 1.5; text-wrap: pretty; word-break: keep-all; overflow-wrap: anywhere; }
+.msg.user .txt { color: rgba(184,246,255,.8); font-size: 14px; }
+.msg.jarvis .txt { color: var(--cyan-white); text-shadow: 0 0 8px rgba(0,229,255,.35); font-weight: 500; }
+.msg.err .txt { color: var(--red); }
+
+/* 입력 */
+.input { display: flex; gap: 8px; align-items: stretch; }
+.input input {
+  flex: 1; min-width: 0; background: rgba(0,229,255,.06); border: 0; border-bottom: 1.5px solid var(--cyan);
+  color: var(--cyan-white); font: 500 16px var(--f-body); padding: 11px 12px; outline: none;
+}
+.input input::placeholder { color: var(--dim); }
+.input input:focus-visible { background: rgba(0,229,255,.12); }
+.btn {
+  font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .2em;
+  color: var(--cyan); background: rgba(0,229,255,.08); border: 1px solid var(--cyan);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  padding: 0 14px; cursor: pointer; min-height: 44px;
+}
+.btn:active, .btn:focus-visible { background: rgba(0,229,255,.25); outline: none; }
+.btn.warn { color: var(--amber); border-color: var(--amber); background: rgba(255,179,0,.08); }
+.btn.dim { color: var(--dim); border-color: var(--dim); background: transparent; }
+.btn[disabled] { opacity: .4; }
+
+/* 오버레이 */
+.overlay { position: fixed; inset: 0; z-index: 10; background: rgba(0,0,0,.72); display: grid; place-items: center; padding-inline: 16px; }
+.overlay[hidden] { display: none !important; }
+.sheet { width: 100%; max-width: 440px; background: rgba(3,7,15,.95); max-height: 86vh; overflow-y: auto; }
+.sheet h2 { font-family: var(--f-display); font-size: 12px; letter-spacing: .24em; color: var(--cyan); margin: 0 0 12px; font-weight: 700; }
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field input[type=text] { background: rgba(0,229,255,.06); border: 0; border-bottom: 1.5px solid var(--cyan); color: var(--cyan-white); font: 16px var(--f-body); padding: 10px; outline: none; }
+.field input[type=range] { accent-color: var(--cyan); }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-size: 14px; }
+.toggle input { width: 22px; height: 22px; accent-color: var(--cyan); }
+.files { display: grid; gap: 4px; margin-bottom: 12px; }
+.file { display: grid; grid-template-columns: 3px 1fr auto; gap: 8px; align-items: center; padding: 4px 0; }
+.file .bar { align-self: stretch; background: var(--cyan); }
+.file.high .bar { background: var(--amber); }
+.file.done .bar { background: var(--dim); }
+.file .code { font-family: var(--f-display); font-size: 8px; letter-spacing: .18em; color: var(--cyan); }
+.file.done .t { text-decoration: line-through; color: var(--dim); }
+.file .t { font-size: 14px; }
+.file button { background: none; border: 1px solid var(--line); color: var(--dim); font-family: var(--f-display); font-size: 8px; letter-spacing: .15em; padding: 6px 8px; cursor: pointer; }
+.note { font-size: 12px; color: var(--dim); line-height: 1.6; }
+.alarm .sheet { border-color: rgba(255,179,0,.6); }
+.alarm h2 { color: var(--amber); }
+
+/* 부팅 */
+#boot { position: fixed; inset: 0; z-index: 20; background: #000; padding: 28px 20px; font-family: var(--f-tech); font-weight: 600; font-size: 14px; letter-spacing: .08em; color: var(--cyan); transition: opacity .35s; }
+#boot.gone { opacity: 0; pointer-events: none; }
+#boot .l { text-shadow: 0 0 8px rgba(0,229,255,.6); }
+#boot .l.w { color: var(--cyan-white); font-weight: 700; }
+#flash { position: fixed; inset: 0; z-index: 19; background: radial-gradient(circle, rgba(255,255,255,.7), rgba(0,229,255,.35)); opacity: 0; pointer-events: none; transition: opacity .6s; }
+@media (prefers-reduced-motion: reduce) { .strip .dot, .exec .bar i { animation: none; } }
+@media (max-height: 640px) { .log { min-height: 100px; } .clock { font-size: 22px; } }
+</style>
+
+<canvas id="bg" aria-hidden="true"></canvas>
+<div id="flash"></div>
+<div id="boot" aria-hidden="true"></div>
+
+<main class="app">
+  <div class="strip">
+    <span class="dot" id="dot"></span>
+    <span class="brand">J.A.R.V.I.S.</span>
+    <span class="label dim">WEB //</span>
+    <span class="label" id="mode">STANDBY</span>
+    <span class="spacer"></span>
+    <button id="openFiles" class="label" aria-label="메모와 할 일 보기">DATA</button>
+    <button id="openSettings" class="label" aria-label="설정 열기">CONFIG</button>
+  </div>
+
+  <div class="row">
+    <section class="panel" aria-label="시계">
+      <div class="ph"><span class="label">CHRONOMETER</span><span class="rule"></span><span class="label dim">01</span></div>
+      <div class="clock" id="clock">--:--<small>:--</small></div>
+      <div class="label dim" id="date">----.--.--</div>
+    </section>
+    <section class="panel" aria-label="할 일과 리마인더">
+      <div class="ph"><span class="label">TASK QUEUE</span><span class="rule"></span><span class="label dim">02</span></div>
+      <div class="stat" id="taskCount">0</div>
+      <div class="sub" id="nextReminder">대기 중인 리마인더 없음</div>
+    </section>
+  </div>
+
+  <div class="core-wrap">
+    <canvas id="core" aria-label="리액터 코어. 탭하면 말하기, 길게 누르면 입력창"></canvas>
+    <div class="exec" id="exec">
+      <div>
+        <div class="label" style="font-size:7px;opacity:.75">EXECUTING</div>
+        <div class="label" id="execLabel">TASK</div>
+        <div class="bar"><i></i></div>
+      </div>
+    </div>
+    <div class="hint label dim" id="hint">TAP CORE TO SPEAK · TYPE BELOW</div>
+  </div>
+
+  <section class="panel log" aria-label="대화 기록">
+    <div class="ph"><span class="label">COMM LOG</span><span class="rule"></span><span class="label dim">03</span></div>
+    <div id="log" role="log" aria-live="polite"></div>
+  </section>
+
+  <form class="input" id="form" autocomplete="off">
+    <input id="q" type="text" placeholder="자비스에게 말하기" enterkeyhint="send" aria-label="명령 입력">
+    <button class="btn" id="send" type="submit">SEND</button>
+  </form>
+</main>
+
+<div class="overlay" id="settings" hidden>
+  <div class="panel sheet">
+    <h2>CONFIG</h2>
+    <div class="field"><label class="label" for="name">호칭</label><input id="name" type="text" placeholder="예: 민수"></div>
+    <div class="toggle"><label for="voiceOn">음성으로 답하기</label><input id="voiceOn" type="checkbox" checked></div>
+    <div class="field"><label class="label" for="rate">말하기 속도 <span id="rateV">1.0</span></label><input id="rate" type="range" min="0.6" max="1.6" step="0.1" value="1"></div>
+    <div class="toggle"><label for="bootOn">시작할 때 부팅 연출</label><input id="bootOn" type="checkbox" checked></div>
+    <p class="note">웹 버전은 대화, 메모, 할 일, 리마인더, 타이머를 지원합니다. 리마인더와 타이머는 이 화면이 열려 있을 때만 울립니다. 날씨·뉴스 실시간 조회와 전화·문자·알람 같은 폰 제어는 앱 버전에서만 됩니다.</p>
+    <p class="note">말로 하려면 코어를 탭하세요. 브라우저가 마이크를 막으면 키보드의 마이크 버튼으로 받아쓰기를 쓰면 됩니다.</p>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn dim" id="clearChat" type="button">CLEAR LOG</button>
+      <button class="btn" id="closeSettings" type="button" style="flex:1">DONE</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="filesSheet" hidden>
+  <div class="panel sheet">
+    <h2>DATA // TASKS</h2>
+    <div class="files" id="todoList"></div>
+    <h2>DATA // MEMOS</h2>
+    <div class="files" id="memoList"></div>
+    <h2>DATA // REMINDERS</h2>
+    <div class="files" id="remList"></div>
+    <button class="btn" id="closeFiles" type="button" style="width:100%">CLOSE</button>
+  </div>
+</div>
+
+<div class="overlay alarm" id="alarm" hidden>
+  <div class="panel sheet">
+    <h2 id="alarmTitle">◆ REMINDER</h2>
+    <p id="alarmText" style="font-size:18px;line-height:1.5;margin:0 0 16px"></p>
+    <button class="btn warn" id="alarmOk" type="button" style="width:100%">ACKNOWLEDGE</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const MODEL = "claude-sonnet-5-5";
+
+  // ───────────── 상태 ─────────────
+  const state = {
+    settings: { name: "", voice: true, rate: 1, boot: true },
+    memos: [], todos: [], reminders: [], turns: [],
+    nextId: 1,
+  };
+  let mode = "IDLE";          // IDLE LISTENING THINKING EXECUTING SPEAKING ERROR
+  let micLevel = 0, speechEnv = 0, lowPower = false, lastActive = Date.now();
+  let busy = false, ctl = null, timerEnd = 0, timerLabel = "";
+  let db = null, docRef = null, sample = null, sampleTools = false;
+
+  // ───────────── 저장 (db 개인 영역 → 없으면 브라우저 저장소) ─────────────
+  const LS = "jarvis-web-state";
+  function loadLocal() { try { const s = localStorage.getItem(LS); if (s) Object.assign(state, JSON.parse(s)); } catch (e) {} }
+  function saveLocal() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} }
+  let saveTimer = null, saving = Promise.resolve();
+  function save() {
+    saveLocal();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      if (!docRef) return;
+      const body = JSON.parse(JSON.stringify({ ...state, turns: state.turns.slice(-16) }));
+      saving = saving.then(() => docRef.set(body)).catch(() => {});
+    }, 600);
+  }
+  loadLocal();
+
+  async function initCaps() {
+    if (!window.claude || !window.claude.use) return;
+    claude.use("sample").then(async (s) => {
+      sample = s;
+      if (s) { try { sampleTools = !!(await s.limits()).tools; } catch (e) { sampleTools = false; } }
+    });
+    const [d, u] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if (!d || !u) return;
+    const uid = await u.id();
+    if (!uid) return;
+    db = d;
+    docRef = db.doc("data/users/" + uid + "/state");
+    try {
+      const snap = await docRef.get();
+      if (snap.exists) {
+        const data = snap.data();
+        for (const k of ["settings", "memos", "todos", "reminders", "turns", "nextId"]) if (data[k] !== undefined) state[k] = JSON.parse(JSON.stringify(data[k]));
+        saveLocal();
+        applySettings(); renderPanels(); renderHistory();
+      } else {
+        save();
+      }
+    } catch (e) { docRef = null; }
+  }
+
+  // ───────────── 렌더: 패널/로그 ─────────────
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function fmtTime(ms) { const d = new Date(ms); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours() < 12 ? "오전" : "오후"} ${((d.getHours() + 11) % 12) + 1}시${d.getMinutes() ? " " + d.getMinutes() + "분" : ""}`; }
+  function tickClock() {
+    const d = new Date();
+    $("clock").innerHTML = `${pad(d.getHours())}:${pad(d.getMinutes())}<small>:${pad(d.getSeconds())}</small>`;
+    const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    $("date").textContent = `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}  ${days[d.getDay()]}`;
+    if (timerEnd) {
+      const left = Math.max(0, Math.round((timerEnd - Date.now()) / 1000));
+      $("nextReminder").textContent = `TIMER ${pad(Math.floor(left / 60))}:${pad(left % 60)} · ${timerLabel}`;
+      if (left === 0) { const l = timerLabel; timerEnd = 0; fireAlert("◆ TIMER", `${l} 타이머가 끝났습니다.`); renderPanels(); }
+    }
+    checkReminders();
+    if (!lowPower && mode === "IDLE" && Date.now() - lastActive > 45000) { lowPower = true; setMode("IDLE"); }
+  }
+  function renderPanels() {
+    const open = state.todos.filter((t) => !t.done).length;
+    $("taskCount").textContent = String(open).padStart(2, "0");
+    if (!timerEnd) {
+      const next = state.reminders.filter((r) => !r.fired).sort((a, b) => a.at - b.at)[0];
+      $("nextReminder").textContent = next ? `NEXT ▸ ${fmtTime(next.at)} ${next.text}` : (open ? `할 일 ${open}건 대기 중` : "대기 중인 리마인더 없음");
+    }
+  }
+  const SCRAMBLE = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&*<>/=+";
+  function scrambleChar(ch) {
+    if (/\s/.test(ch)) return ch;
+    const c = ch.charCodeAt(0);
+    if (c >= 0xAC00 && c <= 0xD7A3) return String.fromCharCode(0xAC00 + Math.floor(Math.random() * 11172));
+    return SCRAMBLE[Math.floor(Math.random() * SCRAMBLE.length)];
+  }
+  /** 한 글자씩 타이핑 + 앞쪽 글자가 섞였다가 맞춰지는 디코딩 */
+  function decodeInto(el, target, from) {
+    if (el._decode) cancelAnimationFrame(el._decode);
+    let i = Math.min(from || 0, target.length), last = 0;
+    const step = (t) => {
+      if (t - last > 16) { last = t; i = Math.min(target.length, i + (target.length - i > 120 ? 3 : 1)); }
+      const tail = Array.from(target.slice(i, i + 5)).map(scrambleChar).join("");
+      el.textContent = target.slice(0, i) + tail;
+      $("log").scrollTop = $("log").scrollHeight;
+      if (i < target.length) el._decode = requestAnimationFrame(step); else { el.textContent = target; el._decode = 0; }
+    };
+    el._decode = requestAnimationFrame(step);
+  }
+  function addMsg(kind, text, animate) {
+    const m = document.createElement("div");
+    m.className = "msg " + kind;
+    const who = document.createElement("div");
+    who.className = "who";
+    who.textContent = kind === "user" ? "> USER" : kind === "err" ? "◆ JARVIS · FAULT" : "◆ JARVIS";
+    const t = document.createElement("div");
+    t.className = "txt";
+    m.append(who, t);
+    $("log").append(m);
+    while ($("log").children.length > 30) $("log").firstChild.remove();
+    if (animate && kind !== "user") decodeInto(t, text, 0); else t.textContent = text;
+    $("log").scrollTop = $("log").scrollHeight;
+    return t;
+  }
+  function renderHistory() {
+    $("log").replaceChildren();
+    for (const turn of state.turns.slice(-8)) addMsg(turn.role === "user" ? "user" : "jarvis", turn.content, false);
+  }
+  function fileRow(code, text, meta, cls, actions) {
+    const r = document.createElement("div");
+    r.className = "file " + (cls || "");
+    const bar = document.createElement("span"); bar.className = "bar";
+    const body = document.createElement("div");
+    const c = document.createElement("div"); c.className = "code"; c.textContent = `${code}  /  ${meta}`;
+    const t = document.createElement("div"); t.className = "t"; t.textContent = text;
+    body.append(c, t);
+    const act = document.createElement("div"); act.style.display = "flex"; act.style.gap = "4px";
+    for (const [label, fn] of actions) { const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.onclick = fn; act.append(b); }
+    r.append(bar, body, act);
+    return r;
+  }
+  function code(prefix, id) { return `${prefix}_${String(id).padStart(4, "0")}`; }
+  const PRI = ["LOW", "NORMAL", "HIGH"];
+  function renderFiles() {
+    const tl = $("todoList"), ml = $("memoList"), rl = $("remList");
+    tl.replaceChildren(); ml.replaceChildren(); rl.replaceChildren();
+    const todos = [...state.todos].sort((a, b) => a.done - b.done || b.priority - a.priority);
+    if (!todos.length) tl.append(Object.assign(document.createElement("p"), { className: "note", textContent: "할 일이 없습니다. \"할 일에 ○○ 추가해줘\" 라고 말해 보세요." }));
+    for (const t of todos) tl.append(fileRow(code("FILE", t.id), t.text, t.done ? "STATUS: COMPLETE" : `PRIORITY: ${PRI[t.priority] || "NORMAL"}${t.due ? " / DUE " + fmtTime(t.due) : ""}`,
+      t.done ? "done" : t.priority >= 2 ? "high" : "", [[t.done ? "UNDO" : "DONE", () => { t.done = !t.done; save(); renderFiles(); renderPanels(); }], ["DEL", () => { state.todos = state.todos.filter((x) => x !== t); save(); renderFiles(); renderPanels(); }]]));
+    if (!state.memos.length) ml.append(Object.assign(document.createElement("p"), { className: "note", textContent: "저장된 메모가 없습니다." }));
+    for (const m of [...state.memos].reverse()) ml.append(fileRow(code("MEMO", m.id), m.text, m.tag ? "TAG: " + m.tag.toUpperCase() : new Date(m.at).toLocaleDateString("ko-KR"), "", [["DEL", () => { state.memos = state.memos.filter((x) => x !== m); save(); renderFiles(); }]]));
+    const rems = state.reminders.filter((r) => !r.fired).sort((a, b) => a.at - b.at);
+    if (!rems.length) rl.append(Object.assign(document.createElement("p"), { className: "note", textContent: "예약된 리마인더가 없습니다." }));
+    for (const r of rems) rl.append(fileRow(code("REM", r.id), r.text, fmtTime(r.at), "", [["DEL", () => { state.reminders = state.reminders.filter((x) => x !== r); save(); renderFiles(); renderPanels(); }]]));
+  }
+
+  // ───────────── 리마인더 / 알림 ─────────────
+  function checkReminders() {
+    const now = Date.now();
+    for (const r of state.reminders) {
+      if (!r.fired && r.at <= now) { r.fired = true; save(); renderPanels(); fireAlert("◆ REMINDER", r.text); }
+    }
+  }
+  function fireAlert(title, text) {
+    $("alarmTitle").textContent = title;
+    $("alarmText").textContent = text;
+    $("alarm").hidden = false;
+    try { navigator.vibrate && navigator.vibrate([0, 80, 60, 80, 60, 200]); } catch (e) {}
+    beep([880, 1175, 880, 1175], 0.12);
+    speak(text);
+  }
+  $("alarmOk").onclick = () => { $("alarm").hidden = true; stopSpeak(); };
+
+  // ───────────── 효과음 (WebAudio 합성) ─────────────
+  let actx = null;
+  function audio() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) { actx = null; } return actx; }
+  function beep(freqs, len) {
+    const a = audio(); if (!a) return;
+    let t = a.currentTime;
+    for (const f of freqs) {
+      const o = a.createOscillator(), g = a.createGain();
+      o.frequency.value = f; o.type = "sine";
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      o.connect(g).connect(a.destination); o.start(t); o.stop(t + len + 0.02);
+      t += len * 0.85;
+    }
+  }
+  function chick() {
+    const a = audio(); if (!a) return;
+    const n = a.createBufferSource(), buf = a.createBuffer(1, a.sampleRate * 0.12, a.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (a.sampleRate * 0.018)) * 0.35;
+    n.buffer = buf; n.connect(a.destination); n.start();
+  }
+
+  // ───────────── 음성 출력 (TTS) ─────────────
+  let koVoice = null;
+  function pickVoice() { try { const vs = speechSynthesis.getVoices(); koVoice = vs.find((v) => /ko(-|_)KR/i.test(v.lang)) || vs.find((v) => /^ko/i.test(v.lang)) || null; } catch (e) {} }
+  if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+  function speak(text) {
+    return new Promise((resolve) => {
+      if (!state.settings.voice || !("speechSynthesis" in window)) return resolve();
+      try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text.replace(/[*_#`>|]/g, ""));
+        u.lang = "ko-KR"; if (koVoice) u.voice = koVoice;
+        u.rate = state.settings.rate || 1; u.pitch = 0.95;
+        let pulseTimer = setInterval(() => { speechEnv = Math.max(speechEnv, 0.45 + Math.random() * 0.5); }, 150);
+        u.onboundary = () => { speechEnv = Math.max(speechEnv, 0.85); };
+        const done = () => { clearInterval(pulseTimer); speechEnv = 0; resolve(); };
+        u.onend = done; u.onerror = done;
+        speechSynthesis.speak(u);
+      } catch (e) { resolve(); }
+    });
+  }
+  function stopSpeak() { try { speechSynthesis.cancel(); } catch (e) {} speechEnv = 0; }
+
+  // ───────────── 음성 입력 ─────────────
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  function listen() {
+    if (!SR) { micUnavailable(); return; }
+    try {
+      rec = new SR();
+      rec.lang = "ko-KR"; rec.interimResults = true; rec.maxAlternatives = 1;
+      let finalText = "", partialEl = null, got = false;
+      setMode("LISTENING"); beep([1318, 1975], 0.1);
+      const fake = setInterval(() => { micLevel = 0.25 + Math.random() * 0.55; }, 90);
+      rec.onresult = (e) => {
+        got = true;
+        let s = ""; for (const r of e.results) s += r[0].transcript;
+        finalText = s;
+        if (!partialEl) partialEl = addMsg("user", s, false); else partialEl.textContent = s;
+      };
+      rec.onerror = (e) => { clearInterval(fake); micLevel = 0; if (!got) { partialEl && partialEl.parentElement.remove(); micUnavailable(e.error); } };
+      rec.onend = () => {
+        clearInterval(fake); micLevel = 0;
+        if (partialEl) partialEl.parentElement.remove();
+        if (finalText.trim()) converse(finalText.trim()); else if (mode === "LISTENING") setMode("IDLE");
+      };
+      rec.start();
+    } catch (e) { micUnavailable(); }
+  }
+  function micUnavailable(code) {
+    setMode("IDLE");
+    const why = code === "no-speech" ? "음성이 감지되지 않았습니다." : "이 화면에서는 마이크를 쓸 수 없습니다. 입력창을 누르고 키보드의 마이크 버튼으로 말해 주세요.";
+    addMsg("err", why, true);
+    $("q").focus();
+  }
+
+  // ───────────── Claude 대화 + 도구 ─────────────
+  function rules() {
+    const name = (state.settings.name || "").trim();
+    const call = name ? (name.endsWith("님") ? name : name + "님") : "님";
+    const now = new Date();
+    const iso = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const open = state.todos.filter((t) => !t.done).map((t) => `#${t.id} ${t.text}`).slice(0, 8).join(", ") || "없음";
+    return [
+      "너는 JARVIS다. 웹 브라우저에서 동작하는 개인 AI 비서다.",
+      `사용자를 '주인님'이 아니라 "${call}"이라고 부르고, 짧고 정중하고 약간 위트 있게 한국어로 답한다.`,
+      "답변은 음성으로 읽히므로 2~3문장 이내로 말하고, 마크다운·목록 기호·이모지를 쓰지 않는다.",
+      `현재 시각: ${iso} (${now.toLocaleDateString("ko-KR", { weekday: "long" })}). 날짜 계산은 이 시각 기준으로 한다.`,
+      `남은 할 일: ${open}`,
+      "메모, 할 일, 리마인더, 타이머가 필요하면 반드시 도구를 호출하고, 도구 없이 했다고 말하지 않는다. 날짜·시각 인자는 위 현재 시각 기준 ISO 8601 로컬 시각(예: 2026-10-10T15:30)으로 넘긴다.",
+      "이 웹 버전은 인터넷 검색, 실시간 날씨·뉴스, 전화·문자·앱 실행·알람 앱 제어를 할 수 없다. 그런 요청에는 지금은 할 수 없고 안드로이드 앱 버전에서 가능하다고 한 문장으로 말한다. 실시간 정보를 지어내지 않는다.",
+      "리마인더와 타이머는 이 화면이 열려 있을 때만 울린다는 점을 처음 한 번은 짧게 알려 준다.",
+    ].join("\n");
+  }
+  function parseWhen(s) {
+    if (!s) return NaN;
+    const t = Date.parse(String(s).trim().replace(" ", "T"));
+    return t;
+  }
+  const TOOLS = [
+    { name: "add_memo", label: "MEMO ARCHIVE", description: "메모를 저장한다. 저장된 메모 번호를 돌려준다.",
+      inputSchema: { type: "object", properties: { text: { type: "string", description: "메모 내용" }, tag: { type: "string", description: "분류 태그(선택)" } }, required: ["text"] },
+      execute: (i) => { const m = { id: state.nextId++, text: String(i.text || "").trim(), tag: i.tag ? String(i.tag) : "", at: Date.now() }; if (!m.text) throw new Error("text 가 비었습니다"); state.memos.push(m); save(); return `메모 #${m.id} 저장 완료`; } },
+    { name: "search_memos", label: "MEMO SCAN", description: "메모를 검색한다. query 를 비우면 최근 메모 10개를 돌려준다.",
+      inputSchema: { type: "object", properties: { query: { type: "string", description: "검색어" } } },
+      execute: (i) => { const q = String(i.query || "").trim(); const list = (q ? state.memos.filter((m) => m.text.includes(q) || (m.tag || "").includes(q)) : state.memos).slice(-10); return list.length ? list.map((m) => `#${m.id} ${m.text}${m.tag ? " [" + m.tag + "]" : ""}`).join("\n") : "일치하는 메모가 없습니다."; } },
+    { name: "add_todo", label: "TASK QUEUE", description: "할 일을 추가한다.",
+      inputSchema: { type: "object", properties: { text: { type: "string", description: "할 일" }, due: { type: "string", description: "마감 ISO 8601 (선택)" }, priority: { type: "string", enum: ["low", "normal", "high"] } }, required: ["text"] },
+      execute: (i) => { const due = parseWhen(i.due); const t = { id: state.nextId++, text: String(i.text || "").trim(), due: isNaN(due) ? null : due, priority: i.priority === "high" ? 2 : i.priority === "low" ? 0 : 1, done: false, at: Date.now() }; if (!t.text) throw new Error("text 가 비었습니다"); state.todos.push(t); save(); renderPanels(); return `할 일 #${t.id} 추가 완료`; } },
+    { name: "list_todos", label: "TASK SCAN", description: "완료하지 않은 할 일 목록(id 포함)을 돌려준다.",
+      execute: () => { const l = state.todos.filter((t) => !t.done); return l.length ? l.map((t) => `id=${t.id} ${t.text}${t.due ? " 마감 " + fmtTime(t.due) : ""} 우선순위 ${PRI[t.priority]}`).join("\n") : "남은 할 일이 없습니다."; } },
+    { name: "complete_todo", label: "TASK CLOSE", description: "할 일을 id 로 완료 처리한다.",
+      inputSchema: { type: "object", properties: { id: { type: "integer", description: "할 일 id" } }, required: ["id"] },
+      execute: (i) => { const t = state.todos.find((x) => x.id === Number(i.id)); if (!t) throw new Error("해당 id 의 할 일이 없습니다"); t.done = true; save(); renderPanels(); return `완료 처리: ${t.text}`; } },
+    { name: "create_reminder", label: "REMINDER LOCK", description: "지정한 시각에 화면 알림과 음성으로 알려 주는 리마인더를 만든다 (화면이 열려 있을 때만 울림).",
+      inputSchema: { type: "object", properties: { datetime: { type: "string", description: "ISO 8601 로컬 시각" }, text: { type: "string", description: "알려 줄 내용" } }, required: ["datetime", "text"] },
+      execute: (i) => { const at = parseWhen(i.datetime); if (isNaN(at)) throw new Error("시각 형식을 이해할 수 없습니다"); if (at <= Date.now()) throw new Error("이미 지난 시각입니다"); const r = { id: state.nextId++, at, text: String(i.text || "알림"), fired: false }; state.reminders.push(r); save(); renderPanels(); return `리마인더 #${r.id}: ${fmtTime(at)} ${r.text}`; } },
+    { name: "set_timer", label: "TIMER ARMED", description: "타이머를 시작한다. 화면 상단에 카운트다운이 표시된다.",
+      inputSchema: { type: "object", properties: { seconds: { type: "integer", description: "초" }, label: { type: "string", description: "이름" } }, required: ["seconds"] },
+      execute: (i) => { const s = Math.max(1, Math.min(86400, Number(i.seconds) || 0)); timerEnd = Date.now() + s * 1000; timerLabel = String(i.label || "타이머"); return `타이머 시작: ${Math.floor(s / 60)}분 ${s % 60}초`; } },
+  ];
+  function wrapTools(onUse) {
+    return TOOLS.map((t) => ({
+      name: t.name, description: t.description, ...(t.inputSchema ? { inputSchema: t.inputSchema } : {}),
+      execute: async (input) => {
+        onUse();
+        showExec(t.label);
+        try { const r = t.execute(input || {}); chick(); return r; }
+        finally { setTimeout(() => showExec(null), 400); }
+      },
+    }));
+  }
+  function showExec(label) {
+    if (label) { $("execLabel").textContent = label; $("exec").classList.add("on"); setMode("EXECUTING"); }
+    else { $("exec").classList.remove("on"); if (mode === "EXECUTING") setMode("THINKING"); }
+  }
+
+  async function converse(text) {
+    if (busy) return;
+    touch();
+    stopSpeak();
+    if (!sample) {
+      addMsg("user", text, false);
+      addMsg("err", "Claude 연결을 준비하는 중이거나 이 화면에서 사용할 수 없습니다. claude.ai 에 로그인한 상태로 이 페이지를 열어 주세요.", true);
+      setMode("ERROR"); setTimeout(() => setMode("IDLE"), 1300);
+      return;
+    }
+    busy = true; $("send").disabled = true;
+    addMsg("user", text, false);
+    state.turns.push({ role: "user", content: text });
+    setMode("THINKING");
+    const out = addMsg("jarvis", "", false);
+    out.textContent = "▮";
+    ctl = new AbortController();
+    const turns = [{ role: "user", content: rules() }, ...state.turns.slice(-12)];
+    let shown = 0, usedTool = false;
+    try {
+      const opts = { signal: ctl.signal, model: MODEL, effort: "low",
+        onText: ({ text: t }) => { decodeInto(out, t, shown); shown = t.length; } };
+      if (sampleTools) opts.tools = wrapTools(() => { usedTool = true; }); else opts.cache = false;
+      const { text: answer } = await sample(turns, opts);
+      // 도구를 쓴 경우 마지막 라운드의 답변만 읽는다
+      const final = usedTool ? (answer.split(/\n\s*\n/).filter(Boolean).pop() || answer) : answer;
+      decodeInto(out, answer, shown);
+      state.turns.push({ role: "assistant", content: answer });
+      state.turns = state.turns.slice(-24);
+      save(); renderPanels();
+      setMode("SPEAKING");
+      await speak(final);
+      if (mode === "SPEAKING") setMode("IDLE");
+    } catch (e) {
+      const msg = {
+        not_granted: "Claude 사용이 허용되지 않았습니다. 다시 허용하려면 페이지를 새로 열어 주세요.",
+        sampling_disabled: "이 계정에서는 Claude 를 쓸 수 없습니다.",
+        rate_limited: "요청이 너무 많습니다. 잠시 후 다시 말씀해 주세요.",
+        session_expired: "claude.ai 에 다시 로그인해 주세요.",
+        refused: "죄송합니다, 그 요청은 처리할 수 없습니다.",
+        cancelled: null,
+      }[e && e.code];
+      if (e && e.code === "cancelled") { out.textContent = e.text || "(중단됨)"; setMode("IDLE"); }
+      else {
+        out.parentElement.remove();
+        state.turns.pop();
+        const m = msg || "연결에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+        addMsg("err", m, true);
+        setMode("ERROR"); beep([440, 311], 0.18);
+        setTimeout(() => { if (mode === "ERROR") setMode("IDLE"); }, 1300);
+      }
+    } finally {
+      busy = false; $("send").disabled = false; ctl = null; showExec(null);
+    }
+  }
+
+  // ───────────── 입력 ─────────────
+  $("form").addEventListener("submit", (e) => { e.preventDefault(); const v = $("q").value.trim(); if (!v) return; $("q").value = ""; audio(); converse(v); });
+  const core = $("core");
+  let pressT = 0, longFired = false;
+  core.addEventListener("pointerdown", () => { longFired = false; pressT = setTimeout(() => { longFired = true; $("q").focus(); }, 550); });
+  core.addEventListener("pointerup", () => {
+    clearTimeout(pressT);
+    if (longFired) return;
+    touch(); audio();
+    if (mode === "SPEAKING") { stopSpeak(); setMode("IDLE"); return; }
+    if (mode === "LISTENING") { try { rec && rec.stop(); } catch (e) {} return; }
+    if (busy) { ctl && ctl.abort(); return; }
+    listen();
+  });
+  core.addEventListener("pointerleave", () => clearTimeout(pressT));
+  function touch() { lastActive = Date.now(); if (lowPower) { lowPower = false; } }
+
+  function setMode(m) {
+    mode = m;
+    const labels = { IDLE: lowPower ? "STANDBY // LOW POWER" : "STANDBY", LISTENING: "AUDIO CAPTURE", THINKING: "PROCESSING", EXECUTING: "EXECUTING", SPEAKING: "VOICE OUTPUT", ERROR: "FAULT DETECTED" };
+    $("mode").textContent = labels[m];
+    $("mode").style.color = m === "ERROR" ? "var(--red)" : "";
+    $("hint").style.visibility = m === "IDLE" ? "visible" : "hidden";
+  }
+
+  // ───────────── 설정/파일 시트 ─────────────
+  function applySettings() {
+    $("name").value = state.settings.name || "";
+    $("voiceOn").checked = state.settings.voice !== false;
+    $("rate").value = state.settings.rate || 1; $("rateV").textContent = Number(state.settings.rate || 1).toFixed(1);
+    $("bootOn").checked = state.settings.boot !== false;
+  }
+  $("openSettings").onclick = () => { applySettings(); $("settings").hidden = false; };
+  $("closeSettings").onclick = () => {
+    state.settings.name = $("name").value.trim();
+    state.settings.voice = $("voiceOn").checked;
+    state.settings.rate = Number($("rate").value);
+    state.settings.boot = $("bootOn").checked;
+    save(); $("settings").hidden = true;
+  };
+  $("rate").oninput = () => { $("rateV").textContent = Number($("rate").value).toFixed(1); };
+  $("clearChat").onclick = () => { state.turns = []; save(); $("log").replaceChildren(); $("settings").hidden = true; };
+  $("openFiles").onclick = () => { renderFiles(); $("filesSheet").hidden = false; };
+  $("closeFiles").onclick = () => { $("filesSheet").hidden = true; };
+  for (const id of ["settings", "filesSheet"]) $(id).addEventListener("click", (e) => { if (e.target.id === id) $(id).hidden = true; });
+
+  // ───────────── 배경: 육각 그리드 + 입자 + 스캔라인 ─────────────
+  const bg = $("bg"), bgc = bg.getContext("2d");
+  let W = 0, H = 0, DPR = 1, hexCanvas = null;
+  function hash(n) { let x = (n * 374761393 + 668265263) | 0; x = Math.imul(x ^ (x >>> 13), 1274126177); x ^= x >>> 16; return (x >>> 0) / 4294967295; }
+  function resizeBg() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = innerWidth; H = innerHeight;
+    bg.width = W * DPR; bg.height = H * DPR;
+    hexCanvas = document.createElement("canvas");
+    hexCanvas.width = bg.width; hexCanvas.height = bg.height;
+    const h = hexCanvas.getContext("2d"); h.scale(DPR, DPR);
+    const r = 26, hw = Math.sqrt(3) * r;
+    h.strokeStyle = "rgba(0,229,255,0.05)"; h.lineWidth = 0.8;
+    for (let row = -1, y = -r * 2; y < H + r * 4; y += r * 1.5, row++) {
+      for (let x = row % 2 === 0 ? -hw : -hw / 2; x < W + hw * 2; x += hw) {
+        h.beginPath();
+        for (let k = 0; k < 6; k++) { const a = Math.PI / 180 * (60 * k + 30); const px = x + r * Math.cos(a), py = y + r * Math.sin(a); k ? h.lineTo(px, py) : h.moveTo(px, py); }
+        h.closePath(); h.stroke();
+      }
+    }
+    const v = h.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.75);
+    v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(0.6, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(1,3,10,0.85)");
+    h.fillStyle = v; h.fillRect(0, 0, W, H);
+    resizeCore();
+  }
+  function drawBg(t) {
+    bgc.setTransform(1, 0, 0, 1, 0, 0);
+    bgc.fillStyle = "#03070F"; bgc.fillRect(0, 0, bg.width, bg.height);
+    bgc.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const g = bgc.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, W * 0.9);
+    g.addColorStop(0, "rgba(0,229,255,0.09)"); g.addColorStop(1, "rgba(0,229,255,0)");
+    bgc.fillStyle = g; bgc.fillRect(0, 0, W, H);
+    const n = lowPower ? 40 : 80;
+    for (let i = 0; i < n; i++) {
+      const r1 = hash(i * 3 + 1), r2 = hash(i * 3 + 2), r3 = hash(i * 3 + 3);
+      const x = (((r1 * W + (r3 - 0.5) * 10 * t) % W) + W) % W;
+      const y = (((r2 * H - (3 + r2 * 9) * t) % H) + H) % H;
+      const tw = 0.5 + 0.5 * Math.sin(t * (0.6 + r1 * 1.8) + i);
+      bgc.fillStyle = `rgba(184,246,255,${0.08 + 0.4 * tw * (0.4 + r2 * 0.6)})`;
+      bgc.beginPath(); bgc.arc(x, y, 0.6 + r3 * 1.6, 0, Math.PI * 2); bgc.fill();
+    }
+    bgc.drawImage(hexCanvas, 0, 0, W, H);
+    const by = ((t * 0.07) % 1.2 - 0.1) * H;
+    const sg = bgc.createLinearGradient(0, by - 60, 0, by + 60);
+    sg.addColorStop(0, "rgba(0,229,255,0)"); sg.addColorStop(0.5, "rgba(0,229,255,0.05)"); sg.addColorStop(1, "rgba(0,229,255,0)");
+    bgc.fillStyle = sg; bgc.fillRect(0, by - 60, W, 120);
+  }
+
+  // ───────────── 리액터 코어 ─────────────
+  const cctx = core.getContext("2d");
+  let CW = 0, CH = 0;
+  function resizeCore() {
+    const r = core.getBoundingClientRect();
+    CW = r.width; CH = r.height;
+    core.width = Math.max(1, CW * DPR); core.height = Math.max(1, CH * DPR);
+  }
+  const BASE = [6, -10, 4, 40, -14, 22, -30];
+  const ang = new Float32Array(7);
+  const spec = new Float32Array(96), eq = new Float32Array(64);
+  const LABELS = ["047.3", "SYS.A1", "0xF3E", "NODE 7", "812", "Δ 0.92", "LINK", "CORE-3"];
+  let lastT = -1, ignition = 1, sm = { speed: 1, counter: 0, bright: 1, red: 0, spec: 0, eq: 0, suck: 0 };
+  function approach(k, target, rate) { sm[k] += (target - sm[k]) * rate; }
+  function lerpColor(a, b, t) { return [0, 1, 2].map((i) => Math.round(a[i] + (b[i] - a[i]) * t)); }
+  function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`; }
+  const CY = [0, 229, 255], CW2 = [184, 246, 255], RD = [255, 61, 87];
+
+  function arc(c, r, start, sweep, color, w, glow) {
+    const a0 = start * Math.PI / 180, a1 = (start + sweep) * Math.PI / 180;
+    if (glow) { cctx.strokeStyle = color.replace(/[\d.]+\)$/, (m) => (parseFloat(m) * 0.28) + ")"); cctx.lineWidth = w + 6; cctx.beginPath(); cctx.arc(c.x, c.y, r, a0, a1); cctx.stroke(); }
+    cctx.strokeStyle = color; cctx.lineWidth = w; cctx.beginPath(); cctx.arc(c.x, c.y, r, a0, a1); cctx.stroke();
+  }
+
+  function drawCore(t) {
+    const dt = lastT < 0 ? 0 : Math.min(0.1, t - lastT); lastT = t;
+    const power = lowPower ? 0.35 : 1;
+    const tSpeed = { IDLE: 1, LISTENING: 2.4, THINKING: 4.2, SPEAKING: 1.6, EXECUTING: 3, ERROR: 0.4 }[mode] * power;
+    approach("speed", tSpeed, 0.05); approach("counter", mode === "THINKING" ? 1 : 0, 0.06);
+    approach("bright", mode === "IDLE" ? (lowPower ? 0.7 : 0.85) : mode === "LISTENING" || mode === "EXECUTING" ? 1.15 : 1, 0.08);
+    approach("red", mode === "ERROR" ? 1 : 0, mode === "ERROR" ? 0.3 : 0.04);
+    approach("spec", mode === "LISTENING" ? 1 : 0, 0.12); approach("eq", mode === "SPEAKING" ? 1 : 0, 0.12);
+    approach("suck", mode === "THINKING" || mode === "EXECUTING" ? 1 : 0, 0.08);
+    speechEnv *= 0.88;
+    for (let i = 0; i < 7; i++) ang[i] = (ang[i] + BASE[i] * sm.speed * (1 + sm.counter * (i % 2 ? -2.6 : 1.6)) * dt) % 360;
+
+    cctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    cctx.clearRect(0, 0, CW, CH);
+    if (CW < 10 || CH < 10) return;
+    const R = Math.min(CW, CH) / 2 * 0.94;
+    let c = { x: CW / 2, y: CH / 2 };
+    const col = lerpColor(CY, RD, sm.red), hi = lerpColor(CW2, [255, 214, 220], sm.red), b = sm.bright * ignition;
+    if (sm.red > 0.05) c = { x: c.x + (Math.random() - 0.5) * 14 * sm.red, y: c.y + (Math.random() - 0.5) * 4 * sm.red };
+    const A = (x) => Math.max(0, Math.min(1, x * b));
+    const reveal = (i) => Math.max(0, Math.min(1, ignition * 8 - i));
+
+    // 블룸
+    let g = cctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, R * 1.15);
+    g.addColorStop(0, rgba(col, 0.22 * b)); g.addColorStop(0.5, rgba(col, 0.06 * ignition)); g.addColorStop(1, rgba(col, 0));
+    cctx.fillStyle = g; cctx.beginPath(); cctx.arc(c.x, c.y, R * 1.15, 0, Math.PI * 2); cctx.fill();
+    cctx.lineCap = "butt";
+
+    // 1. 눈금 링
+    if (reveal(0) > 0) {
+      cctx.strokeStyle = rgba(col, A(0.22)); cctx.lineWidth = 1; cctx.beginPath(); cctx.arc(c.x, c.y, R, 0, Math.PI * 2); cctx.stroke();
+      const n = Math.floor(120 * reveal(0));
+      cctx.strokeStyle = rgba(col, A(0.7)); cctx.lineWidth = 1; cctx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const a = ang[0] * Math.PI / 180 + i * Math.PI * 2 / 120, len = i % 10 === 0 ? R * 0.075 : i % 5 === 0 ? R * 0.05 : R * 0.03;
+        cctx.moveTo(c.x + Math.cos(a) * R, c.y + Math.sin(a) * R); cctx.lineTo(c.x + Math.cos(a) * (R - len), c.y + Math.sin(a) * (R - len));
+      }
+      cctx.stroke();
+    }
+    // 2. 굵은 호 조각
+    if (reveal(1) > 0) {
+      const segs = [0, 62, 78, 24, 118, 90, 222, 40, 276, 64];
+      for (let s = 0; s < segs.length; s += 2) arc(c, R * 0.885, ang[1] + segs[s], segs[s + 1] * reveal(1), rgba(col, A(0.9)), 4, !lowPower);
+    }
+    // 3. 점선 + 라벨
+    if (reveal(2) > 0) {
+      for (let i = 0; i < 60 * reveal(2); i++) arc(c, R * 0.79, ang[2] + i * 6, 3.2, rgba(col, A(i % 3 === 0 ? 0.75 : 0.35)), 1.5, false);
+      if (reveal(2) >= 1) {
+        cctx.font = `500 ${Math.max(7, R * 0.045)}px Orbitron, monospace`; cctx.fillStyle = rgba(col, A(0.75)); cctx.textAlign = "center";
+        LABELS.forEach((l, i) => {
+          const deg = ang[2] + i * 45 + 4;
+          cctx.save(); cctx.translate(c.x, c.y); cctx.rotate((deg + 90) * Math.PI / 180); cctx.fillText(l, 0, -R * 0.79 - 5); cctx.restore();
+        });
+      }
+    }
+    // 4. 이중 링 + 스캐너
+    if (reveal(3) > 0) {
+      arc(c, R * 0.70, 0, 360 * reveal(3), rgba(col, A(0.3)), 1, false);
+      arc(c, R * 0.665, 0, 360 * reveal(3), rgba(col, A(0.2)), 1, false);
+      if (reveal(3) >= 1) for (let s = 0; s < 3; s++) for (let k = 0; k < 6; k++) arc(c, R * 0.6825, ang[3] + s * 120 - k * 5, 5, rgba(hi, A(0.85 - k * 0.14)), 3, k === 0 && !lowPower);
+    }
+    // 5. 세그먼트 링
+    if (reveal(4) > 0) {
+      const tick = Math.floor(t * 3);
+      for (let i = 0; i < 36 * reveal(4); i++) {
+        const on = hash(i * 31 + (tick >> 1)) > 0.35;
+        arc(c, R * 0.575, ang[4] + i * 10, 7, rgba(col, A(on ? 0.55 + 0.35 * hash(i + tick) : 0.12)), Math.max(4, R * 0.045), false);
+      }
+    }
+    // 6. 삼각 표식
+    if (reveal(5) > 0) {
+      arc(c, R * 0.465, ang[5], 360 * reveal(5), rgba(col, A(0.45)), 1, false);
+      if (reveal(5) >= 1) for (let i = 0; i < 8; i++) {
+        const a = (ang[5] + i * 45) * Math.PI / 180, dx = Math.cos(a), dy = Math.sin(a), r = R * 0.465;
+        cctx.fillStyle = rgba(hi, A(i % 2 ? 0.45 : 0.9)); cctx.beginPath();
+        cctx.moveTo(c.x + dx * (r - 3), c.y + dy * (r - 3));
+        cctx.lineTo(c.x + dx * (r + 6) - dy * 4, c.y + dy * (r + 6) + dx * 4);
+        cctx.lineTo(c.x + dx * (r + 6) + dy * 4, c.y + dy * (r + 6) - dx * 4); cctx.fill();
+      }
+    }
+    // 7. 안쪽 발광 링
+    if (reveal(6) > 0) {
+      arc(c, R * 0.355, ang[6], 360 * reveal(6), rgba(col, A(0.95)), 2.6, !lowPower);
+      if (reveal(6) >= 1) for (let i = 0; i < 4; i++) arc(c, R * 0.355 + 5, ang[6] + i * 90 + 20, 30, rgba(hi, A(0.7)), 1.4, false);
+    }
+    // 듣는 중: 스펙트럼
+    if (sm.spec > 0.01) {
+      const inner = R * 0.39;
+      cctx.beginPath();
+      for (let i = 0; i < 96; i++) {
+        const nz = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 13 + i * 0.9) * Math.sin(t * 7.3 + i * 0.37));
+        spec[i] += ((0.06 + micLevel * nz) * sm.spec - spec[i]) * 0.35;
+        const a = i * Math.PI * 2 / 96 - Math.PI / 2, len = R * 0.2 * spec[i];
+        cctx.moveTo(c.x + Math.cos(a) * inner, c.y + Math.sin(a) * inner); cctx.lineTo(c.x + Math.cos(a) * (inner + len), c.y + Math.sin(a) * (inner + len));
+      }
+      cctx.strokeStyle = rgba(col, 0.3 * sm.spec); cctx.lineWidth = 4.5; cctx.stroke();
+      cctx.strokeStyle = rgba(hi, 0.95 * sm.spec); cctx.lineWidth = 1.8; cctx.stroke();
+    }
+    // 생각 중: 빨려 드는 데이터 조각
+    if (sm.suck > 0.01) for (let i = 0; i < (lowPower ? 20 : 46); i++) {
+      const p = (t * (0.45 + hash(i * 7 + 3) * 0.5) + hash(i * 11 + 5)) % 1;
+      const a = hash(i * 13 + 1) * Math.PI * 2 + t * 0.4, d = R * (1.08 - p * 0.82), dx = Math.cos(a), dy = Math.sin(a);
+      cctx.strokeStyle = rgba(i % 4 ? col : hi, p * p * sm.suck); cctx.lineWidth = 1 + p * 1.5;
+      cctx.beginPath(); cctx.moveTo(c.x + dx * (d + R * (0.025 + 0.05 * p)), c.y + dy * (d + R * (0.025 + 0.05 * p))); cctx.lineTo(c.x + dx * d, c.y + dy * d); cctx.stroke();
+    }
+    // 코어
+    const pulse = mode === "SPEAKING" ? speechEnv * 0.38 : mode === "LISTENING" ? micLevel * 0.22 : mode === "THINKING" ? 0.07 * Math.sin(t * 9) : mode === "ERROR" ? 0.1 * Math.random() : 0.06 * Math.sin(t * 1.7);
+    const cr = R * 0.24 * (1 + pulse);
+    g = cctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, cr * 1.9);
+    g.addColorStop(0, rgba(col, 0.55 * b)); g.addColorStop(0.5, rgba(col, 0.12 * b)); g.addColorStop(1, rgba(col, 0));
+    cctx.fillStyle = g; cctx.beginPath(); cctx.arc(c.x, c.y, cr * 1.9, 0, Math.PI * 2); cctx.fill();
+    cctx.strokeStyle = rgba(hi, 0.35 * b); cctx.lineWidth = 1.2; cctx.beginPath();
+    const rays = lowPower ? 16 : 28;
+    for (let i = 0; i < rays; i++) {
+      const a = i * Math.PI * 2 / rays + t * 0.25, len = cr * (1.05 + 0.55 * (0.5 + 0.5 * Math.sin(t * 2.3 + i * 1.7)));
+      cctx.moveTo(c.x + Math.cos(a) * cr * 0.55, c.y + Math.sin(a) * cr * 0.55); cctx.lineTo(c.x + Math.cos(a) * len, c.y + Math.sin(a) * len);
+    }
+    cctx.stroke();
+    g = cctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, cr);
+    g.addColorStop(0, rgba([255, 255, 255], 0.98 * b)); g.addColorStop(0.28, rgba(hi, 0.95 * b)); g.addColorStop(0.62, rgba(col, 0.75 * b)); g.addColorStop(1, rgba(col, 0));
+    cctx.fillStyle = g; cctx.beginPath(); cctx.arc(c.x, c.y, cr, 0, Math.PI * 2); cctx.fill();
+    cctx.strokeStyle = rgba(hi, 0.7 * b); cctx.lineWidth = 1.2; cctx.beginPath(); cctx.arc(c.x, c.y, cr * 0.78, 0, Math.PI * 2); cctx.stroke();
+    // 말하는 중: 원형 이퀄라이저
+    if (sm.eq > 0.01) {
+      const inner = R * 0.27;
+      cctx.beginPath();
+      for (let i = 0; i < 64; i++) {
+        const mirror = i < 32 ? i : 63 - i, nz = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * 17 + mirror * 0.8));
+        eq[i] += ((0.05 + speechEnv * nz) * sm.eq - eq[i]) * 0.45;
+        const a = i * Math.PI * 2 / 64 - Math.PI / 2, len = R * 0.11 * eq[i];
+        cctx.moveTo(c.x + Math.cos(a) * inner, c.y + Math.sin(a) * inner); cctx.lineTo(c.x + Math.cos(a) * (inner + len), c.y + Math.sin(a) * (inner + len));
+      }
+      cctx.strokeStyle = rgba(col, 0.35 * sm.eq); cctx.lineWidth = 5; cctx.stroke();
+      cctx.strokeStyle = rgba(hi, sm.eq); cctx.lineWidth = 2.2; cctx.stroke();
+    }
+    // 상태 라벨 (받침판)
+    const label = mode === "THINKING" ? "PROCESSING" : mode === "LISTENING" ? "LISTENING" : null;
+    if (label) {
+      const fs = Math.max(8, R * 0.06);
+      cctx.font = `700 ${fs}px Orbitron, monospace`; cctx.textAlign = "center";
+      const w = cctx.measureText(label).width + fs * 2.2, y = c.y + R * 0.6;
+      const al = mode === "THINKING" ? (Math.floor(t * 2.5) % 2 ? 0.35 : 1) : 0.65 + 0.35 * Math.sin(t * 4);
+      cctx.fillStyle = "rgba(3,7,15,0.82)"; cctx.fillRect(c.x - w / 2, y - fs * 1.1, w, fs * 1.8);
+      cctx.strokeStyle = rgba(col, 0.7); cctx.lineWidth = 1; cctx.strokeRect(c.x - w / 2, y - fs * 1.1, w, fs * 1.8);
+      cctx.fillStyle = rgba(hi, al); cctx.fillText(label, c.x, y + fs * 0.3);
+    }
+    // 오류: 찢김 띠
+    if (sm.red > 0.3) for (let k = 0; k < 3; k++) { cctx.fillStyle = rgba(RD, 0.18 * sm.red); cctx.fillRect(c.x - R, c.y - R + Math.random() * R * 2, R * 2, 2 + Math.random() * 8); }
+  }
+
+  // ───────────── 루프 ─────────────
+  const t0 = performance.now();
+  let frame = 0;
+  function loop(now) {
+    frame++;
+    const t = (now - t0) / 1000;
+    if (!lowPower || frame % 2 === 0) { drawBg(t); drawCore(t); }
+    requestAnimationFrame(loop);
+  }
+
+  // ───────────── 부팅 ─────────────
+  function boot() {
+    const el = $("boot");
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (state.settings.boot === false || reduce) { el.classList.add("gone"); ignition = 1; greet(); return; }
+    ignition = 0;
+    const lines = [["INITIALIZING J.A.R.V.I.S. ...", ""], ["NEURAL LINK", "OK"], ["VOICE MODULE", "OK"], ["SPEECH SYNTH (KO-KR)", "OK"], ["MEMORY BANK", "OK"], ["HOLOGRAPHIC RENDERER", "OK"], ["ALL SYSTEMS NOMINAL", ""]];
+    let i = 0;
+    const skip = () => finish();
+    el.addEventListener("pointerdown", skip, { once: true });
+    const next = () => {
+      if (i >= lines.length) { setTimeout(finish, 220); return; }
+      const [l, s] = lines[i++];
+      const d = document.createElement("div");
+      d.className = "l" + (s ? "" : " w");
+      d.textContent = "> " + (s ? l.padEnd(24, ".") + " " + s : l);
+      el.append(d);
+      setTimeout(next, i === 1 ? 260 : 110);
+    };
+    let done = false;
+    function finish() {
+      if (done) return; done = true;
+      el.classList.add("gone");
+      const start = performance.now();
+      const ign = (n) => {
+        ignition = Math.min(1, (n - start) / 1100);
+        if (ignition < 1) requestAnimationFrame(ign);
+        else { $("flash").style.transition = "none"; $("flash").style.opacity = "1"; requestAnimationFrame(() => { $("flash").style.transition = ""; $("flash").style.opacity = "0"; }); try { navigator.vibrate && navigator.vibrate([0, 20, 60, 20, 60, 120]); } catch (e) {} greet(); }
+      };
+      requestAnimationFrame(ign);
+    }
+    next();
+  }
+  function greet() {
+    if (state.turns.length) return;
+    const h = new Date().getHours();
+    const g = h >= 4 && h <= 10 ? "좋은 아침입니다" : h <= 16 ? "좋은 오후입니다" : h <= 21 ? "좋은 저녁입니다" : "늦은 시간까지 수고 많으십니다";
+    const name = (state.settings.name || "").trim();
+    addMsg("jarvis", `${g}${name ? ", " + (name.endsWith("님") ? name : name + "님") : ""}. 모든 시스템 정상 가동 중입니다. 코어를 탭하거나 아래에 입력해 말씀하세요.`, true);
+  }
+
+  // ───────────── 시작 ─────────────
+  addEventListener("resize", resizeBg);
+  resizeBg();
+  applySettings(); renderPanels(); renderHistory();
+  tickClock(); setInterval(tickClock, 1000);
+  setMode("IDLE");
+  requestAnimationFrame(loop);
+  boot();
+  initCaps();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) checkReminders(); });
+})();
+</script>
