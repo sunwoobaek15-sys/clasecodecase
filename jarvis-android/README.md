@@ -74,7 +74,7 @@ class PcRemoteTools @Inject constructor(/* ... */) : ToolProvider {
 ## 스크린샷 테스트
 `app/src/test/.../HudScreenshotTest.kt` 가 Robolectric(네이티브 그래픽) + Roborazzi 로 주요 화면을 PNG 로 렌더링합니다.
 ```bash
-./gradlew testDebugUnitTest --tests "com.jarvis.assistant.HudScreenshotTest"   # app/build/shots/*.png
+./gradlew testDebugUnitTest --tests "com.jarvis.assistant.HudScreenshotTest"   # app/build/shots 아래 PNG
 ```
 
 ## 알려진 제약

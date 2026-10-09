@@ -54,7 +54,7 @@ import org.robolectric.annotation.GraphicsMode
 
 /**
  * HUD 스크린샷 (Robolectric 네이티브 그래픽 + Roborazzi).
- * CI 에서 build/shots/*.png 로 저장된다. 실기기 없이 디자인을 점검하기 위한 용도.
+ * CI 에서 build/shots 폴더에 PNG 로 저장된다. 실기기 없이 디자인을 점검하기 위한 용도.
  */
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
