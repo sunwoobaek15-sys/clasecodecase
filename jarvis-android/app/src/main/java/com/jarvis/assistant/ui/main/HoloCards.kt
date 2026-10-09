@@ -132,7 +132,7 @@ private fun LogRow(line: LogLine) {
 private fun Modifier.fadingEdges(bg: Color) = this.drawWithContent {
     drawContent()
     val h = 26.dp.toPx()
-    drawRect(Brush.verticalGradient(listOf(bg, bg.copy(alpha = 0.85f), Color.Transparent), startY = 0f, endY = h), size = Size(size.width, h))
+    drawRect(Brush.verticalGradient(listOf(bg.copy(alpha = 0.8f), bg.copy(alpha = 0.5f), Color.Transparent), startY = 0f, endY = h), size = Size(size.width, h))
 }
 
 // ───────────────────────── 실행 중 도구 카드 ─────────────────────────
@@ -233,13 +233,12 @@ private fun WeatherCard(c: ResultCard.Weather) {
 private fun TempGraph(temps: List<Double>, precip: List<Int>, labels: List<String>, modifier: Modifier) {
     val hud = LocalHud.current
     val time = LocalFrameTime.current
-    val born = remember(temps) { floatArrayOf(-1f) }
+    val born = remember(temps) { floatArrayOf(time.value) }
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
     val labelStyle = HudType.label(hud.dim, 6.sp, glowOn = false)
     val valueStyle = HudType.label(hud.secondary, 7.sp, glowOn = false)
     Canvas(modifier) {
         if (temps.size < 2) return@Canvas
-        if (born[0] < 0) born[0] = time.value
         val reveal = ((time.value - born[0]) / 0.9f).coerceIn(0f, 1f)
         val top = 12.dp.toPx()
         val bottom = size.height - 12.dp.toPx()

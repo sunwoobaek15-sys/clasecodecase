@@ -3,6 +3,10 @@
 말로 부르면 한국어로 대화하고, 일정·알람·메모를 관리하고, 날씨·뉴스를 브리핑하고, 폰 기능을 대신 처리하는 비서 앱입니다.
 두뇌는 **Claude API (`claude-sonnet-5-5`) tool use + 스트리밍**, 화면은 전부 Canvas/Compose 로 직접 그린 **홀로그램 HUD** 입니다.
 
+![HUD — 대기 / 듣는 중 / 생각 중(앰버 테마) / 24시간 레이더](docs/hud-preview.jpg)
+
+<sub>CI 의 Robolectric 스크린샷 테스트로 렌더링한 화면</sub>
+
 
 
 ## 빠른 시작

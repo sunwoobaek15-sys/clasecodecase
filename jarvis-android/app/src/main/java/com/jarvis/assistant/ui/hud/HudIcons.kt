@@ -26,10 +26,10 @@ import kotlin.math.sin
 fun WeatherGlyph(code: Int, isDay: Boolean, color: Color, modifier: Modifier = Modifier, accent: Color = color) {
     val time = LocalFrameTime.current
     val kind = WeatherService.kind(code)
-    val bornAt = androidx.compose.runtime.remember(code) { floatArrayOf(-1f) }
+    // 선 그리기 시작 시각은 컴포지션 시점 기준 (첫 그리기 시점이 아니라)
+    val bornAt = androidx.compose.runtime.remember(code) { floatArrayOf(time.value) }
     Canvas(modifier) {
         val t = time.value
-        if (bornAt[0] < 0f) bornAt[0] = t
         val trace = ((t - bornAt[0]) / 1.1f).coerceIn(0f, 1f)
         val s = size.minDimension
         val stroke = Stroke(width = s * 0.045f, cap = StrokeCap.Round, join = StrokeJoin.Round)
