@@ -204,6 +204,7 @@ body {
     <div class="toggle"><label for="voiceOn">음성으로 답하기</label><input id="voiceOn" type="checkbox" checked></div>
     <div class="field"><label class="label" for="rate">말하기 속도 <span id="rateV">1.0</span></label><input id="rate" type="range" min="0.6" max="1.6" step="0.1" value="1"></div>
     <div class="toggle"><label for="bootOn">시작할 때 부팅 연출</label><input id="bootOn" type="checkbox" checked></div>
+    <div class="toggle"><label for="autoSend">받아쓰기가 멈추면 자동 전송</label><input id="autoSend" type="checkbox" checked></div>
     <p class="note">웹 버전은 대화, 메모, 할 일, 리마인더, 타이머를 지원합니다. 리마인더와 타이머는 이 화면이 열려 있을 때만 울립니다. 날씨·뉴스 실시간 조회와 전화·문자·알람 같은 폰 제어는 앱 버전에서만 됩니다.</p>
     <p class="note">말로 하려면 코어를 탭하세요. 브라우저가 마이크를 막으면 키보드의 마이크 버튼으로 받아쓰기를 쓰면 됩니다.</p>
     <div style="display:flex;gap:8px;margin-top:12px">
@@ -241,7 +242,7 @@ body {
 
   // ───────────── 상태 ─────────────
   const state = {
-    settings: { name: "", voice: true, rate: 1, boot: true },
+    settings: { name: "", voice: true, rate: 1, boot: true, autoSend: true },
     memos: [], todos: [], reminders: [], turns: [],
     nextId: 1,
   };
@@ -447,7 +448,9 @@ body {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   let rec = null;
   let micBlocked = (() => { try { return localStorage.getItem("jarvis-mic-blocked") === "1"; } catch (e) { return false; } })();
-  if (!(window.claude && window.claude.use)) micBlocked = false; // 일반 브라우저에서는 매번 마이크를 시도
+  // claude.ai 화면은 마이크를 막으므로 처음부터 키보드 받아쓰기로, 일반 브라우저에서는 매번 마이크를 시도
+  micBlocked = !!(window.claude && window.claude.use);
+  let dictateIntroShown = (() => { try { return localStorage.getItem("jarvis-dictate-intro") === "1"; } catch (e) { return false; } })();
   function listen() {
     if (!SR || micBlocked) { dictate(); return; }
     try {
@@ -481,10 +484,11 @@ body {
   }
   /** 키보드 받아쓰기 안내: 입력창에 포커스를 줘서 키보드를 띄운다 */
   function dictate(first) {
+    if (!dictateIntroShown) { first = true; dictateIntroShown = true; try { localStorage.setItem("jarvis-dictate-intro", "1"); } catch (e) {} }
     setMode("IDLE");
     $("q").focus();
     $("q").placeholder = "키보드의 🎤 버튼을 누르고 말하세요";
-    if (first) addMsg("jarvis", "이 화면에서는 마이크를 직접 쓸 수 없습니다. 대신 키보드 오른쪽 위의 마이크 버튼을 누르고 말씀하시면 받아쓴 뒤 SEND 로 보내 주세요.", true);
+    if (first) addMsg("jarvis", "이 화면에서는 마이크를 직접 쓸 수 없습니다. 대신 키보드의 마이크 버튼을 누르고 말씀하세요. 말을 멈추면 자동으로 전송됩니다.", true);
     beep([1318, 1975], 0.1);
   }
 
@@ -686,7 +690,17 @@ body {
   }
 
   // ───────────── 입력 ─────────────
-  $("form").addEventListener("submit", (e) => { e.preventDefault(); const v = $("q").value.trim(); if (!v) return; $("q").value = ""; audio(); converse(v); });
+  function submitInput() { clearTimeout(autoTimer); const v = $("q").value.trim(); if (!v) return; $("q").value = ""; audio(); converse(v); }
+  $("form").addEventListener("submit", (e) => { e.preventDefault(); submitInput(); });
+  // 키보드 받아쓰기 자동 전송: 마이크를 직접 못 쓰는 화면에서, 글자가 들어온 뒤 1.8초 동안 변화가 없으면 보낸다
+  let autoTimer = 0;
+  $("q").addEventListener("input", () => {
+    clearTimeout(autoTimer);
+    if (state.settings.autoSend === false || !(micBlocked || !SR) || busy) return;
+    if (!$("q").value.trim()) return;
+    setMode("LISTENING"); micLevel = 0.6;
+    autoTimer = setTimeout(() => { micLevel = 0; if (mode === "LISTENING") setMode("IDLE"); submitInput(); }, 1800);
+  });
   const core = $("core");
   let pressT = 0, longFired = false;
   core.addEventListener("pointerdown", () => { longFired = false; pressT = setTimeout(() => { longFired = true; $("q").focus(); }, 550); });
@@ -719,6 +733,7 @@ body {
     $("voiceOn").checked = state.settings.voice !== false;
     $("rate").value = state.settings.rate || 1; $("rateV").textContent = Number(state.settings.rate || 1).toFixed(1);
     $("bootOn").checked = state.settings.boot !== false;
+    $("autoSend").checked = state.settings.autoSend !== false;
   }
   $("openSettings").onclick = () => { applySettings(); $("settings").hidden = false; };
   $("closeSettings").onclick = () => {
@@ -728,6 +743,7 @@ body {
     state.settings.voice = $("voiceOn").checked;
     state.settings.rate = Number($("rate").value);
     state.settings.boot = $("bootOn").checked;
+    state.settings.autoSend = $("autoSend").checked;
     save(); $("settings").hidden = true;
   };
   $("rate").oninput = () => { $("rateV").textContent = Number($("rate").value).toFixed(1); };
