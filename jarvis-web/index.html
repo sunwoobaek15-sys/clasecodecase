@@ -248,7 +248,8 @@ body {
   };
   let mode = "IDLE";          // IDLE LISTENING THINKING EXECUTING SPEAKING ERROR
   let micLevel = 0, speechEnv = 0, lowPower = false, lastActive = Date.now();
-  let busy = false, ctl = null, timerEnd = 0, timerLabel = "";
+  let skipBootOnce = false;
+  let busy = false, ctl = null, timerEnd = 0, timerLabel = "", pendingSpeech = "", fromVoicePage = false;
   let db = null, docRef = null, sample = null, sampleTools = false;
 
   // ───────────── 저장 (db 개인 영역 → 없으면 브라우저 저장소) ─────────────
@@ -267,11 +268,14 @@ body {
   }
   loadLocal();
 
+  let sampleReadyResolve;
+  const sampleReady = new Promise((r) => { sampleReadyResolve = r; });
   async function initCaps() {
-    if (!window.claude || !window.claude.use) return;
+    if (!window.claude || !window.claude.use) { sampleReadyResolve(); return; }
     claude.use("sample").then(async (s) => {
       sample = s;
       if (s) { try { sampleTools = !!(await s.limits()).tools; } catch (e) { sampleTools = false; } }
+      sampleReadyResolve();
     });
     const [d, u] = await Promise.all([claude.use("db"), claude.use("user")]);
     if (!d || !u) return;
@@ -437,7 +441,12 @@ body {
         let pulseTimer = setInterval(() => { speechEnv = Math.max(speechEnv, 0.45 + Math.random() * 0.5); }, 150);
         u.onboundary = () => { speechEnv = Math.max(speechEnv, 0.85); };
         const done = () => { clearInterval(pulseTimer); speechEnv = 0; resolve(); };
-        u.onend = done; u.onerror = done;
+        u.onend = done;
+        u.onerror = (ev) => {
+          // 다른 페이지에서 넘어와 아직 화면을 누르지 않았으면 브라우저가 음성 재생을 막는다
+          if (ev && ev.error === "not-allowed") { pendingSpeech = text; $("hint").textContent = "▶ TAP CORE TO HEAR"; $("hint").style.visibility = "visible"; }
+          done();
+        };
         speechSynthesis.speak(u);
       } catch (e) { resolve(); }
     });
@@ -661,6 +670,7 @@ body {
       setMode("SPEAKING");
       await speak(final);
       if (mode === "SPEAKING") setMode("IDLE");
+      if (fromVoicePage && !pendingSpeech) { $("hint").textContent = "◀ BACK = SPEAK AGAIN"; }
     } catch (e) {
       const msg = {
         not_granted: "Claude 사용이 허용되지 않았습니다. 다시 허용하려면 페이지를 새로 열어 주세요.",
@@ -708,6 +718,7 @@ body {
     clearTimeout(pressT);
     if (longFired) return;
     touch(); audio();
+    if (pendingSpeech) { const t = pendingSpeech; pendingSpeech = ""; setMode("SPEAKING"); speak(t).then(() => { if (mode === "SPEAKING") setMode("IDLE"); }); return; }
     if (mode === "SPEAKING") { stopSpeak(); setMode("IDLE"); return; }
     if (mode === "LISTENING") { try { rec && rec.stop(); } catch (e) {} return; }
     if (busy) { ctl && ctl.abort(); return; }
@@ -988,7 +999,7 @@ body {
   function boot() {
     const el = $("boot");
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (state.settings.boot === false || reduce) { el.classList.add("gone"); ignition = 1; greet(); return; }
+    if (state.settings.boot === false || reduce || skipBootOnce) { el.classList.add("gone"); ignition = 1; greet(); return; }
     ignition = 0;
     const lines = [["INITIALIZING J.A.R.V.I.S. ...", ""], ["NEURAL LINK", "OK"], ["VOICE MODULE", "OK"], ["SPEECH SYNTH (KO-KR)", "OK"], ["MEMORY BANK", "OK"], ["HOLOGRAPHIC RENDERER", "OK"], ["ALL SYSTEMS NOMINAL", ""]];
     let i = 0;
@@ -1032,6 +1043,31 @@ body {
   tickClock(); setInterval(tickClock, 1000);
   setMode("IDLE");
   requestAnimationFrame(loop);
+  // GitHub 마이크 페이지에서 넘어온 말: #q.<id>.<base64url>
+  function readHashQuery() {
+    const m = /^#q\.([0-9a-z]{1,16})\.([A-Za-z0-9_-]{1,2000})$/.exec(location.hash || "");
+    if (!m) return null;
+    let seen = [];
+    try { seen = JSON.parse(localStorage.getItem("jarvis-seen-q") || "[]"); } catch (e) {}
+    if (seen.includes(m[1])) return null;
+    seen.push(m[1]);
+    try { localStorage.setItem("jarvis-seen-q", JSON.stringify(seen.slice(-40))); } catch (e) {}
+    try {
+      const b64 = m[2].replace(/-/g, "+").replace(/_/g, "/");
+      const bin = atob(b64 + "===".slice((b64.length + 3) % 4));
+      const text = new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0))).trim();
+      return text ? text.slice(0, 500) : null;
+    } catch (e) { return null; }
+  }
+  function handleIncoming() {
+    const q = readHashQuery();
+    if (!q) return false;
+    fromVoicePage = true;
+    sampleReady.then(() => converse(q));
+    return true;
+  }
+  addEventListener("hashchange", handleIncoming);
+  skipBootOnce = handleIncoming();
   boot();
   initCaps();
   document.addEventListener("visibilitychange", () => { if (!document.hidden) checkReminders(); });
