@@ -768,6 +768,9 @@ function lightSprites() {
   g = beamC.getContext('2d'); g.scale(.25, .25);
   gr = g.createLinearGradient(0, 60, 0, 900); gr.addColorStop(0, 'rgba(110,150,255,1)'); gr.addColorStop(1, 'rgba(60,90,200,0)');
   g.fillStyle = gr; g.beginPath(); g.moveTo(590, 70); g.lineTo(1010, 70); g.lineTo(1190, 900); g.lineTo(410, 900); g.closePath(); g.fill();
+  g.globalAlpha = .6; // 스테인드글라스를 통과한 가는 빛줄기
+  for (const [x, wd, dx] of [[640, 18, -140], [724, 12, -60], [876, 12, 60], [960, 18, 140]]) { g.beginPath(); g.moveTo(x - wd / 2, 90); g.lineTo(x + wd / 2, 90); g.lineTo(x + dx + wd * 2, 900); g.lineTo(x + dx - wd * 2, 900); g.closePath(); g.fill(); }
+  g.globalAlpha = 1;
   shadeC = document.createElement('canvas'); shadeC.width = W / 4; shadeC.height = H / 4;
 }
 function buildShade() {
@@ -1126,6 +1129,11 @@ function drawTorso(c, R) {
   c.save(); c.clip();
   c.fillStyle = coatPattern(c); c.fillRect(nx - 140, sy - 30, 280, 760);
   g = c.createLinearGradient(0, sy, 0, 720); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,12,.55)'); c.fillStyle = g; c.fillRect(nx - 140, sy - 20, 280, 760);
+  c.lineCap = 'round';
+  for (const s of [-1, 1]) for (const [x0, x1, w, al] of [[80, 70, 12, .2], [102, 88, 8, .16]]) {
+    c.strokeStyle = `rgba(0,0,14,${al})`; c.lineWidth = w; c.beginPath(); c.moveTo(nx + s * x0, sy + 70); c.bezierCurveTo(nx + s * (x0 + 6), sy + 170, nx + s * (x1 - 4), sy + 230, nx + s * x1, 700); c.stroke();
+    c.strokeStyle = `rgba(150,165,255,${al * .22})`; c.lineWidth = w * .4; c.beginPath(); c.moveTo(nx + s * (x0 - w * .8), sy + 74); c.bezierCurveTo(nx + s * (x0 + 6 - w * .8), sy + 170, nx + s * (x1 - 4 - w * .8), sy + 230, nx + s * (x1 - w * .8), 700); c.stroke();
+  }
   // 셔츠
   c.fillStyle = '#ecebf0'; c.beginPath(); c.moveTo(nx - 34, ny); c.lineTo(nx + 34, ny); c.lineTo(nx + 10, sy + 120); c.lineTo(nx - 10, sy + 120); c.closePath(); c.fill();
   // 조끼
@@ -1213,8 +1221,20 @@ function drawHead(c, R) {
   const tint = st >= 4 ? [150, 195, 255, st === 4 ? .12 : .2] : st === 3 ? [215, 222, 235, .08] : null;
   const fl = LIGHTS.length ? LIGHTS[3].fl : 1;
   G.faces = drawCube({ c, center: [0, 0, 0], half, q, project: P, viewDir: [0, 0, 1], vals: HEAD_VALS, light: [-.45, .62, .64], tint, cracks: HEAD_CRACKS, crackAmt: G.crack, crackGlow: 1, round: 6, edge: st >= 4 ? '#5d6680' : '#7a746a', bright: .9 + .12 * fl * LIGHT.warm });
-  // 아랫그림자
-  c.save(); c.globalCompositeOperation = 'source-atop'; c.restore();
+  // 모자챙 그림자와 창의 푸른 림라이트 (머리 면 안에만)
+  c.save(); c.beginPath();
+  for (const f of G.faces) { const q = (a, b) => [f.p0[0] + f.U[0] * a + f.V[0] * b, f.p0[1] + f.U[1] * a + f.V[1] * b]; const k = [q(-1, -1), q(1, -1), q(1, 1), q(-1, 1)]; c.moveTo(k[0][0], k[0][1]); for (let i = 1; i < 4; i++) c.lineTo(k[i][0], k[i][1]); c.closePath(); }
+  c.clip();
+  const tpp = Q.rot(q, [0, half, 0]), tp = P(tpp[0], tpp[1], tpp[2]);
+  let hg = c.createRadialGradient(tp[0], tp[1] + 4, 8, tp[0], tp[1] + 8, half * 1.05);
+  hg.addColorStop(0, 'rgba(0,2,20,.4)'); hg.addColorStop(1, 'rgba(0,2,20,0)'); c.fillStyle = hg; c.fillRect(hx - half * 2, hy - half * 2, half * 4, half * 4);
+  hg = c.createLinearGradient(hx + half * .4, 0, hx + half * 1.5, 0); hg.addColorStop(0, 'rgba(90,140,255,0)'); hg.addColorStop(1, `rgba(110,160,255,${.32 * LIGHT.cold})`);
+  c.globalCompositeOperation = 'lighter'; c.fillStyle = hg; c.fillRect(hx, hy - half * 2, half * 2, half * 4);
+  c.restore();
+  // 칼라에 닿는 곳의 접촉 그림자
+  c.save(); c.globalCompositeOperation = 'source-over'; const bot = Q.rot(q, [0, -half, 0]), bp = P(bot[0], bot[1], bot[2]);
+  hg = c.createRadialGradient(bp[0], bp[1] + 6, 4, bp[0], bp[1] + 8, 60); hg.addColorStop(0, 'rgba(0,0,10,.35)'); hg.addColorStop(1, 'rgba(0,0,10,0)');
+  c.globalCompositeOperation = 'destination-over'; c.fillStyle = hg; c.fillRect(bp[0] - 70, bp[1] - 20, 140, 90); c.restore();
   // 모자
   const n = Q.rot(q, [0, 1, 0]), top = Q.rot(q, [0, half, 0]);
   const hp = P(top[0], top[1], top[2]);
@@ -1226,25 +1246,86 @@ function drawHead(c, R) {
   RIG.hatPos = [hp[0], hp[1] + 4, Math.atan2(n[0], n[1]), 16 + 26 * Math.abs(n[2])];
 }
 function drawArm(c, side, R) {
-  const p = R.p, Sh = side < 0 ? R.SL : R.SR, K = side < 0 ? R.L : R.R;
-  limb(c, Sh, K.E, 48, 40, '#181c5e', side < 0 ? '#2e3794' : '#242c7c');
-  const fa = limb(c, K.E, K.Wr, 40, 31, '#151954', side < 0 ? '#2a3388' : '#20287a');
-  // 소매 주름
-  c.strokeStyle = 'rgba(0,0,20,.45)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(K.E[0] - 10, K.E[1] - 2); c.quadraticCurveTo(K.E[0], K.E[1] + 6, K.E[0] + 10, K.E[1] - 2); c.stroke();
-  // 금 커프스 + 셔츠 커프
-  const ux = Math.cos(fa), uy = Math.sin(fa), pxv = -uy, pyv = ux;
-  const band = (d, w, col, hw = 18) => { const bx = K.Wr[0] - ux * d, by = K.Wr[1] - uy * d; c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'butt'; c.beginPath(); c.moveTo(bx + pxv * hw, by + pyv * hw); c.lineTo(bx - pxv * hw, by - pyv * hw); c.stroke(); };
-  band(15, 20, '#0c0f3c'); band(24, 2.4, '#e2bd62'); band(6, 2.4, '#e2bd62'); band(15, 1.2, 'rgba(226,189,98,.65)', 15);
-  c.strokeStyle = '#efece4'; c.lineWidth = 6; const sx = K.Wr[0] - Math.cos(fa) * 2, syy = K.Wr[1] - Math.sin(fa) * 2;
-  c.beginPath(); c.moveTo(sx - Math.sin(fa) * 14, syy + Math.cos(fa) * 14); c.lineTo(sx + Math.sin(fa) * 14, syy - Math.cos(fa) * 14); c.stroke();
-  c.fillStyle = '#e2bd62'; c.beginPath(); c.arc(sx, syy, 3, 0, TAU); c.fill();
+  const p = R.p, Sh = side < 0 ? R.SL : R.SR, K = side < 0 ? R.L : R.R, E = K.E, Wr = K.Wr;
+  const nrm = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [-dy / l, dx / l, dx / l, dy / l]; };
+  const A1 = nrm(Sh, E), A2 = nrm(E, Wr);
+  let ne = [A1[0] + A2[0], A1[1] + A2[1]]; const nl = Math.hypot(ne[0], ne[1]) || 1; ne = [ne[0] / nl, ne[1] / nl];
+  const out = ne[0] * side > 0 ? 1 : -1; // 몸 바깥쪽 방향 부호
+  const P = (q, n, w) => [q[0] + n[0] * w, q[1] + n[1] * w];
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const w0 = 25, w1 = 20, w2 = 17;
+  const a0 = P(Sh, A1, w0), e0 = P(E, ne, w1), c0 = P(Wr, A2, w2), c1 = P(Wr, A2, -w2), e1 = P(E, ne, -w1), a1 = P(Sh, A1, -w0);
+  const sleeve = () => {
+    c.beginPath(); c.moveTo(a0[0], a0[1]);
+    let m = mid(a0, e0); c.lineTo(m[0], m[1]); m = mid(e0, c0); c.quadraticCurveTo(e0[0], e0[1], m[0], m[1]); c.lineTo(c0[0], c0[1]);
+    c.lineTo(c1[0], c1[1]); m = mid(c1, e1); c.lineTo(m[0], m[1]); m = mid(e1, a1); c.quadraticCurveTo(e1[0], e1[1], m[0], m[1]); c.lineTo(a1[0], a1[1]);
+    c.quadraticCurveTo(Sh[0] - A1[2] * w0 * 1.2, Sh[1] - A1[3] * w0 * 1.2, a0[0], a0[1]); c.closePath();
+  };
+  const warmSide = side < 0, rim = warmSide ? `rgba(${120 + 70 * LIGHT.warm | 0},${90 + 40 * LIGHT.warm | 0},140,1)` : `rgba(80,${110 + 60 * LIGHT.cold | 0},${200 + 50 * LIGHT.cold | 0},1)`;
+  const og = P(E, ne, w1 * out), ig = P(E, ne, -w1 * out);
+  const g = c.createLinearGradient(og[0], og[1], ig[0], ig[1]);
+  g.addColorStop(0, warmSide ? '#30368a' : '#25307e'); g.addColorStop(.35, '#1b1f62'); g.addColorStop(.8, '#0d1040'); g.addColorStop(1, '#060820');
+  sleeve(); c.fillStyle = g; c.fill();
+  c.save(); sleeve(); c.clip();
+  c.fillStyle = coatPattern(c); c.fillRect(Math.min(Sh[0], Wr[0]) - 60, Math.min(Sh[1], Wr[1]) - 60, Math.abs(Sh[0] - Wr[0]) + 120, Math.abs(Sh[1] - Wr[1]) + 120);
+  // 팔꿈치 안쪽 주름
+  c.strokeStyle = 'rgba(0,0,12,.55)'; c.lineCap = 'round'; c.lineWidth = 2;
+  for (let k = 0; k < 3; k++) {
+    const base = P(E, ne, -w1 * out * (.9 - k * .25));
+    c.beginPath(); c.moveTo(base[0] - A2[2] * 6, base[1] - A2[3] * 6); c.quadraticCurveTo(base[0] + ne[0] * out * 8 + A2[2] * 4, base[1] + ne[1] * out * 8 + A2[3] * 4, base[0] + A2[2] * (14 - k * 3), base[1] + A2[3] * (14 - k * 3)); c.stroke();
+  }
+  // 소매 아랫단 주름 (천이 모이는 곳)
+  c.lineWidth = 1.4; c.strokeStyle = 'rgba(0,0,12,.4)';
+  for (const t of [.62, .74]) { const q = [lerp(E[0], Wr[0], t), lerp(E[1], Wr[1], t)], l = P(q, A2, -w2 - 2), r = P(q, A2, w2 + 2); c.beginPath(); c.moveTo(l[0], l[1]); c.quadraticCurveTo(q[0] - A2[2] * 6, q[1] - A2[3] * 6, r[0], r[1]); c.stroke(); }
+  // 위팔 볼륨 하이라이트
+  c.strokeStyle = 'rgba(160,175,255,.12)'; c.lineWidth = 7; const h0 = P(Sh, A1, w0 * .35 * out), h1 = P(E, ne, w1 * .35 * out); c.beginPath(); c.moveTo(h0[0], h0[1]); c.lineTo(h1[0], h1[1]); c.stroke();
+  c.restore();
+  // 바깥 윤곽 림라이트
+  c.save(); c.globalAlpha = warmSide ? .35 * LIGHT.warm : .45 * LIGHT.cold; c.strokeStyle = rim; c.lineWidth = 1.8;
+  const ra = P(Sh, A1, w0 * out), re = P(E, ne, w1 * out), rc = P(Wr, A2, w2 * out);
+  c.beginPath(); c.moveTo(ra[0], ra[1]); c.quadraticCurveTo(re[0], re[1], rc[0], rc[1]); c.stroke(); c.restore();
+  // 바깥 솔기를 따라 금실 덩굴 (아래팔 끝 절반)
+  vineAlong(c, [P([lerp(E[0], Wr[0], .45), lerp(E[1], Wr[1], .45)], A2, (w2 + 1) * out * .7), P(Wr, A2, w2 * out * .7)], 30, .55, out);
+  // 접힌 커프스 (금테 + 자수 + 금단추)
+  const ux = A2[2], uy = A2[3], cb = [Wr[0] - ux * 30, Wr[1] - uy * 30], ce = [Wr[0] - ux * 3, Wr[1] - uy * 3];
+  const cuff = () => { const q0 = P(cb, A2, w2 + 2), q1 = P(ce, A2, w2 + 5), q2 = P(ce, A2, -w2 - 5), q3 = P(cb, A2, -w2 - 2); c.beginPath(); c.moveTo(q0[0], q0[1]); c.lineTo(q1[0], q1[1]); c.lineTo(q2[0], q2[1]); c.lineTo(q3[0], q3[1]); c.closePath(); };
+  const cg = c.createLinearGradient(...P(ce, A2, (w2 + 5) * out), ...P(ce, A2, -(w2 + 5) * out)); cg.addColorStop(0, '#262c78'); cg.addColorStop(1, '#070924');
+  cuff(); c.fillStyle = cg; c.fill();
+  goldTrim(c, [P(cb, A2, w2 + 2), P(cb, A2, -w2 - 2)], 1.8); goldTrim(c, [P(ce, A2, w2 + 5), P(ce, A2, -w2 - 5)], 1.8);
+  const cm = [lerp(cb[0], ce[0], .5), lerp(cb[1], ce[1], .5)];
+  const cq0 = P(cm, A2, -w2 + 2), cq1 = P(cm, A2, w2 - 2); c.save(); c.strokeStyle = 'rgba(226,189,98,.7)'; c.lineWidth = 1; c.setLineDash([2, 2.5]); c.beginPath(); c.moveTo(cq0[0], cq0[1]); c.lineTo(cq1[0], cq1[1]); c.stroke(); c.restore();
+  for (const t of [.3, .7]) { const b = P([lerp(cb[0], ce[0], t), lerp(cb[1], ce[1], t)], A2, (w2 + 1) * out); goldButton(c, b[0], b[1], 2.6); }
+  // 셔츠 레이스 커프
+  c.fillStyle = '#f2f1f6'; c.strokeStyle = 'rgba(150,150,170,.6)'; c.lineWidth = .8;
+  for (let i = -3; i <= 3; i++) { const q = P([Wr[0] + ux * 2, Wr[1] + uy * 2], A2, i * 5.2); c.beginPath(); c.arc(q[0], q[1], 3.6, 0, TAU); c.fill(); c.stroke(); }
   const ang = side < 0 ? p.lr : p.rr;
-  drawHand(c, K.Wr[0], K.Wr[1], ang, side < 0 ? p.lf : p.rf, side < 0 ? p.ls : p.rs, side, side < 0 ? p.tapL : p.tapR, side < 0 ? 1 : 5);
+  drawHand(c, Wr[0], Wr[1], ang, side < 0 ? p.lf : p.rf, side < 0 ? p.ls : p.rs, side, side < 0 ? p.tapL : p.tapR, side < 0 ? 1 : 5);
+  // 어깨 캡: 소매가 몸통에 꿰매진 자리
+  c.save(); c.translate(Sh[0], Sh[1]); c.rotate(Math.atan2(A1[3], A1[2]));
+  const sg = c.createRadialGradient(-6, -side * 6, 2, 0, 0, 30); sg.addColorStop(0, warmSide ? '#2c3384' : '#222a74'); sg.addColorStop(1, '#0c0f3a');
+  c.fillStyle = sg; c.beginPath(); c.ellipse(12, 0, 17, 24, 0, 0, TAU); c.fill();
+  c.strokeStyle = 'rgba(0,0,12,.45)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(12, 0, 17, 24, 0, -1.3, 1.3); c.stroke();
+  c.restore();
+  drawEmbroidery(c, Sh[0] + side * 2, Sh[1] + 4, .9, side);
 }
 const GREG = [340, 0, 1160, 790], DESKREG = [0, 560, W, 340];
 function blitRegion(c, src, R) {
   const k = src.width / W;
   c.drawImage(src, R[0] * k, R[1] * k, R[2] * k, R[3] * k, R[0], R[1], R[2], R[3]);
+}
+let mirC = null;
+function drawDeskMirror(c) {
+  if (!G.present) return;
+  const h = 150, x0 = 520, w = 560;
+  if (!mirC) { mirC = document.createElement('canvas'); mirC.width = w / 2; mirC.height = h / 2; }
+  const m = mirC.getContext('2d'), k = gA.width / W;
+  m.setTransform(1, 0, 0, 1, 0, 0); m.globalCompositeOperation = 'source-over'; m.clearRect(0, 0, mirC.width, mirC.height);
+  m.setTransform(.5, 0, 0, -.5, 0, h / 2); // 책상 뒷모서리를 기준으로 위아래 뒤집기
+  m.drawImage(gA, x0 * k, (DESK_BACK_Y - h) * k, w * k, h * k, 0, 0, w, h);
+  m.setTransform(1, 0, 0, 1, 0, 0); m.globalCompositeOperation = 'destination-in';
+  const g = m.createLinearGradient(0, 0, 0, mirC.height); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  m.fillStyle = g; m.fillRect(0, 0, mirC.width, mirC.height);
+  c.save(); c.globalAlpha = .16 * (1 - G.dissolve); c.drawImage(mirC, x0, DESK_BACK_Y + 2, w, h * .8); c.restore();
 }
 function renderGentLayers() {
   const R = computeRig();
@@ -1402,6 +1483,7 @@ function drawDice(c) {
     const sp = proj(d.p[0], 0, d.p[2]), sc = CAM.f / sp[2], hgt = Math.max(0, d.p[1] - d.half);
     c.fillStyle = `rgba(0,0,0,${.45 * d.alpha * clamp(1 - hgt / 300, .2, 1)})`;
     c.beginPath(); c.ellipse(sp[0] + 4, sp[1] + 3, d.half * sc * (1.25 + hgt / 300), d.half * sc * .42 * (1 + hgt / 300), 0, 0, TAU); c.fill();
+    if (hgt < 40) { const rg = c.createRadialGradient(sp[0], sp[1] + d.half * sc * .5, 1, sp[0], sp[1] + d.half * sc * .5, d.half * sc * 1.1); rg.addColorStop(0, `rgba(230,235,255,${.13 * d.alpha})`); rg.addColorStop(1, 'rgba(230,235,255,0)'); c.fillStyle = rg; c.beginPath(); c.ellipse(sp[0], sp[1] + d.half * sc * .5, d.half * sc * 1.1, d.half * sc * .45, 0, 0, TAU); c.fill(); }
   }
   for (const d of list) {
     const isG = d.owner === 'g';
@@ -2623,6 +2705,7 @@ function render() {
   drawGentShadow(ctx);
   blitRegion(ctx, gA, GREG);
   blitRegion(ctx, deskC, DESKREG);
+  drawDeskMirror(ctx);
   drawDeskReflections(ctx);
   drawCandles(ctx);
   drawDeskProps(ctx);
