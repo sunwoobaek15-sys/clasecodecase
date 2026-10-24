@@ -94,6 +94,10 @@ const sq=s=>s.trim().split(/\s+/).map(t=>t==='.'?null:+t);
 // ================================================================
 const AU={ctx:null,master:null,sfx:null,mus:null,nbuf:null,on:true};
 try{AU.on=localStorage.getItem('ac_snd')!=='0';}catch(e){}
+const OPT={vib:true,bri:1,btn:1};
+try{Object.assign(OPT,JSON.parse(localStorage.getItem('ac_opt')||'{}'));}catch(e){}
+function saveOpt(){try{localStorage.setItem('ac_opt',JSON.stringify(OPT));}catch(e){}}
+function buzz(p){if(OPT.vib&&navigator.vibrate){try{navigator.vibrate(p);}catch(e){}}}
 function auInit(){
   const AC=window.AudioContext||window.webkitAudioContext;
   if(!AC)return;
@@ -1151,7 +1155,7 @@ function hitEnemy(e,dmg,poiseDmg,o){
   e.hp-=dmg;e.flash=0.12;e.aggro=true;e.ret=false;
   ftext(e.x+rand(-3,3),e.y-(e.boss?30:18),Math.round(dmg),o.crit?'#ffd070':'#e8e0d0',o.crit);
   burst(hx,hy,o.crit?26:8,BLOOD,o.crit?110:70,0.5,140,o.crit?2:1);
-  if(o.crit)SFX.crit();else SFX.hit();
+  if(o.crit){SFX.crit();buzz(60);}else SFX.hit();
   G.hitstop=Math.max(G.hitstop,o.crit?0.13:o.heavy?0.075:0.045);
   if(!o.crit&&e.state!=='broken'&&e.state!=='held'&&e.state!=='roar'){e.poise-=poiseDmg;
     if(e.poise<=0){e.poise=e.d.poise;e.state='stagger';e.t=e.boss?0.9:0.55;e.atk=null;}
@@ -1172,7 +1176,7 @@ function killEnemy(e){
 function bossDefeated(e){
   const R=G.R;S.boss[e.type]=true;G.fight=null;G.boss=null;
   const M=G.M;for(let i=0;i<M.g.length;i++)if(M.g[i]===T.FOG||M.g[i]===T.EXITFOG)M.g[i]=T.FLOOR;
-  SFX.bossdie();G.slow=1.4;G.shake=9;playMusic(null);
+  SFX.bossdie();buzz(300);G.slow=1.4;G.shake=9;playMusic(null);
   for(const x of G.ents)if(x.summoned&&!x.dead){x.dead=true;x.t=0;burst(x.x,x.y-6,12,ASH,40,1,-10);}
   if(e.type==='ashlord')subtitle('…그대가… 짊어지겠는가.',4.5);
   setTimer(2.2,()=>{bigMsg(R.boss.msg,'#e8c890',4.8);if(R.boss.drop){S.stones++;toast('단련석을 얻었다');}if(e.d.souls)toast('영혼 '+e.d.souls);save();},true);
@@ -1234,22 +1238,22 @@ function hitPlayer(src,dmg,o){
   if(p.state==='parry'&&p.t<=PW&&o.parry&&front&&src&&!src.dead){parrySuccess(src);return 'parry';}
   if((p.state==='guard'||p.state==='parry')&&o.block!==false&&front){
     p.st-=dmg*1.3+6;p.stDelay=0.8;const mx=lerp(p.x,fx,0.3),my=lerp(p.y,fy,0.3)-6;
-    if(p.st<=0){p.st=0;p.state='stun';p.t=0;p.hp-=dmg*0.4;SFX.gbreak();G.shake=4;burst(mx,my,16,SPARK,90,0.4,0,1,1);p.kx=-Math.cos(a)*120;p.ky=-Math.sin(a)*120;}
+    if(p.st<=0){p.st=0;p.state='stun';p.t=0;p.hp-=dmg*0.4;SFX.gbreak();buzz(90);G.shake=4;burst(mx,my,16,SPARK,90,0.4,0,1,1);p.kx=-Math.cos(a)*120;p.ky=-Math.sin(a)*120;}
     else{p.hp-=dmg*0.12;SFX.block();burst(mx,my,8,SPARK,70,0.3,0,1,1);p.kx=-Math.cos(a)*70;p.ky=-Math.sin(a)*70;G.hitstop=0.04;}
     if(p.hp<=0){p.hp=0;die();}return 'block';}
   p.hp-=dmg;p.flash=0.15;p.iframe=0.55;p.state=o.stun?'stun':'hurt';p.t=o.stun?0.3:0;p.ph=0;
   p.kx=-Math.cos(a)*140;p.ky=-Math.sin(a)*140;G.shake=Math.min(7,2+dmg/9);G.hitstop=Math.max(G.hitstop,0.06);
-  burst(p.x,p.y-7,12,BLOOD,80,0.5,150,1);SFX.hurt();
+  burst(p.x,p.y-7,12,BLOOD,80,0.5,150,1);SFX.hurt();buzz(45);
   if(o.slow)p.slow=o.slow;
   if(p.hp<=0){p.hp=0;die();}
   return 'hit';}
 function parrySuccess(e){
-  SFX.parry();const mx=lerp(P.x,e.x,0.45),my=lerp(P.y,e.y,0.45)-7;burst(mx,my,22,SPARK,120,0.4,0,1,1);
+  SFX.parry();buzz([20,30,20]);const mx=lerp(P.x,e.x,0.45),my=lerp(P.y,e.y,0.45)-7;burst(mx,my,22,SPARK,120,0.4,0,1,1);
   G.slow=0.35;G.hitstop=0.1;G.shake=3;P.iframe=0.25;P.state=IN.guardHeld?'guard':'idle';P.t=0;P.st=Math.min(stats().maxSt,P.st+10);
   if(e.boss&&e.parryN<1){e.parryN++;e.state='stagger';e.t=0.6;e.atk=null;return;}
   e.parryN=0;e.state='broken';e.t=e.boss?1.8:1.4;e.atk=null;}
 function die(){
-  const p=P;p.state='dead';p.t=0;S.deaths++;SFX.death();G.slow=0;G.deadT=0;p.lock=null;
+  const p=P;p.state='dead';p.t=0;S.deaths++;SFX.death();buzz([120,60,220]);G.slow=0;G.deadT=0;p.lock=null;
   S.stain=S.souls>0?{ri:G.ri,x:p.x,y:p.y,souls:S.souls}:null;S.souls=0;
   G.objs=G.objs.filter(o=>o.k!=='stain');
   playMusic(null);save();}
@@ -1291,7 +1295,7 @@ function updPlayer(dt){
       if(p.t>=0.75){p.state='idle';p.t=0;}
       break;}
     case 'roll':{const s=p.t<0.3?165:55;moveEnt(p,p.rdx*s*dt,p.rdy*s*dt);if(p.lock)p.face=Math.atan2(p.lock.y-p.y,p.lock.x-p.x);
-      if(p.t>=0.42){p.state='idle';p.t=0;}break;}
+      if(p.t>=0.42){p.state='idle';p.t=0;if(peekBuf()==='attack'&&p.st>0){takeBuf(['attack']);startAttack(2);}}break;}
     case 'parry':{if(p.t>=PW){if(IN.guardHeld){p.state='guard';p.t=0;}else if(p.t>=0.45){p.state='idle';p.t=0;}}break;}
     case 'guard':{if(!IN.guardHeld){p.state='idle';p.t=0;break;}
       const a=takeBuf(['attack','heavy','roll']);if(a&&p.st>0){a==='attack'?startAttack(0):a==='heavy'?startHeavy():startRoll();break;}
@@ -1627,11 +1631,11 @@ function render(){
   if(P.state!=='dead'&&G.mode==='play'){const st=stats();if(P.hp<st.maxHp*0.25){c.globalAlpha=0.12+Math.sin(G.time*5)*0.06;c.fillStyle='#600000';c.fillRect(0,0,gw,gh);c.globalAlpha=1;}}
 }
 function drawLighting(c,cx,cy){
-  const L=lx;L.globalCompositeOperation='source-over';L.clearRect(0,0,gw,gh);L.fillStyle=G.R.dark;L.fillRect(0,0,gw,gh);
+  const L=lx;L.globalCompositeOperation='source-over';L.clearRect(0,0,gw,gh);L.globalAlpha=[1,0.78,0.6][OPT.bri-1]||1;L.fillStyle=G.R.dark;L.fillRect(0,0,gw,gh);L.globalAlpha=1;
   L.globalCompositeOperation='destination-out';
   const hole=(x,y,r)=>{x-=cx;y-=cy;if(x<-r||y<-r||x>gw+r||y>gh+r)return;L.drawImage(LIGHT,x-r,y-r,r*2,r*2);};
   const t=G.time;
-  hole(P.x,P.y-6,G.R.plight*(1+Math.sin(t*3)*0.02));
+  hole(P.x,P.y-6,G.R.plight*(1+(OPT.bri-1)*0.15)*(1+Math.sin(t*3)*0.02));
   for(const l of G.lights)hole(l.x,l.y,l.r*(1+Math.sin(t*(l.torch?9:4)+l.x)*l.fl*0.3));
   for(const o of G.objs){if(o.k==='bonfire')hole(o.x,o.y-4,o.lit?100+Math.sin(t*7)*3:26);else if(o.k==='item')hole(o.x,o.y,28);else if(o.k==='npc')hole(o.x,o.y,44);else if(o.k==='stain')hole(o.x,o.y,24);else if(o.k==='msg')hole(o.x,o.y,16);}
   for(const e of G.ents)if(!e.dead&&e.d.light)hole(e.x,e.y-6,e.d.light);
@@ -1653,7 +1657,7 @@ function drawLighting(c,cx,cy){
 // ================================================================
 const BTN={};let ctxRect=null;
 function layoutButtons(){
-  const u=clamp(Math.min(VW,VH)*0.105,40,74);BTN.u=u;
+  const u=clamp(Math.min(VW,VH)*0.105*([0.85,1,1.18][OPT.btn]||1),34,86);BTN.u=u;
   const ax=VW-SAFE.r-u*1.45,ay=VH-SAFE.b-u*1.4;
   const keep=k=>BTN[k]&&BTN[k].down;
   const mk=(k,o)=>{o.down=keep(k);BTN[k]=o;};
@@ -1855,7 +1859,7 @@ function openStatus(back){const st=stats();const r=(k,v)=>`<div class="row"><spa
 function openControls(back){const r=(k,v)=>`<div class="row"><span class="k">${k}</span><span class="v" style="font-size:.88em;max-width:68%">${v}</span></div>`;
   showPanel(`<h3>조작</h3>
     ${r('이동','왼쪽 화면을 눌러 끈다')}${r('공격','벤다. 이어 누르면 세 번까지 연격')}${r('강공','느리고 무거운 일격. 방패를 부순다')}
-    ${r('회피','구른다. 구르는 동안 칼날을 피한다')}${r('방패','누르는 순간 받아치기, 누르고 있으면 막기')}${r('회복','잿불 병을 마신다')}${r('고정','가까운 적을 주시한다. 다시 누르면 다음 적')}
+    ${r('회피','구른다. 구르는 동안 칼날을 피한다. 구른 직후 공격하면 찌르기')}${r('방패','누르는 순간 받아치기, 누르고 있으면 막기')}${r('회복','잿불 병을 마신다')}${r('고정','가까운 적을 주시한다. 다시 누르면 다음 적')}
     <div class="desc">하얗게 번뜩이는 공격은 받아칠 수 있다. 받아쳐 자세가 무너진 적에게 공격하면 치명타가 된다.\n붉게 번뜩이는 공격은 받아낼 수 없다. 굴러서 피하라.\n모닥불에서 쉬면 체력과 잿불 병이 채워지지만, 쓰러뜨린 적들도 되살아난다.</div>
     <button class="btn" data-a="back">돌아간다</button>`,{back});}
 function openPause(){if(G.overlay||G.mode!=='play')return;
@@ -1864,10 +1868,13 @@ function openPause(){if(G.overlay||G.mode!=='play')return;
     <button class="btn" data-a="st">상태</button>
     <button class="btn" data-a="ct">조작</button>
     <button class="btn" data-a="snd">소리 · ${AU.on?'켜짐':'꺼짐'}</button>
+    <button class="btn" data-a="vib">진동 · ${OPT.vib?'켜짐':'꺼짐'}</button>
+    <button class="btn" data-a="bri">밝기 · ${['보통','밝게','아주 밝게'][OPT.bri-1]}</button>
+    <button class="btn" data-a="bsz">버튼 크기 · ${['작게','보통','크게'][OPT.btn]}</button>
     <div class="hr"></div>
     <button class="btn" data-a="ti">타이틀로 돌아간다</button>
     <div class="small" style="margin-top:.8em">진행은 모닥불과 획득 시점마다 기록된다.<br>다시 시작하면 마지막으로 쉰 모닥불에서 깨어난다.</div>`,
-    {go:()=>closePanel(),st:()=>openStatus(openPause2),ct:()=>openControls(openPause2),snd:()=>{setSound(!AU.on);openPause2();},ti:()=>{save();closePanel();toTitle();}});}
+    {go:()=>closePanel(),st:()=>openStatus(openPause2),ct:()=>openControls(openPause2),snd:()=>{setSound(!AU.on);openPause2();},vib:()=>{OPT.vib=!OPT.vib;saveOpt();buzz(40);openPause2();},bri:()=>{OPT.bri=OPT.bri%3+1;saveOpt();openPause2();},bsz:()=>{OPT.btn=(OPT.btn+1)%3;saveOpt();layoutButtons();openPause2();},ti:()=>{save();closePanel();toTitle();}});}
 function openPause2(){closePanel();openPause();}
 function toTitle(){G.mode='title';G.overlay=false;resetInput();P.lock=null;$('title').classList.add('show');refreshTitle();playMusic('title');}
 function refreshTitle(){const s=loadSave();$('bCont').disabled=!s;$('bCont').style.display=s?'':'none';}
