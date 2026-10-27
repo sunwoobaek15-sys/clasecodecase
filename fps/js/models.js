@@ -177,100 +177,161 @@
 
   /* ---------------- 손에 든 총 ---------------- */
   /*
-   * 총 좌표: x 오른쪽, y 위, -z 앞. hip: 허리 사격 위치, ads: 조준 위치(가늠쇠가 화면 가운데), muzzle: 총구
+   * 총 좌표: x 오른쪽, y 위, -z 앞. 위치·탄창 자리 같은 값은 anim.js의 GEOM에 있어요.
+   * 부품 g: 'slide' 권총 슬라이드, 'bolt' 소총 장전 손잡이, 'pump' 산탄총 펌프 — 애니메이션에 따라 앞뒤로 움직여요.
    */
+  const DARK = [0.05, 0.05, 0.055];
   const GUNS = {
     pistol: {
-      hip: [0.19, -0.19, -0.46],
-      ads: [0, -0.066, -0.34],
-      muzzle: [0, 0.035, -0.27],
       parts: [
-        [0, 0.035, -0.12, 0.045, 0.05, 0.25, [0.34, 0.35, 0.38], 0.8],
-        [0, -0.005, -0.1, 0.04, 0.032, 0.2, [0.14, 0.14, 0.15], 0.4],
-        [0, -0.075, -0.015, 0.04, 0.125, 0.058, [0.11, 0.11, 0.12], 0.2, 0.22],
-        [0, -0.036, -0.07, 0.012, 0.03, 0.055, [0.1, 0.1, 0.1], 0.3],
-        [0, 0.035, -0.249, 0.022, 0.022, 0.01, [0.05, 0.05, 0.05], 0.3],
-        [0, 0.066, -0.02, 0.032, 0.014, 0.012, [0.08, 0.08, 0.08], 0.3],
+        { p: [0, 0.035, -0.12], s: [0.045, 0.05, 0.25], c: [0.34, 0.35, 0.38], sp: 0.8, g: 'slide' },
+        { p: [0.0232, 0.042, -0.095], s: [0.003, 0.016, 0.045], c: DARK, sp: 0.3, g: 'slide' },
+        { p: [0.0232, 0.035, -0.02], s: [0.003, 0.03, 0.004], c: DARK, sp: 0.3, g: 'slide' },
+        { p: [0.0232, 0.035, -0.01], s: [0.003, 0.03, 0.004], c: DARK, sp: 0.3, g: 'slide' },
+        { p: [0, 0.035, -0.249], s: [0.022, 0.022, 0.01], c: DARK, sp: 0.3, g: 'slide' },
+        { p: [0, 0.066, -0.02], s: [0.032, 0.014, 0.012], c: [0.08, 0.08, 0.08], sp: 0.3, g: 'slide' },
+        { p: [0, 0.066, -0.235], s: [0.008, 0.012, 0.01], c: [0.3, 1, 0.5], light: true, g: 'slide' },
+        { p: [0, -0.005, -0.1], s: [0.04, 0.032, 0.2], c: [0.14, 0.14, 0.15], sp: 0.4 },
+        { p: [0, -0.075, -0.015], s: [0.04, 0.125, 0.058], c: [0.11, 0.11, 0.12], sp: 0.2, rx: 0.22 },
+        { p: [0, -0.036, -0.07], s: [0.012, 0.03, 0.055], c: [0.1, 0.1, 0.1], sp: 0.3 },
       ],
-      lights: [[0, 0.066, -0.235, 0.008, 0.012, 0.01, [0.3, 1, 0.5]]],
-      glove: [[0, -0.08, 0.0, 0.06, 0.1, 0.08], [-0.05, -0.09, -0.01, 0.05, 0.09, 0.08]],
+      glove: [0, -0.08, 0.0, 0.06, 0.1, 0.08],
     },
     rifle: {
-      hip: [0.18, -0.2, -0.44],
-      ads: [0, -0.082, -0.3],
-      muzzle: [0, 0.01, -0.7],
       parts: [
-        [0, 0, -0.15, 0.06, 0.08, 0.36, [0.3, 0.32, 0.3], 0.5],
-        [0, 0.005, -0.42, 0.066, 0.07, 0.24, [0.22, 0.24, 0.21], 0.4],
-        [0, 0.01, -0.6, 0.022, 0.022, 0.18, [0.08, 0.08, 0.09], 0.7],
-        [0, -0.095, -0.2, 0.045, 0.13, 0.07, [0.12, 0.12, 0.12], 0.3, -0.18],
-        [0, -0.02, 0.1, 0.05, 0.075, 0.2, [0.13, 0.14, 0.13], 0.3],
-        [0, -0.075, -0.05, 0.04, 0.1, 0.05, [0.1, 0.1, 0.1], 0.2, 0.3],
-        [0, 0.048, -0.22, 0.03, 0.014, 0.34, [0.1, 0.1, 0.11], 0.5],
-        [0, 0.078, -0.17, 0.046, 0.048, 0.07, [0.12, 0.12, 0.13], 0.6],
+        { p: [0, 0, -0.15], s: [0.06, 0.08, 0.36], c: [0.3, 0.32, 0.3], sp: 0.5 },
+        { p: [0.0305, 0.018, -0.12], s: [0.004, 0.022, 0.06], c: DARK, sp: 0.3 },
+        { p: [0.0305, 0.014, -0.03], s: [0.003, 0.008, 0.1], c: DARK, sp: 0.3 },
+        { p: [0.037, 0.014, -0.06], s: [0.022, 0.016, 0.03], c: [0.62, 0.62, 0.64], sp: 0.9, g: 'bolt' },
+        { p: [0, 0.005, -0.42], s: [0.066, 0.07, 0.24], c: [0.22, 0.24, 0.21], sp: 0.4 },
+        { p: [0, 0.01, -0.6], s: [0.022, 0.022, 0.18], c: [0.08, 0.08, 0.09], sp: 0.7 },
+        { p: [0, 0.01, -0.69], s: [0.032, 0.032, 0.045], c: [0.12, 0.12, 0.13], sp: 0.7 },
+        { p: [0, -0.02, 0.1], s: [0.05, 0.075, 0.2], c: [0.13, 0.14, 0.13], sp: 0.3 },
+        { p: [0, -0.075, -0.05], s: [0.04, 0.1, 0.05], c: [0.1, 0.1, 0.1], sp: 0.2, rx: 0.3 },
+        { p: [0, 0.048, -0.22], s: [0.03, 0.014, 0.34], c: [0.1, 0.1, 0.11], sp: 0.5 },
+        { p: [0, 0.078, -0.17], s: [0.046, 0.048, 0.07], c: [0.12, 0.12, 0.13], sp: 0.6 },
+        { p: [0, 0.082, -0.2], s: [0.006, 0.006, 0.004], c: [1, 0.15, 0.1], light: true },
+        { p: [0.034, 0.0, -0.36], s: [0.004, 0.02, 0.06], c: [0.25, 0.85, 1], light: true },
       ],
-      lights: [[0, 0.082, -0.2, 0.006, 0.006, 0.004, [1, 0.15, 0.1]], [0.034, 0.0, -0.36, 0.004, 0.02, 0.06, [0.25, 0.85, 1]]],
-      glove: [[0, -0.08, -0.04, 0.06, 0.1, 0.08]],
+      glove: [0, -0.08, -0.04, 0.06, 0.1, 0.08],
     },
     shotgun: {
-      hip: [0.18, -0.2, -0.44],
-      ads: [0, -0.052, -0.32],
-      muzzle: [0, 0.02, -0.72],
       parts: [
-        [0, 0, -0.12, 0.066, 0.085, 0.3, [0.26, 0.25, 0.24], 0.5],
-        [0, 0.02, -0.46, 0.036, 0.036, 0.5, [0.1, 0.1, 0.11], 0.8],
-        [0, -0.024, -0.42, 0.03, 0.03, 0.44, [0.12, 0.12, 0.13], 0.6],
-        [0, -0.035, 0.12, 0.056, 0.09, 0.22, [0.34, 0.21, 0.11], 0.2],
-        [0, -0.075, 0.0, 0.045, 0.1, 0.055, [0.3, 0.19, 0.1], 0.2, 0.4],
+        { p: [0, 0, -0.12], s: [0.066, 0.085, 0.3], c: [0.26, 0.25, 0.24], sp: 0.5 },
+        { p: [0.0335, 0.02, -0.1], s: [0.004, 0.03, 0.07], c: DARK, sp: 0.3 },
+        { p: [0, -0.0435, -0.16], s: [0.04, 0.003, 0.07], c: DARK, sp: 0.3 },
+        { p: [0, 0.02, -0.46], s: [0.036, 0.036, 0.5], c: [0.1, 0.1, 0.11], sp: 0.8 },
+        { p: [0, -0.024, -0.42], s: [0.03, 0.03, 0.44], c: [0.12, 0.12, 0.13], sp: 0.6 },
+        { p: [0, -0.035, 0.12], s: [0.056, 0.09, 0.22], c: [0.34, 0.21, 0.11], sp: 0.2 },
+        { p: [0, -0.075, 0.0], s: [0.045, 0.1, 0.055], c: [0.3, 0.19, 0.1], sp: 0.2, rx: 0.4 },
+        { p: [0, -0.03, -0.42], s: [0.058, 0.052, 0.17], c: [0.36, 0.22, 0.12], sp: 0.2, g: 'pump' },
+        { p: [0, 0.043, -0.69], s: [0.01, 0.01, 0.01], c: [1, 0.8, 0.3], light: true },
       ],
-      pump: [0, -0.03, -0.42, 0.058, 0.052, 0.17, [0.36, 0.22, 0.12], 0.2],
-      lights: [[0, 0.043, -0.69, 0.01, 0.01, 0.01, [1, 0.8, 0.3]]],
-      glove: [[0, -0.08, 0.0, 0.06, 0.1, 0.08]],
+      glove: [0, -0.08, 0.0, 0.06, 0.1, 0.08],
     },
   };
 
   const GLOVE = [0.16, 0.15, 0.14];
   const SLEEVE = [0.2, 0.22, 0.2];
+  const MAG_TINT = [0.11, 0.11, 0.12];
+  const ROOT = m4.create();
+  const GUN = m4.create();
+  const HAND = m4.create();
 
-  /**
-   * 손에 든 총. cam: 카메라 월드 행렬, v: {id, offset:[x,y,z], kick, tilt, roll, pump, yaw}
-   * 돌려주는 값: 총구의 월드 위치
-   */
-  function viewmodel(cam, v, muzzleOut) {
-    const g = GUNS[v.id];
-    m4.copy(P, cam);
-    m4.translate(P, v.offset[0], v.offset[1], v.offset[2]);
-    m4.rotateY(P, v.yaw || 0);
-    m4.rotateX(P, (v.kick || 0) * 0.12 + (v.tilt || 0));
-    m4.rotateZ(P, v.roll || 0);
-    m4.translate(P, 0, 0, (v.kick || 0) * 0.05);
-    for (const p of g.parts) part(P, p[0], p[1], p[2], p[3], p[4], p[5], 'metal', p[6], null, p[7], p[8] || 0);
-    if (g.pump) {
-      const p = g.pump;
-      part(P, p[0], p[1], p[2] + (v.pump || 0) * 0.08, p[3], p[4], p[5], 'metal', p[6], null, p[7]);
-    }
-    for (const l of g.lights) lightPart(P, l[0], l[1], l[2], l[3], l[4], l[5], l[6]);
-    for (const h of g.glove) part(P, h[0], h[1], h[2], h[3] * 0.85, h[4] * 0.85, h[5] * 0.85, 'metal', GLOVE, null, 0.1);
-    // 오른팔: 손목에서 화면 오른쪽 아래로
-    part(P, 0.035, -0.16, 0.13, 0.07, 0.07, 0.26, 'metal', SLEEVE, null, 0.05, 0.62, 0.12);
-    if (v.id !== 'pistol') {
-      // 왼손: 총열 덮개(산탄총은 펌프)를 잡고, 팔은 왼쪽 아래로
-      const lz = v.id === 'shotgun' ? -0.42 + (v.pump || 0) * 0.08 : -0.42;
-      part(P, -0.012, -0.055, lz, 0.07, 0.05, 0.1, 'metal', GLOVE, null, 0.1);
-      part(P, -0.075, -0.15, lz + 0.15, 0.06, 0.06, 0.26, 'metal', SLEEVE, null, 0.05, 0.75, 0.42);
-    }
-    if (muzzleOut) m4.point(muzzleOut, P, g.muzzle[0], g.muzzle[1], g.muzzle[2]);
-    return muzzleOut;
+  /** 탄창 (가운데 기준) + 바닥판 */
+  function magBox(base, size) {
+    part(base, 0, 0, 0, size[0], size[1], size[2], 'metal', MAG_TINT, null, 0.4);
+    part(base, 0, -size[1] / 2 - 0.005, 0, size[0] + 0.008, 0.012, size[2] + 0.008, 'metal', [0.2, 0.2, 0.22], null, 0.5);
   }
 
-  /** 부서진 조각 */
+  /** 산탄 한 발 (빨간 몸통 + 놋쇠 밑동) */
+  function shellBox(base, x, y, z) {
+    part(base, x, y, z, 0.022, 0.022, 0.05, 'metal', [0.75, 0.1, 0.08], null, 0.5);
+    part(base, x, y, z + 0.031, 0.024, 0.024, 0.014, 'metal', [0.9, 0.7, 0.3], null, 0.9);
+  }
+
+  /**
+   * 손에 든 총. cam: 카메라 월드 행렬, pose: anim.js가 만든 자세
+   * out(있으면): muzzle 총구, eject 탄피 나가는 곳, mag 탄창 가운데 (월드 좌표), right·up (총의 방향)
+   */
+  function viewmodel(cam, pose, out) {
+    const g = GUNS[pose.id];
+    const geo = SZ.anim.GEOM[pose.id];
+    m4.copy(ROOT, cam);
+    m4.translate(ROOT, pose.x, pose.y, pose.z);
+    m4.rotateY(ROOT, pose.ry);
+    m4.rotateX(ROOT, pose.rx);
+    m4.rotateZ(ROOT, pose.rz);
+    // 총은 손가락을 축으로 돌 수 있어요 (손은 그대로)
+    m4.copy(GUN, ROOT);
+    if (pose.spin) {
+      const v = geo.pivot;
+      m4.translate(GUN, v[0], v[1], v[2]);
+      m4.rotateX(GUN, pose.spin);
+      m4.translate(GUN, -v[0], -v[1], -v[2]);
+    }
+    for (const q of g.parts) {
+      const dz = q.g === 'slide' ? pose.slide * 0.045 : q.g === 'bolt' ? pose.bolt : q.g === 'pump' ? pose.pump : 0;
+      if (q.light) lightPart(GUN, q.p[0], q.p[1], q.p[2] + dz, q.s[0], q.s[1], q.s[2], q.c);
+      else part(GUN, q.p[0], q.p[1], q.p[2] + dz, q.s[0], q.s[1], q.s[2], 'metal', q.c, null, q.sp, q.rx || 0);
+    }
+    // 꽂힌 탄창: 탄창 축을 따라 빠지고 들어가요
+    let magAx = 0, magAy = 0, magAz = 0;
+    if (geo.mag) {
+      const m = geo.mag;
+      magAy = Math.cos(m.rx) * pose.magOff;
+      magAz = Math.sin(m.rx) * pose.magOff;
+      magAx = m.seat[0];
+      if (pose.magMode === 'gun') {
+        m4.copy(P, GUN);
+        m4.translate(P, magAx, m.seat[1] + magAy, m.seat[2] + magAz);
+        m4.rotateX(P, m.rx);
+        magBox(P, m.size);
+      }
+    }
+    // 오른손과 소매 (손잡이를 쥐고 있어요)
+    const h = g.glove;
+    part(ROOT, h[0], h[1], h[2], h[3] * 0.85, h[4] * 0.85, h[5] * 0.85, 'metal', GLOVE, null, 0.1);
+    part(ROOT, 0.035, -0.16, 0.13, 0.07, 0.07, 0.26, 'metal', SLEEVE, null, 0.05, 0.62, 0.12);
+    // 왼손과 팔 (재장전할 때 따로 움직여요)
+    const L = geo.left, lp = pose.left;
+    m4.copy(HAND, ROOT);
+    m4.translate(HAND, L[0] + lp.x, L[1] + lp.y, L[2] + lp.z + (pose.id === 'shotgun' ? pose.pump : 0));
+    m4.rotateY(HAND, lp.ry);
+    m4.rotateX(HAND, lp.rx);
+    m4.rotateZ(HAND, lp.rz);
+    part(HAND, 0, 0, 0, 0.058, 0.06, 0.085, 'metal', GLOVE, null, 0.1);
+    part(HAND, -0.05, -0.095, 0.13, 0.06, 0.06, 0.25, 'metal', SLEEVE, null, 0.05, 0.75, 0.42);
+    if (pose.magMode === 'hand' && geo.mag) {
+      m4.copy(P, HAND);
+      m4.rotateX(P, geo.mag.rx);
+      m4.translate(P, 0, SZ.anim.MAG_GRIP, 0);
+      magBox(P, geo.mag.size);
+    }
+    if (pose.hold === 'shell') shellBox(HAND, 0, 0.045, -0.02);
+    if (out) {
+      m4.point(out.muzzle, GUN, geo.muzzle[0], geo.muzzle[1], geo.muzzle[2]);
+      m4.point(out.eject, GUN, geo.eject[0], geo.eject[1], geo.eject[2] + (pose.id === 'pistol' ? pose.slide * 0.045 : 0));
+      if (geo.mag) m4.point(out.mag, GUN, magAx, geo.mag.seat[1] + magAy, geo.mag.seat[2] + magAz);
+      out.right[0] = GUN[0];
+      out.right[1] = GUN[1];
+      out.right[2] = GUN[2];
+      out.up[0] = GUN[4];
+      out.up[1] = GUN[5];
+      out.up[2] = GUN[6];
+    }
+    return out;
+  }
+
+  /** 부서진 조각, 떨어진 탄창, 탄피 (dims가 있으면 그 크기 그대로) */
   function debris(d) {
     m4.identity(P);
     m4.translate(P, d.x, d.y, d.z);
     m4.rotateY(P, d.ry);
     m4.rotateX(P, d.rx);
-    m4.scale(P, d.s, d.s * 0.7, d.s * 1.2);
-    R.box(P, 'metal', d.tint, d.hot > 0 ? [d.hot * 1.2, d.hot * 0.4, 0] : null, 0.5, 0);
+    if (d.dims) m4.scale(P, d.dims[0], d.dims[1], d.dims[2]);
+    else m4.scale(P, d.s, d.s * 0.7, d.s * 1.2);
+    R.box(P, 'metal', d.tint, d.hot > 0 ? [d.hot * 1.2, d.hot * 0.4, 0] : null, d.spec || 0.5, 0);
   }
 
   SZ.models = {

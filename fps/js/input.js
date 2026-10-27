@@ -116,6 +116,7 @@
       else if (role === 'reload') input.pressed.add('KeyR');
       else if (role === 'swap') input.wheel += 1;
       else if (role === 'pause') input.pressed.add('Pause');
+      else if (role === 'inspect') input.pressed.add('Inspect');
       el.classList.add('held');
     });
     rootEl.addEventListener('pointermove', (e) => {

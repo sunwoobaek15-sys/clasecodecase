@@ -168,3 +168,123 @@ test('수학: 행렬 곱과 회전이 맞아요', () => {
   assert.ok(Math.abs(M.yawTo(-1, 0) - Math.PI / 2) < 1e-9);
   assert.ok(Math.abs(M.angleDiff(3, -3) - (2 * Math.PI - 6)) < 1e-9);
 });
+
+/* ---------- 총 애니메이션 (anim.js) ---------- */
+require('../fps/js/anim.js');
+const AN = globalThis.SZ.anim;
+const ROOT_CH = ['x', 'y', 'z', 'rx', 'ry', 'rz'];
+const ctxFor = (id, action, u) => ({ id, action, u, aim: 0, sprint: 0, bobPhase: 0, bobAmt: 0, swayX: 0, swayY: 0, strafe: 0, vy: 0, onGround: true, land: 0, time: 0 });
+const near = (a, b, eps = 1e-6) => Math.abs(a - b) <= eps;
+const restSpin = (v) => near(((v % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI), 0) || near(((v % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI), 2 * Math.PI);
+
+test('총 애니메이션: 모든 동작의 자세 값이 유한한 수예요', () => {
+  for (const [id, set] of Object.entries(AN.ANIMS)) {
+    for (const [name, a] of Object.entries(set)) {
+      for (let u = 0; u <= 1.0001; u += 0.02) {
+        const r = AN.sampleObj(a.root, u, [...ROOT_CH, 'spin'], {});
+        const l = AN.sampleObj(a.left, u, ROOT_CH, {});
+        for (const v of [...Object.values(r), ...Object.values(l), AN.sampleNum(a.slide, u), AN.sampleNum(a.bolt, u), AN.sampleNum(a.pump, u), AN.sampleNum(a.mag, u)]) {
+          assert.ok(Number.isFinite(v), `${id}.${name} u=${u.toFixed(2)}`);
+        }
+      }
+      for (const keys of [a.root, a.left, a.slide, a.bolt, a.pump, a.mag, a.magMode, a.hold, a.events]) {
+        if (!keys) continue;
+        for (let i = 1; i < keys.length; i++) assert.ok(keys[i][0] >= keys[i - 1][0], `${id}.${name} 키 순서`);
+      }
+    }
+  }
+});
+
+test('총 애니메이션: 재장전·살펴보기·꺼내기·펌프는 쉬는 자세에서 끝나요 (끊김 없이 이어져요)', () => {
+  for (const [id, set] of Object.entries(AN.ANIMS)) {
+    for (const name of ['reload', 'inspect', 'draw', 'pump', 'rack']) {
+      const a = set[name];
+      if (!a) continue;
+      const r = AN.sampleObj(a.root, 1, [...ROOT_CH, 'spin'], {});
+      const l = AN.sampleObj(a.left, 1, ROOT_CH, {});
+      for (const c of ROOT_CH) {
+        assert.ok(near(r[c], 0), `${id}.${name} 총 ${c}`);
+        assert.ok(near(l[c], 0), `${id}.${name} 왼손 ${c}`);
+      }
+      assert.ok(restSpin(r.spin), `${id}.${name} 회전은 한 바퀴 단위로 끝나요`);
+      for (const k of ['slide', 'bolt', 'pump', 'mag']) assert.ok(near(AN.sampleNum(a[k], 1), 0), `${id}.${name} ${k}`);
+      assert.equal(AN.step(a.magMode, 1, 'gun'), 'gun');
+      assert.equal(AN.step(a.hold, 1, null), null);
+      if (name !== 'draw') {
+        const r0 = AN.sampleObj(a.root, 0, ROOT_CH, {});
+        if (name !== 'rack') for (const c of ROOT_CH) assert.ok(near(r0[c], 0), `${id}.${name} 시작 ${c}`);
+      }
+    }
+  }
+});
+
+test('총 애니메이션: 산탄 넣기는 끊김 없이 반복되고, 들어가기·마무리와 이어져요', () => {
+  const sg = AN.ANIMS.shotgun;
+  const at = (a, u) => [AN.sampleObj(a.root, u, ROOT_CH, {}), AN.sampleObj(a.left, u, ROOT_CH, {})];
+  const same = ([r1, l1], [r2, l2], msg) => {
+    for (const c of ROOT_CH) {
+      assert.ok(near(r1[c], r2[c]), msg + ' 총 ' + c);
+      assert.ok(near(l1[c], l2[c]), msg + ' 왼손 ' + c);
+    }
+  };
+  same(at(sg.shell, 0), at(sg.shell, 1), '한 발 시작 = 끝');
+  same(at(sg.shellEnter, 1), at(sg.shell, 0), '들어가기 끝 = 한 발 시작');
+  same(at(sg.shell, 1), at(sg.rack, 0), '한 발 끝 = 마무리 시작');
+});
+
+test('총 애니메이션: 탄창이 손 ↔ 총으로 넘어갈 때 제자리에 있어요', () => {
+  for (const id of ['pistol', 'rifle']) {
+    const a = AN.ANIMS[id].reload;
+    const g = AN.GEOM[id];
+    // 손에서 총으로 넘어가는 순간 (마지막 'gun' 단계)
+    assert.ok(a.magMode.some(([, m]) => m === 'hand'), id + ' 새 탄창은 손에 들고 와요');
+    const handToGun = a.magMode.filter(([, m]) => m === 'gun').pop()[0];
+    const left = AN.sampleObj(a.left, handToGun, ROOT_CH, {});
+    assert.ok(near(left.rx, 0) && near(left.ry, 0) && near(left.rz, 0), id + ' 손은 바로 서 있어요');
+    const off = AN.sampleNum(a.mag, handToGun);
+    const ay = Math.cos(g.mag.rx), az = Math.sin(g.mag.rx);
+    const fromHand = [g.left[0] + left.x, g.left[1] + left.y + ay * AN.MAG_GRIP, g.left[2] + left.z + az * AN.MAG_GRIP];
+    const inGun = [g.mag.seat[0], g.mag.seat[1] + ay * off, g.mag.seat[2] + az * off];
+    for (let i = 0; i < 3; i++) assert.ok(near(fromHand[i], inGun[i], 1e-3), `${id} 탄창 위치 ${i}: ${fromHand[i]} vs ${inGun[i]}`);
+  }
+});
+
+test('총 애니메이션: 사건(소리·탄창 떨어뜨리기)은 순서대로 한 번씩 일어나요', () => {
+  for (const [id, set] of Object.entries(AN.ANIMS)) {
+    for (const [name, a] of Object.entries(set)) {
+      if (!a.events) continue;
+      const vm = AN.create();
+      const seen = [];
+      for (let u = 0; u <= 1.00001; u += 0.01) seen.push(...AN.update(vm, 1 / 60, ctxFor(id, name, Math.min(1, u))));
+      assert.deepEqual(seen, a.events.map(([, n]) => n), `${id}.${name}`);
+    }
+  }
+  assert.ok(AN.ANIMS.rifle.reload.events.some(([, n]) => n === 'dropMag'));
+  assert.ok(AN.ANIMS.pistol.reload.events.some(([, n]) => n === 'dropMag'));
+  assert.ok(AN.ANIMS.shotgun.pump.events.some(([, n]) => n === 'ejectShell'));
+});
+
+test('총 애니메이션: 쏘면 크게 튀었다가 스프링처럼 제자리로 돌아와요', () => {
+  for (const id of ['pistol', 'rifle', 'shotgun']) {
+    const vm = AN.create();
+    AN.update(vm, 1 / 60, ctxFor(id, null, 0));
+    const restZ = vm.pose.z, restRx = vm.pose.rx;
+    AN.fire(vm, id, 0);
+    AN.update(vm, 1 / 120, ctxFor(id, null, 0));
+    assert.ok(vm.pose.z - restZ > AN.KICK[id].z * 0.8, id + ' 뒤로 튀어요');
+    assert.ok(vm.pose.rx - restRx > AN.KICK[id].rx * 0.5, id + ' 총구가 들려요');
+    for (let i = 0; i < 90; i++) AN.update(vm, 1 / 60, ctxFor(id, null, 0));
+    assert.ok(near(vm.pose.z, restZ, 1e-3) && near(vm.pose.rx, restRx, 1e-3), id + ' 1.5초 뒤 제자리');
+  }
+  assert.ok(AN.KICK.shotgun.rx > AN.KICK.pistol.rx && AN.KICK.pistol.rx > AN.KICK.rifle.rx, '산탄총 > 권총 > 소총 반동');
+});
+
+test('총 애니메이션: 정조준하면 가늠쇠가 화면 가운데로 와요', () => {
+  for (const id of ['pistol', 'rifle', 'shotgun']) {
+    const vm = AN.create();
+    const c = Object.assign(ctxFor(id, null, 0), { aim: 1 });
+    for (let i = 0; i < 60; i++) AN.update(vm, 1 / 60, c);
+    assert.ok(Math.abs(vm.pose.x - AN.GEOM[id].ads[0]) < 0.01, id);
+    assert.ok(Math.abs(vm.pose.y - AN.GEOM[id].ads[1]) < 0.01, id);
+  }
+});

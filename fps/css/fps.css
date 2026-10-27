@@ -597,6 +597,7 @@ body.touch .only-mouse { display: none; }
 .t-reload { right: calc(122px + var(--safe-r)); bottom: calc(124px + var(--safe-b)); }
 .t-swap { right: calc(206px + var(--safe-r)); bottom: calc(36px + var(--safe-b)); }
 .t-pause { width: 44px; height: 44px; left: calc(22px + var(--safe-l)); top: calc(96px + var(--safe-t)); font-family: var(--font-display); font-size: 14px; }
+.t-inspect { width: 44px; height: 44px; left: calc(76px + var(--safe-l)); top: calc(96px + var(--safe-t)); font-size: 10px; line-height: 1.1; }
 body.touch .hud-ammo { right: auto; left: 50%; transform: translateX(-50%); bottom: calc(14px + var(--safe-b)); justify-items: center; }
 body.touch .ammo-line b { font-size: 36px; }
 body.touch .hud-health { bottom: auto; top: calc(150px + var(--safe-t)); width: 170px; }

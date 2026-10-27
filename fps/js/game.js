@@ -10,6 +10,8 @@
   const input = SZ.input;
   const hud = SZ.hud;
   const models = SZ.models;
+  const A = SZ.anim;
+  const TAU = Math.PI * 2;
 
   /* ---------------- 저장 (최고 기록, 설정) ---------------- */
   const STORE_KEY = 'sectorzero.v1';
@@ -75,7 +77,10 @@
   let wave = null;
   let stats = null;
   let nextId = 1;
-  const muzzle = [0, 0, 0];
+  // 손에 든 총: 애니메이션 상태와, 그린 뒤 알게 되는 총구·탄피 구멍·탄창 위치
+  let vm = null;
+  const vmOut = { muzzle: [0, 0, 0], eject: [0, 0, 0], mag: [0, 0, 0], right: [1, 0, 0], up: [0, 1, 0] };
+  const muzzle = vmOut.muzzle;
   const demo = [];
 
   const view = m4.create();
@@ -84,6 +89,7 @@
 
   /* ---------------- 플레이어 ---------------- */
   function resetPlayer() {
+    vm = A.create();
     Object.assign(player, {
       x: lv.player.x,
       y: 0,
@@ -106,8 +112,15 @@
       weapons: RU.WEAPONS.map((d) => ({ def: d, ammo: d.mag, reserve: d.reserve })),
       cur: 0,
       prev: 1,
-      switchT: 0,
       switchTo: -1,
+      lowerT: 0,
+      drawT: A.DUR.draw.pistol,
+      drawDur: A.DUR.draw.pistol,
+      inspectT: 0,
+      inspectDur: 1,
+      rackT: 0,
+      reloadFirst: false,
+      flashAng: 0,
       reloading: false,
       reloadT: 0,
       reloadTotal: 1,
@@ -115,7 +128,6 @@
       holdT: 0,
       bloom: 0,
       aim: 0,
-      kick: 0,
       flashT: 0,
       sprint: 0,
       sprintLock: 0,
@@ -232,21 +244,31 @@
   }
 
   /* ---------------- 무기 ---------------- */
+  /** 무기 바꾸기: 지금 총을 내리고(lower) → 새 총을 꺼내요(draw). 꺼내는 동안은 못 쏴요 */
   function switchWeapon(i) {
     if (i < 0 || i >= player.weapons.length) return;
-    if (player.switchTo === i || (player.switchTo < 0 && i === player.cur)) return;
+    if (player.switchTo === i || (player.switchTo < 0 && i === player.cur && player.drawT <= 0)) return;
+    if (player.switchTo < 0) {
+      player.lowerT = A.DUR.lower;
+      audio.play('swap');
+    }
     player.switchTo = i;
-    player.switchT = 0.34;
     player.reloading = false;
-    audio.play('swap');
+    player.inspectT = 0;
+    player.rackT = 0;
   }
+
+  /** 무기를 꺼내거나 내리는 중 */
+  const busy = () => player.switchTo >= 0 || player.drawT > 0;
 
   function startReload() {
     const w = curW();
-    if (player.reloading || player.switchTo >= 0 || w.ammo >= w.def.mag || w.reserve <= 0) return false;
+    if (player.reloading || busy() || w.ammo >= w.def.mag || w.reserve <= 0) return false;
     player.reloading = true;
-    player.reloadT = player.reloadTotal = w.def.reload + (w.def.shellReload ? 0.2 : 0);
-    audio.play('reload');
+    player.reloadFirst = true;
+    player.inspectT = 0;
+    player.rackT = 0;
+    player.reloadT = player.reloadTotal = w.def.reload + (w.def.shellReload ? A.DUR.shellEnter : 0);
     return true;
   }
 
@@ -262,17 +284,17 @@
       switchWeapon((((base + input.wheel) % n) + n) % n);
     }
     if (player.switchTo >= 0) {
-      const before = player.switchT;
-      player.switchT -= dt;
-      if (before > 0.17 && player.switchT <= 0.17) {
-        player.prev = player.cur;
+      player.lowerT -= dt;
+      if (player.lowerT <= 0) {
+        if (player.switchTo !== player.cur) player.prev = player.cur;
         player.cur = player.switchTo;
-      }
-      if (player.switchT <= 0) {
-        player.switchT = 0;
         player.switchTo = -1;
+        player.lowerT = 0;
+        player.drawT = player.drawDur = A.DUR.draw[curW().def.id];
       }
-    }
+    } else if (player.drawT > 0) player.drawT = Math.max(0, player.drawT - dt);
+    player.inspectT = Math.max(0, player.inspectT - dt);
+    player.rackT = Math.max(0, player.rackT - dt);
     const w = curW();
     const d = w.def;
 
@@ -283,40 +305,49 @@
         if (d.shellReload) {
           w.ammo++;
           w.reserve--;
-          audio.play('shell');
+          player.reloadFirst = false;
           if (w.ammo < d.mag && w.reserve > 0) player.reloadT = player.reloadTotal = d.reload;
           else {
+            // 다 넣으면 총을 세우며 펌프를 철컥
             player.reloading = false;
-            audio.play('reloadEnd');
+            player.rackT = A.DUR.rack;
           }
         } else {
           const take = Math.min(d.mag - w.ammo, w.reserve);
           w.ammo += take;
           if (w.reserve !== Infinity) w.reserve -= take;
           player.reloading = false;
-          audio.play('reloadEnd');
         }
       }
     }
     if (input.pressed.has('KeyR')) startReload();
+    // 살펴보기 (Y·F): 쏘기, 조준, 재장전, 무기 바꾸기를 하면 멈춰요
+    if ((input.pressed.has('KeyY') || input.pressed.has('KeyF') || input.pressed.has('Inspect')) && !busy() && !player.reloading && player.aim < 0.3) {
+      player.inspectT = player.inspectDur = A.DUR.inspect[d.id];
+      player.rackT = 0;
+    }
 
     // 발사
-    if (input.fire && player.switchTo < 0 && player.fireT <= 0 && (input.firePressed || player.holdT <= 0)) {
+    if (input.fire && !busy() && player.fireT <= 0 && (input.firePressed || player.holdT <= 0)) {
       if (w.ammo > 0 && (!player.reloading || d.shellReload)) {
         player.reloading = false;
         fire(w);
       } else if (w.ammo <= 0) {
-        if (input.firePressed) audio.play('empty');
+        if (input.firePressed) {
+          audio.play('empty');
+          A.dry(vm);
+        }
+        player.inspectT = 0;
         startReload();
         player.fireT = 0.25;
       }
     }
-    if (w.ammo === 0 && w.reserve > 0 && !player.reloading && player.switchTo < 0 && player.fireT < -0.2) startReload();
+    if (w.ammo === 0 && w.reserve > 0 && !player.reloading && !busy() && player.fireT < -0.2) startReload();
 
     player.bloom = damp(player.bloom, 0, 5, dt);
-    const wantAim = (input.aim || input.aimToggle) && player.switchTo < 0 && !(player.reloading && !d.shellReload) && player.sprint < 0.5;
+    const wantAim = (input.aim || input.aimToggle) && !busy() && !(player.reloading && !d.shellReload) && player.sprint < 0.5;
+    if (wantAim) player.inspectT = 0;
     player.aim = damp(player.aim, wantAim ? 1 : 0, 15, dt);
-    player.kick = damp(player.kick, 0, 12, dt);
     player.flashT -= dt;
     if (game.time - player.lastShot > 0.14 && player.recoilDebt > 0) {
       const back = Math.min(player.recoilDebt, (player.recoilDebt * 6 + 0.02) * dt);
@@ -331,11 +362,15 @@
     player.fireT = d.fireDelay;
     player.holdT = d.holdDelay;
     player.lastShot = game.time;
-    player.kick = 1;
     player.flashT = 0.06;
+    player.flashAng = Math.random() * TAU;
     player.sprintLock = 0.4;
+    player.inspectT = 0;
+    player.rackT = 0;
     stats.shots++;
     audio.play(d.id);
+    A.fire(vm, d.id, player.aim);
+    if (d.id !== 'shotgun') ejectCasing(d.id);
 
     const e = eyePos();
     forward(player.yaw, player.pitch, fwd);
@@ -393,6 +428,113 @@
     player.pitch = clamp(player.pitch + k, -1.45, 1.45);
     player.recoilDebt += k * 0.75;
     player.yaw += (Math.random() - 0.5) * d.recoil * 0.5;
+    // 총구 연기
+    const big = d.pellets > 1 ? 1.8 : 1;
+    emit({ layer: 'alpha', x: muzzle[0] + fwd[0] * 0.1, y: muzzle[1] + fwd[1] * 0.1, z: muzzle[2] + fwd[2] * 0.1, vx: fwd[0] * 0.4 * big, vy: 0.35, vz: fwd[2] * 0.4 * big, life: 0.75, size: 0.05 * big, size1: 0.32 * big, r: 0.55, g: 0.55, b: 0.58, a: 0.22 * big });
+  }
+
+  /* ---------------- 총 애니메이션 연결 ---------------- */
+  /** 지금 하고 있는 동작(우선순위 순)과 흔들림 재료를 anim.js에 넘겨요 */
+  function animCtx() {
+    const d = curW().def;
+    let action = null, u = 0;
+    const sinceShot = game.time - player.lastShot;
+    if (player.switchTo >= 0) {
+      action = 'lower';
+      u = 1 - player.lowerT / A.DUR.lower;
+    } else if (player.drawT > 0) {
+      action = 'draw';
+      u = 1 - player.drawT / player.drawDur;
+    } else if (player.reloading) {
+      if (d.shellReload) {
+        const el = player.reloadTotal - player.reloadT;
+        if (player.reloadFirst && el < A.DUR.shellEnter) {
+          action = 'shellEnter';
+          u = el / A.DUR.shellEnter;
+        } else {
+          action = 'shell';
+          u = (player.reloadFirst ? el - A.DUR.shellEnter : el) / d.reload;
+        }
+      } else {
+        action = 'reload';
+        u = 1 - player.reloadT / player.reloadTotal;
+      }
+    } else if (player.rackT > 0) {
+      action = 'rack';
+      u = 1 - player.rackT / A.DUR.rack;
+    } else if (player.inspectT > 0) {
+      action = 'inspect';
+      u = 1 - player.inspectT / player.inspectDur;
+    } else if (d.id === 'shotgun' && sinceShot >= A.DUR.pumpDelay && sinceShot < A.DUR.pumpDelay + A.DUR.pump) {
+      action = 'pump';
+      u = (sinceShot - A.DUR.pumpDelay) / A.DUR.pump;
+    }
+    return {
+      id: d.id,
+      action,
+      u: clamp(u, 0, 1),
+      aim: player.aim,
+      sprint: player.sprint,
+      bobPhase: player.bobPhase,
+      bobAmt: player.bobAmt,
+      swayX: player.swayX,
+      swayY: player.swayY,
+      strafe: Math.cos(player.yaw) * player.vx - Math.sin(player.yaw) * player.vz,
+      vy: player.vy,
+      onGround: player.onGround,
+      land: player.land,
+      time: game.time,
+    };
+  }
+
+  const EVENT_SOUND = {
+    equip: 'equip',
+    cloth: 'cloth',
+    magOut: 'magOut',
+    magIn: 'magIn',
+    slap: 'slap',
+    boltBack: 'boltBack',
+    boltRelease: 'boltRelease',
+    slideRelease: 'boltRelease',
+    spinCatch: 'spinCatch',
+    pumpBack: 'pumpBack',
+    pumpFwd: 'pumpFwd',
+    shellIn: 'shell',
+  };
+
+  function animEvent(name) {
+    if (name === 'dropMag') dropMag();
+    else if (name === 'ejectShell') ejectCasing('shotgun');
+    if (EVENT_SOUND[name]) audio.play(EVENT_SOUND[name]);
+  }
+
+  /** 탄피: 총 오른쪽 구멍에서 튀어나와 바닥에 굴러요 */
+  function ejectCasing(id) {
+    const e = vmOut.eject, r = vmOut.right, u = vmOut.up;
+    const out = rnd(1.6, 2.5), up = rnd(1.3, 2.2);
+    if (chunks.length > 140) chunks.splice(chunks.findIndex((c) => c.casing), 1);
+    chunks.push({
+      x: e[0], y: e[1], z: e[2],
+      vx: r[0] * out + u[0] * up + player.vx,
+      vy: r[1] * out + u[1] * up,
+      vz: r[2] * out + u[2] * up + player.vz,
+      rx: rnd(0, 6), ry: player.yaw + rnd(-0.6, 0.6), wx: rnd(-25, 25), wy: rnd(-25, 25),
+      s: 0.02, dims: A.GEOM[id].casing, tint: id === 'shotgun' ? [0.75, 0.12, 0.08] : [0.95, 0.72, 0.3], spec: 0.9,
+      hot: 0, life: 2.4, casing: true,
+    });
+  }
+
+  /** 다 쓴 탄창: 총에서 빠져 바닥으로 떨어져요 */
+  function dropMag() {
+    const geo = A.GEOM[curW().def.id];
+    if (!geo.mag) return;
+    const m = vmOut.mag;
+    chunks.push({
+      x: m[0], y: m[1], z: m[2],
+      vx: player.vx * 0.9 + rnd(-0.3, 0.3), vy: -1.2, vz: player.vz * 0.9 + rnd(-0.3, 0.3),
+      rx: geo.mag.rx, ry: player.yaw, wx: rnd(-3, 3), wy: rnd(-3, 3),
+      s: 0.06, dims: geo.mag.size, tint: [0.11, 0.11, 0.12], spec: 0.4, hot: 0, life: 6, mag: true,
+    });
   }
 
   /** 한 발의 궤적: 가장 먼저 닿는 적 또는 벽 */
@@ -916,8 +1058,12 @@
         c.z = nz;
       }
       c.y += c.vy * dt;
-      const g = LV.heightAtPos(lv, c.x, c.z) + c.s * 0.35;
+      const g = LV.heightAtPos(lv, c.x, c.z) + (c.dims ? c.dims[1] * 0.5 : c.s * 0.35);
       if (c.y < g) {
+        if ((c.casing || c.mag) && !c.tink && c.vy < -0.8) {
+          c.tink = true;
+          audio.play(c.casing ? 'casing' : 'thud', c, c.casing ? 0.6 : 1);
+        }
         c.y = g;
         c.vy *= -0.3;
         c.vx *= 0.6;
@@ -1084,6 +1230,7 @@
     if (game.hintT > 0) game.hintT -= dt;
     updatePlayer(dt);
     updateWeapon(dt);
+    for (const ev of A.update(vm, dt, animCtx())) animEvent(ev);
     updateWave(dt);
     updateEnemies(dt);
     updateShots(dt);
@@ -1253,43 +1400,22 @@
     if (playingView && (game.state === 'playing' || game.state === 'paused')) {
       R.clearDepth();
       R.setAmbient(VM_AMB);
-      const g = models.GUNS[w.def.id];
-      const a = player.aim;
-      const sinceShot = game.time - player.lastShot;
-      const off = [lerp(g.hip[0], g.ads[0], a), lerp(g.hip[1], g.ads[1], a), lerp(g.hip[2], g.ads[2], a)];
-      const bobK = player.bobAmt * (1 - a * 0.85);
-      off[0] += Math.sin(player.bobPhase) * 0.012 * bobK + player.swayX * 0.5;
-      off[1] += -Math.abs(Math.cos(player.bobPhase)) * 0.014 * bobK + player.swayY * 0.5 - player.land * 0.03;
-      let tilt = 0, rollV = 0, yawV = 0;
-      // 달릴 때 총을 내려요
-      off[0] += player.sprint * 0.04;
-      off[1] -= player.sprint * 0.04;
-      tilt -= player.sprint * 0.35;
-      yawV += player.sprint * 0.5;
-      // 무기 바꾸기: 내렸다가 올리기
-      if (player.switchTo >= 0) {
-        const k = player.switchT > 0.17 ? (0.34 - player.switchT) / 0.17 : player.switchT / 0.17;
-        off[1] -= k * 0.25;
-        tilt -= k * 0.7;
-      }
-      // 재장전 동작
-      if (player.reloading) {
-        const pr = 1 - player.reloadT / player.reloadTotal;
-        const dip = w.def.shellReload ? 0.6 + 0.4 * Math.sin(pr * Math.PI) : Math.sin(pr * Math.PI);
-        off[1] -= dip * 0.06;
-        rollV += dip * (w.def.shellReload ? 0.25 : 0.55);
-        tilt += dip * 0.2;
-      }
-      const kickK = w.def.id === 'shotgun' ? 1.6 : w.def.id === 'pistol' ? 1.25 : 0.6;
-      const pump = w.def.id === 'shotgun' && sinceShot > 0.22 && sinceShot < 0.62 ? Math.sin(((sinceShot - 0.22) / 0.4) * Math.PI) : 0;
-      models.viewmodel(camWorld, { id: w.def.id, offset: off, kick: player.kick * kickK, tilt, roll: rollV, yaw: yawV, pump }, muzzle);
+      models.viewmodel(camWorld, vm.pose, vmOut);
       if (player.flashT > 0) {
+        // 총구 불꽃: 크게 번지는 빛 + 별 모양 불줄기 + 앞으로 뻗는 불꽃
         const k = player.flashT / 0.06;
-        const big = w.def.id === 'shotgun' ? 1.6 : w.def.id === 'pistol' ? 1 : 0.85;
-        const mx = muzzle[0] + fwd[0] * 0.05, my = muzzle[1] + fwd[1] * 0.05, mz = muzzle[2] + fwd[2] * 0.05;
-        R.sprite('overlay', mx, my, mz, 0.32 * big * (0.8 + Math.random() * 0.4), 1, 0.7, 0.35, 0.95 * k);
-        R.sprite('overlay', mx, my, mz, 0.12 * big, 1, 0.95, 0.85, k);
-        R.beam('overlay', mx, my, mz, mx + fwd[0] * 0.25 * big, my + fwd[1] * 0.25 * big, mz + fwd[2] * 0.25 * big, 0.1 * big, 1, 0.75, 0.4, 0.7 * k);
+        const id = w.def.id;
+        const big = id === 'shotgun' ? 2 : id === 'pistol' ? 1.35 : 1.15;
+        const mx = muzzle[0] + fwd[0] * 0.04, my = muzzle[1] + fwd[1] * 0.04, mz = muzzle[2] + fwd[2] * 0.04;
+        R.sprite('overlay', mx, my, mz, 0.42 * big * (0.8 + Math.random() * 0.4), 1, 0.66, 0.3, 0.95 * k);
+        R.sprite('overlay', mx, my, mz, 0.16 * big, 1, 0.95, 0.85, k);
+        for (let i = 0; i < 5; i++) {
+          const ang = player.flashAng + (i * TAU) / 5;
+          const len = 0.11 * big * (0.7 + ((i * 37) % 10) / 16);
+          const ca = Math.cos(ang) * len, sa = Math.sin(ang) * len;
+          R.beam('overlay', mx, my, mz, mx + camWorld[0] * ca + camWorld[4] * sa, my + camWorld[1] * ca + camWorld[5] * sa, mz + camWorld[2] * ca + camWorld[6] * sa, 0.035 * big, 1, 0.8, 0.45, 0.85 * k);
+        }
+        R.beam('overlay', mx, my, mz, mx + fwd[0] * 0.38 * big, my + fwd[1] * 0.38 * big, mz + fwd[2] * 0.38 * big, 0.13 * big, 1, 0.72, 0.38, 0.75 * k);
       }
       R.drawFx('overlay');
     } else R.resetFx();
@@ -1452,7 +1578,7 @@
     player,
     resize: () => R && resize(),
     // 테스트·디버그용
-    _debug: () => ({ enemies, shots, pickups, wave, stats, lv }),
+    _debug: () => ({ enemies, shots, pickups, wave, stats, lv, vm, chunks }),
     _spawn: (type, x, z) => spawnEnemy(type, { x, z }),
   });
   SZ.game = game;

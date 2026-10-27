@@ -110,23 +110,59 @@
       noise(d, t, 0.3, { type: 'lowpass', freq: 2600, freqTo: 300, gain: 0.8 });
       tone(d, t, 0.2, { freq: 110, freqTo: 38, gain: 0.8, wave: 'triangle' });
       noise(d, t + 0.02, 0.5, { type: 'lowpass', freq: 500, gain: 0.15 });
-      // 펌프 소리
-      noise(d, t + 0.36, 0.05, { type: 'highpass', freq: 2500, gain: 0.22 });
-      noise(d, t + 0.48, 0.06, { type: 'highpass', freq: 1800, gain: 0.25 });
     },
     empty(d, t) {
       noise(d, t, 0.03, { type: 'highpass', freq: 3500, gain: 0.25 });
     },
-    reload(d, t) {
-      noise(d, t + 0.05, 0.04, { type: 'highpass', freq: 2200, gain: 0.25 });
-      noise(d, t + 0.35, 0.06, { type: 'bandpass', freq: 1400, gain: 0.3 });
+    // 재장전·꺼내기·살펴보기 동작 소리 (anim.js 사건에 맞춰 나요)
+    magOut(d, t) {
+      noise(d, t, 0.035, { type: 'highpass', freq: 2600, gain: 0.3 });
+      noise(d, t + 0.03, 0.12, { freq: 900, q: 1.2, gain: 0.14 });
     },
-    reloadEnd(d, t) {
-      noise(d, t, 0.05, { type: 'highpass', freq: 2800, gain: 0.3 });
-      tone(d, t, 0.04, { freq: 900, gain: 0.08, wave: 'square' });
+    magIn(d, t) {
+      noise(d, t, 0.05, { freq: 1800, q: 2, gain: 0.38 });
+      tone(d, t, 0.035, { freq: 620, gain: 0.1, wave: 'square' });
+    },
+    slap(d, t) {
+      noise(d, t, 0.08, { type: 'lowpass', freq: 750, gain: 0.5 });
+      tone(d, t, 0.07, { freq: 190, freqTo: 90, gain: 0.3, wave: 'triangle' });
+    },
+    boltBack(d, t) {
+      noise(d, t, 0.1, { freq: 2400, freqTo: 1100, q: 1.5, gain: 0.32 });
+    },
+    boltRelease(d, t) {
+      noise(d, t, 0.06, { type: 'highpass', freq: 2000, gain: 0.5 });
+      tone(d, t, 0.03, { freq: 1100, gain: 0.09, wave: 'square' });
+    },
+    pumpBack(d, t) {
+      noise(d, t, 0.07, { freq: 1500, q: 1.4, gain: 0.4 });
+      tone(d, t, 0.04, { freq: 300, gain: 0.12, wave: 'triangle' });
+    },
+    pumpFwd(d, t) {
+      noise(d, t, 0.06, { type: 'highpass', freq: 1800, gain: 0.45 });
+      tone(d, t, 0.035, { freq: 520, gain: 0.12, wave: 'square' });
     },
     shell(d, t) {
       noise(d, t, 0.05, { type: 'bandpass', freq: 1700, q: 2, gain: 0.3 });
+    },
+    spinCatch(d, t) {
+      noise(d, t, 0.05, { type: 'lowpass', freq: 1200, gain: 0.3 });
+      noise(d, t, 0.03, { type: 'highpass', freq: 3000, gain: 0.12 });
+    },
+    equip(d, t) {
+      noise(d, t, 0.18, { freq: 600, freqTo: 1500, q: 0.8, gain: 0.14 });
+      noise(d, t + 0.12, 0.04, { type: 'highpass', freq: 2500, gain: 0.22 });
+    },
+    cloth(d, t) {
+      noise(d, t, 0.22, { freq: 500, freqTo: 900, q: 0.7, gain: 0.09 });
+    },
+    casing(d, t) {
+      tone(d, t, 0.05, { freq: 4200 + Math.random() * 600, freqTo: 3700, gain: 0.05, wave: 'triangle' });
+      tone(d, t + 0.06, 0.03, { freq: 5200, gain: 0.025, wave: 'sine' });
+    },
+    thud(d, t) {
+      noise(d, t, 0.09, { type: 'lowpass', freq: 420, gain: 0.35 });
+      tone(d, t, 0.04, { freq: 900, gain: 0.04, wave: 'square' });
     },
     swap(d, t) {
       noise(d, t, 0.06, { type: 'highpass', freq: 1600, gain: 0.18 });
