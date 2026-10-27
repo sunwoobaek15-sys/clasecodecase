@@ -13,7 +13,7 @@
 
   /* ---------------- 저장 (최고 기록, 설정) ---------------- */
   const STORE_KEY = 'sectorzero.v1';
-  const DEFAULTS = { sens: 1, volume: 0.8, fov: 74, quality: 'auto', invertY: false };
+  const DEFAULTS = { sens: 1, volume: 0.8, fov: 74, quality: 'auto', invertY: false, orient: 'left' };
   const store = { best: null, settings: Object.assign({}, DEFAULTS) };
   function loadStore() {
     try {
@@ -27,6 +27,7 @@
           if (typeof v.volume === 'number') st.volume = clamp(v.volume, 0, 1);
           if (typeof v.fov === 'number') st.fov = clamp(v.fov, 60, 95);
           if (['auto', 'high', 'low'].includes(v.quality)) st.quality = v.quality;
+          if (['left', 'right', 'off'].includes(v.orient)) st.orient = v.orient;
           st.invertY = !!v.invertY;
         }
       }

@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="css/fps.css">
 </head>
 <body data-state="boot">
+<div id="app">
 <canvas id="view" aria-label="게임 화면"></canvas>
 
 <div id="hud" class="hud" hidden>
@@ -80,7 +81,11 @@
       <button type="button" id="b-settings" class="btn">설정</button>
     </div>
     <p class="best" id="best"></p>
-    <p class="rotate-hint only-touch">휴대폰은 가로로 돌리면 더 넓게 보여요.</p>
+    <p class="rotate-hint only-portrait">휴대폰을 세워 들고 있어요. 설정에서 가로 화면을 켜면 눕혀서 할 수 있어요.</p>
+    <div class="rotate-row only-rotated">
+      <p>휴대폰 윗부분이 <b id="rot-side">왼쪽</b>으로 가게 눕혀 잡아요.</p>
+      <button type="button" id="b-flip" class="btn small">화면 뒤집기</button>
+    </div>
   </div>
   <aside class="panel briefing" aria-label="작전 브리핑">
     <div class="brief-block">
@@ -164,6 +169,12 @@
         <option value="high">높음</option>
         <option value="low">낮음 (빠름)</option>
       </select></label>
+    <label class="field only-touch" for="set-orient"><span>가로 화면 (휴대폰을 세워 들었을 때)</span>
+      <select id="set-orient">
+        <option value="left">돌리기 · 윗부분을 왼쪽으로 눕혀 잡기</option>
+        <option value="right">돌리기 · 윗부분을 오른쪽으로 눕혀 잡기</option>
+        <option value="off">돌리지 않기 (세로로 하기)</option>
+      </select></label>
     <label class="check" for="set-invert"><input type="checkbox" id="set-invert"> 위아래 시점 반전</label>
     <div class="stack row">
       <button type="button" id="b-settings-reset" class="btn ghost">기본값</button>
@@ -179,6 +190,7 @@
     <p class="body">이 브라우저나 기기에서 WebGL을 쓸 수 없어요. 최신 Chrome, Edge, Safari, Firefox에서 열거나, 브라우저 설정에서 하드웨어 가속을 켜 주세요.</p>
   </div>
 </section>
+</div>
 
 <script src="js/math.js"></script>
 <script src="js/level.js"></script>

@@ -43,6 +43,10 @@ html, body {
 [hidden] { display: none !important; }
 button, input, select { font: inherit; color: inherit; }
 
+/* 게임 전체를 담는 틀. 휴대폰을 세워 들었을 때는 main.js가 이 틀을 90° 돌려 가로 화면으로 만들어요 */
+#app { position: fixed; inset: 0; overflow: hidden; }
+body.rotated #app { right: auto; bottom: auto; transform-origin: 0 0; }
+
 #view {
   position: fixed;
   inset: 0;
@@ -141,7 +145,12 @@ body[data-state='playing'] #view { cursor: none; }
 }
 .best b { color: var(--cyan); font-weight: 600; }
 .rotate-hint { margin: 0; font-size: 13px; color: var(--ink-3); }
-@media (orientation: landscape) { .rotate-hint { display: none; } }
+.rotate-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.rotate-row p { margin: 0; font-size: 13px; color: var(--ink-2); }
+.rotate-row b { color: var(--hazard); font-weight: 700; }
+.btn.small { min-height: 36px; padding: 0 14px; font-size: 13px; --cut: 8px; }
+body:not(.touch) .only-portrait, body.rotated .only-portrait, body:not(.rotated) .only-rotated { display: none; }
+@media (orientation: landscape) { .only-portrait { display: none; } }
 
 .actions, .stack { display: flex; flex-wrap: wrap; gap: 12px; }
 .stack { flex-direction: column; }

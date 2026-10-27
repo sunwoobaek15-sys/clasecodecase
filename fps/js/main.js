@@ -48,6 +48,7 @@
     $('set-fov').value = s.fov;
     $('set-quality').value = s.quality;
     $('set-invert').checked = s.invertY;
+    $('set-orient').value = s.orient;
     $('out-sens').textContent = Number(s.sens).toFixed(1);
     $('out-volume').textContent = Math.round(s.volume * 100) + '%';
     $('out-fov').textContent = s.fov + '°';
@@ -59,10 +60,12 @@
     s.fov = Number($('set-fov').value);
     s.quality = $('set-quality').value;
     s.invertY = $('set-invert').checked;
+    s.orient = $('set-orient').value;
     SZ.audio.setVolume(s.volume);
     SZ.game.autoScale = 1;
     SZ.game.saveStore();
     syncSettings();
+    applyOrientation();
   }
   function openSettings(back) {
     settingsBack = back;
@@ -70,12 +73,45 @@
     showScreen('s-settings');
   }
 
+  /**
+   * 휴대폰을 세워 들었을 때(앱이 세로로 고정된 경우 포함) 게임 전체를 90° 돌려 가로 화면으로 보여 줘요.
+   * 기기를 실제로 눕혀서 화면이 가로가 되면 돌리지 않아요.
+   */
+  function applyOrientation() {
+    const app = $('app');
+    const mode = SZ.game.store.settings.orient;
+    const W = root.innerWidth, H = root.innerHeight;
+    const rotate = SZ.input.touch && mode !== 'off' && H > W;
+    document.body.classList.toggle('rotated', rotate);
+    if (rotate) {
+      app.style.width = H + 'px';
+      app.style.height = W + 'px';
+      app.style.transform = mode === 'left' ? 'translate(' + W + 'px, 0) rotate(90deg)' : 'translate(0, ' + H + 'px) rotate(-90deg)';
+    } else {
+      app.style.width = app.style.height = app.style.transform = '';
+    }
+    SZ.input.rotation = rotate ? (mode === 'left' ? 90 : -90) : 0;
+    $('rot-side').textContent = mode === 'right' ? '오른쪽' : '왼쪽';
+    SZ.game.resize();
+  }
+
+  /** 휴대폰: 전체 화면 + 가로 고정을 시도해요 (안 되는 브라우저는 화면을 돌려서 보여 줘요) */
   function tryFullscreen() {
     const d = document.documentElement;
     if (!SZ.input.touch || document.fullscreenElement || !d.requestFullscreen) return;
+    const lock = () => {
+      const o = root.screen && root.screen.orientation;
+      if (SZ.game.store.settings.orient === 'off' || !o || !o.lock) return;
+      try {
+        const p = o.lock('landscape');
+        if (p && p.catch) p.catch(() => {});
+      } catch (e) {
+        /* 가로 고정은 없어도 돼요 */
+      }
+    };
     try {
       const p = d.requestFullscreen({ navigationUI: 'hide' });
-      if (p && p.catch) p.catch(() => {});
+      if (p && p.then) p.then(lock, () => {});
     } catch (e) {
       /* 전체 화면은 없어도 돼요 */
     }
@@ -105,6 +141,7 @@
     };
     SZ.input.onTouchStart = () => {
       document.body.classList.add('touch');
+      applyOrientation();
       game.onStateChange(game.state);
     };
 
@@ -121,6 +158,7 @@
       return;
     }
     if (SZ.input.touch) document.body.classList.add('touch');
+    applyOrientation();
     $('view').addEventListener('webglcontextlost', (e) => {
       e.preventDefault();
       document.body.dataset.state = 'error';
@@ -161,7 +199,14 @@
       if (!$('s-settings').hidden) showScreen(settingsBack);
       else if (game.state === 'paused' && (SZ.input.dragLook || SZ.input.touch) && Date.now() - pausedAt > 400) game.resume();
     });
-    root.addEventListener('resize', () => game.resize());
+    $('b-flip').addEventListener('click', () => {
+      const s = game.store.settings;
+      s.orient = s.orient === 'right' ? 'left' : 'right';
+      game.saveStore();
+      applyOrientation();
+    });
+    root.addEventListener('resize', applyOrientation);
+    root.addEventListener('orientationchange', () => setTimeout(applyOrientation, 120));
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

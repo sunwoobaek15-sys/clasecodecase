@@ -25,6 +25,7 @@
     everLocked: false,
     dragLook: false,
     touch: false,
+    rotation: 0, // 화면을 90°(또는 -90°) 돌려 가로로 보여 줄 때 터치 좌표도 같이 돌려요
     active: false, // 게임 중일 때만 키 기본 동작을 막아요
     canvas: null,
     onLockChange: null,
@@ -63,6 +64,14 @@
   }
 
   /* ---------- 터치 ---------- */
+  /** 화면 좌표 → 돌아간 게임 화면 안의 좌표 */
+  function local(e) {
+    const W = root.innerWidth, H = root.innerHeight;
+    if (input.rotation === 90) return [e.clientY, W - e.clientX];
+    if (input.rotation === -90) return [H - e.clientY, e.clientX];
+    return [e.clientX, e.clientY];
+  }
+
   function initTouch(rootEl) {
     if (!rootEl) return;
     const stick = rootEl.querySelector('.stick');
@@ -92,12 +101,13 @@
       } catch (err) {
         /* 일부 브라우저는 캡처를 못 해요 */
       }
-      roles.set(e.pointerId, { role, x: e.clientX, y: e.clientY, ox: e.clientX, oy: e.clientY, el });
+      const [lx, ly] = local(e);
+      roles.set(e.pointerId, { role, x: lx, y: ly, ox: lx, oy: ly, el });
       if (role === 'move' && stick) {
-        stick.style.left = e.clientX + 'px';
-        stick.style.top = e.clientY + 'px';
+        stick.style.left = lx + 'px';
+        stick.style.top = ly + 'px';
         stick.classList.add('on');
-        setStick(e.clientX, e.clientY, e.clientX, e.clientY);
+        setStick(lx, ly, lx, ly);
       } else if (role === 'fire') {
         input.fire = true;
         input.firePressed = true;
@@ -112,13 +122,14 @@
       const r = roles.get(e.pointerId);
       if (!r) return;
       e.preventDefault();
-      if (r.role === 'move') setStick(e.clientX, e.clientY, r.ox, r.oy);
+      const [lx, ly] = local(e);
+      if (r.role === 'move') setStick(lx, ly, r.ox, r.oy);
       else if (r.role === 'look' || r.role === 'fire') {
-        input.touchLookX += e.clientX - r.x;
-        input.touchLookY += e.clientY - r.y;
+        input.touchLookX += lx - r.x;
+        input.touchLookY += ly - r.y;
       }
-      r.x = e.clientX;
-      r.y = e.clientY;
+      r.x = lx;
+      r.y = ly;
     });
     const end = (e) => {
       const r = roles.get(e.pointerId);
