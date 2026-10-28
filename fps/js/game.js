@@ -914,10 +914,7 @@
       const l = Math.hypot(o.x - x, o.z - z) || 1;
       if (damageEnemy(o, def.blastEnemy * lerp(1, 0.5, od / def.blast), false, (o.x - x) / l, (o.z - z) / l)) chain++;
     }
-    if (chain) {
-      stats.chains = (stats.chains || 0) + chain;
-      hud.feed('연쇄 폭발! 적 ' + chain + '기 처치', 'crit');
-    }
+    if (chain) hud.feed('연쇄 폭발! 적 ' + chain + '기 처치', 'crit');
   }
 
   function enemyShoot(e, def, plan) {
@@ -1068,7 +1065,7 @@
       });
     }
     // 아이템 떨어뜨리기
-    const dropChance = def.boss ? 0 : e.type === 'brute' ? 0.9 : e.type === 'bomber' ? 0.1 : 0.2;
+    const dropChance = def.boss ? 0 : e.type === 'brute' ? 0.9 : e.type === 'bomber' ? 0.1 : 0.22;
     if (Math.random() < dropChance) {
       const needHealth = player.hp < player.maxHp * 0.6;
       const kind = needHealth ? (Math.random() < 0.7 ? 'health' : 'ammo') : Math.random() < 0.35 ? 'health' : 'ammo';

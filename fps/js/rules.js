@@ -217,8 +217,8 @@
       bosses,
       maxAlive: Math.min(14, 5 + Math.floor(n * 0.8)),
       spawnGap: Math.max(0.45, 1.4 - n * 0.08),
-      hpMul: 1 + 0.07 * (n - 1),
-      dmgMul: 1 + 0.05 * (n - 1),
+      hpMul: 1 + 0.06 * (n - 1),
+      dmgMul: 1 + 0.04 * (n - 1),
       speedMul: 1 + Math.min(0.25, 0.02 * (n - 1)),
       clearBonus: 250 * n,
     };
