@@ -149,11 +149,12 @@
   /* 로봇 GLB 자세: 관절 노드마다 돌리는 값 (그릴 때마다 덮어써요) */
   const OV = {
     drone: { eye: { em: [0, 0, 0] }, pod_l: { rx: 0 }, pod_r: { rx: 0 }, antenna: { em: [0, 0, 0] } },
-    runner: { hips: { y: 0 }, torso: { rx: 0 }, head: { rx: 0 } },
+    runner: { hips: { y: 0 }, torso: { rx: 0 }, head: { rx: 0, em: [0, 0, 0] } },
     brute: { hips: { y: 0 }, head: { ry: 0 } },
   };
   for (const s of ['l', 'r']) {
     for (const n of ['thigh', 'shin', 'foot', 'arm', 'fore']) OV.runner[n + '_' + s] = { rx: 0, rz: 0 };
+    OV.runner['fore_' + s].em = [0, 0, 0];
     for (const n of ['thigh', 'shin', 'foot', 'cannon']) OV.brute[n + '_' + s] = { rx: 0 };
     OV.brute['barrels_' + s] = { rz: 0, em: [0, 0, 0] };
   }
@@ -174,6 +175,11 @@
     ov.hips.y = Math.abs(Math.sin(ph)) * 0.035 * stride;
     ov.torso.rx = -0.32 - swing * 0.25;
     ov.head.rx = 0.26 + swing * 0.1;
+    // 베기 예고: 칼날을 뒤로 드는 동안 눈이 번쩍여요
+    const warn = swing < 0 ? Math.min(1, -swing * 2.5) : 0;
+    ov.head.em[0] = warn * 3;
+    ov.head.em[1] = warn * 0.5;
+    ov.head.em[2] = warn * 0.3;
     for (const [s, sg] of [['l', -1], ['r', 1]]) {
       const p = ph + (sg > 0 ? 0 : Math.PI);
       const th = Math.sin(p) * 0.75 * stride;
@@ -185,6 +191,9 @@
       ov['arm_' + s].rx = 0.5 + Math.sin(ph + (sg > 0 ? Math.PI : 0)) * 0.35 * stride + swing * 1.5;
       ov['arm_' + s].rz = sg * 0.12;
       ov['fore_' + s].rx = 0.35 + swing * 0.7;
+      // 베기 직전: 칼날 테두리가 확 밝아져요
+      ov['fore_' + s].em[0] = e.swingT > 0 ? 2.4 : 0;
+      ov['fore_' + s].em[1] = e.swingT > 0 ? 0.5 : 0;
     }
   }
 

@@ -94,8 +94,8 @@
       attack: 'shoot',
       fireEvery: [1.5, 2.5],
       burst: 1,
-      shotSpeed: 14,
-      shotDamage: 8,
+      shotSpeed: 19,
+      shotDamage: 7,
       range: 24,
       keepDist: 9,
       body: [0, 0.46, 0.32],
@@ -110,7 +110,7 @@
       score: 120,
       attack: 'melee',
       meleeDamage: 13,
-      meleeEvery: 0.75,
+      meleeEvery: 0.85,
       reach: 1.45,
       body: [0.74, 0.4, 0.73],
       head: [1.62, 0.22, 0.17],
@@ -126,7 +126,7 @@
       fireEvery: [2.4, 3.2],
       burst: 3,
       burstGap: 0.17,
-      shotSpeed: 17,
+      shotSpeed: 22,
       shotDamage: 11,
       range: 28,
       keepDist: 10,
@@ -157,7 +157,7 @@
     n = Math.max(1, Math.floor(n));
     const total = 5 + n * 3;
     const brutes = n >= 3 ? Math.floor((n - 1) / 2) : 0;
-    const runners = Math.round((total - brutes) * Math.min(0.55, 0.3 + n * 0.04));
+    const runners = Math.round((total - brutes) * Math.min(0.45, 0.28 + n * 0.03));
     const drones = total - brutes - runners;
     return {
       wave: n,
@@ -191,6 +191,72 @@
       list.splice(at, 0, 'brute');
     }
     return list;
+  }
+
+  /*
+   * 강화: 웨이브를 클리어할 때마다 셋 중 하나를 골라요. 같은 강화를 여러 번 고르면 겹쳐요 (max까지).
+   * cat: attack 공격, gear 장비, survive 생존 (카드 색)
+   */
+  const UPGRADES = [
+    { id: 'dmg', cat: 'attack', name: '강화 탄두', desc: '모든 무기 피해 +15%', max: 4 },
+    { id: 'rate', cat: 'attack', name: '가속 기관', desc: '연사 속도 +12%', max: 3 },
+    { id: 'reload', cat: 'gear', name: '빠른 손', desc: '재장전 25% 빠르게', max: 3 },
+    { id: 'mag', cat: 'gear', name: '확장 탄창', desc: '탄창 크기 +35%', max: 2 },
+    { id: 'crit', cat: 'attack', name: '약점 분석', desc: '치명타 추가 피해 +30%', max: 3 },
+    { id: 'steady', cat: 'gear', name: '반동 제어', desc: '반동과 탄 퍼짐 -30%', max: 2 },
+    { id: 'pellets', cat: 'attack', name: '산탄 확장', desc: '산탄총 한 발에 알 +3개', max: 2 },
+    { id: 'armor', cat: 'survive', name: '강화 장갑', desc: '최대 체력 +25 · 체력이 다 차요', max: 3 },
+    { id: 'leech', cat: 'survive', name: '회수 회로', desc: '처치할 때마다 체력 +4', max: 3 },
+    { id: 'speed', cat: 'survive', name: '경량 부츠', desc: '이동 속도 +10%', max: 2 },
+    { id: 'scavenge', cat: 'gear', name: '탄약 회수', desc: '처치하면 소총 탄 +5 · 산탄 +1', max: 2 },
+  ];
+  const UPGRADE_BY_ID = Object.fromEntries(UPGRADES.map((u) => [u.id, u]));
+  const UPGRADE_CATS = { attack: '공격', gear: '장비', survive: '생존' };
+
+  /** 강화 단계 {id: 단계} → 실제로 바뀌는 값 */
+  function upgradeMods(levels) {
+    const lv = (id) => Math.min((levels && levels[id]) || 0, UPGRADE_BY_ID[id].max);
+    return {
+      dmg: 1 + 0.15 * lv('dmg'),
+      rate: 1 / (1 + 0.12 * lv('rate')),
+      reload: 1 / (1 + 0.25 * lv('reload')),
+      mag: 1 + 0.35 * lv('mag'),
+      crit: 1 + 0.3 * lv('crit'),
+      steady: Math.pow(0.7, lv('steady')),
+      pellets: 3 * lv('pellets'),
+      maxHp: PLAYER.maxHp + 25 * lv('armor'),
+      leech: 4 * lv('leech'),
+      speed: 1 + 0.1 * lv('speed'),
+      scavenge: lv('scavenge'),
+    };
+  }
+
+  /** 무기 값에 강화를 더한 값 */
+  function weaponStats(def, mods) {
+    const m = mods || upgradeMods(null);
+    return {
+      damage: def.damage * m.dmg,
+      mag: Math.round(def.mag * m.mag),
+      reload: def.reload * m.reload,
+      fireDelay: def.fireDelay * m.rate,
+      holdDelay: def.holdDelay * m.rate,
+      pellets: def.pellets > 1 ? def.pellets + m.pellets : def.pellets,
+      headMul: 1 + (def.headMul - 1) * m.crit,
+      recoil: def.recoil * m.steady,
+      spread: def.spread * (def.pellets > 1 ? 1 : m.steady),
+      bloom: def.bloom * m.steady,
+      maxSpread: def.maxSpread * (def.pellets > 1 ? 1 : m.steady),
+      falloff: def.falloff,
+    };
+  }
+
+  /** 고를 수 있는 강화 n개 (다 채운 건 빼고, 서로 다르게) */
+  function offerUpgrades(levels, rand, n) {
+    rand = rand || Math.random;
+    const pool = UPGRADES.filter((u) => ((levels && levels[u.id]) || 0) < u.max);
+    const out = [];
+    while (out.length < (n || 3) && pool.length) out.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
+    return out;
   }
 
   const COMBO_WINDOW = 4; // 초 안에 다음 처치를 하면 콤보가 이어져요
@@ -259,6 +325,12 @@
     ENEMIES,
     PLAYER,
     PICKUPS,
+    UPGRADES,
+    UPGRADE_BY_ID,
+    UPGRADE_CATS,
+    upgradeMods,
+    weaponStats,
+    offerUpgrades,
     COMBO_WINDOW,
     wavePlan,
     spawnOrder,

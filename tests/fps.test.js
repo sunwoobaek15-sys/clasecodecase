@@ -150,6 +150,61 @@ test('무기: 탄창과 예비 탄약 값이 말이 돼요', () => {
   });
 });
 
+test('강화: 아무것도 안 고르면 무기 값이 그대로예요', () => {
+  const none = R.upgradeMods({});
+  assert.equal(none.maxHp, R.PLAYER.maxHp);
+  assert.equal(none.leech, 0);
+  for (const w of R.WEAPONS) {
+    const st = R.weaponStats(w, none);
+    for (const k of ['damage', 'mag', 'reload', 'fireDelay', 'holdDelay', 'pellets', 'headMul', 'recoil', 'spread', 'bloom', 'maxSpread', 'falloff']) {
+      assert.ok(Math.abs(st[k] - w[k]) < 1e-9, w.id + '.' + k);
+    }
+    assert.deepEqual(R.weaponStats(w), st, '강화 없이 불러도 같아요');
+  }
+});
+
+test('강화: 고를수록 세지고, 최대 단계를 넘지 않아요', () => {
+  const rifle = R.WEAPONS.find((w) => w.id === 'rifle');
+  const sg = R.WEAPONS.find((w) => w.id === 'shotgun');
+  const pistol = R.WEAPONS.find((w) => w.id === 'pistol');
+  const one = R.upgradeMods({ dmg: 1, rate: 1, reload: 1, mag: 1, crit: 1, steady: 1, pellets: 1, armor: 1, leech: 1, speed: 1, scavenge: 1 });
+  const st = R.weaponStats(rifle, one);
+  assert.ok(st.damage > rifle.damage && st.fireDelay < rifle.fireDelay && st.reload < rifle.reload);
+  assert.ok(st.mag > rifle.mag && Number.isInteger(st.mag));
+  assert.ok(st.headMul > rifle.headMul && st.recoil < rifle.recoil && st.spread < rifle.spread);
+  assert.equal(R.weaponStats(sg, one).pellets, sg.pellets + 3, '산탄총만 알이 늘어요');
+  assert.equal(R.weaponStats(pistol, one).pellets, 1);
+  assert.equal(R.weaponStats(sg, one).spread, sg.spread, '산탄 퍼짐은 그대로 (알이 모여 버리지 않게)');
+  assert.ok(one.maxHp > R.PLAYER.maxHp && one.leech > 0 && one.speed > 1);
+  // 최대 단계를 넘겨도 최대 단계 값
+  const lots = {};
+  const maxed = {};
+  for (const u of R.UPGRADES) {
+    lots[u.id] = u.max + 5;
+    maxed[u.id] = u.max;
+  }
+  assert.deepEqual(R.upgradeMods(lots), R.upgradeMods(maxed));
+});
+
+test('강화: 고를 카드는 서로 다르고, 다 채운 강화는 안 나와요', () => {
+  const rand = M.rng(7);
+  for (let i = 0; i < 50; i++) {
+    const offer = R.offerUpgrades({}, rand);
+    assert.equal(offer.length, 3);
+    assert.equal(new Set(offer.map((u) => u.id)).size, 3);
+    offer.forEach((u) => assert.ok(u.name && u.desc && R.UPGRADE_CATS[u.cat], u.id));
+  }
+  const almost = {};
+  for (const u of R.UPGRADES) almost[u.id] = u.max;
+  almost.dmg = 0;
+  almost.leech = 1;
+  const left = R.offerUpgrades(almost, rand).map((u) => u.id).sort();
+  assert.deepEqual(left, ['dmg', 'leech'], '남은 것만 나와요');
+  almost.dmg = R.UPGRADE_BY_ID.dmg.max;
+  almost.leech = R.UPGRADE_BY_ID.leech.max;
+  assert.equal(R.offerUpgrades(almost, rand).length, 0, '다 채우면 고를 게 없어요');
+});
+
 test('질감: 크기가 2의 거듭제곱이라 반복해서 붙일 수 있어요', () => {
   const t = SZ.textures.build();
   for (const [name, { size, data }] of Object.entries(t)) {

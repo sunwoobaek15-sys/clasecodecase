@@ -3,10 +3,11 @@
   'use strict';
   const SZ = root.SZ;
   const $ = (id) => document.getElementById(id);
-  const SCREENS = ['s-title', 's-pause', 's-over', 's-settings', 's-error'];
+  const SCREENS = ['s-title', 's-pause', 's-over', 's-settings', 's-error', 's-upgrade'];
   const fmt = (n) => Math.round(n).toLocaleString('ko-KR');
   let settingsBack = 's-title';
   let pausedAt = 0;
+  let upgradeAt = 0;
 
   function showScreen(id) {
     SCREENS.forEach((s) => ($(s).hidden = s !== id));
@@ -38,6 +39,67 @@
     $('r-time').textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
     $('r-record').textContent = fmt(SZ.game.store.best ? SZ.game.store.best.score : r.score);
     $('r-best').hidden = !r.best;
+    upgradeSummary($('r-upg'), r.upgrades);
+  }
+
+  /* ---------- 강화 ---------- */
+  /** 고른 강화 목록: "강화 탄두 2 · 빠른 손" */
+  function upgradeSummary(el, ids) {
+    el.textContent = '';
+    if (!ids || !ids.length) return;
+    const count = {};
+    ids.forEach((id) => (count[id] = (count[id] || 0) + 1));
+    el.append('강화 ');
+    Object.keys(count).forEach((id, i) => {
+      if (i) el.append(' · ');
+      const b = document.createElement('b');
+      b.textContent = SZ.rules.UPGRADE_BY_ID[id].name + (count[id] > 1 ? ' ' + count[id] : '');
+      el.append(b);
+    });
+  }
+
+  function renderUpgrade() {
+    const game = SZ.game;
+    const offer = game.offer || [];
+    const lv = game.player.upg;
+    $('up-eyebrow').textContent = '웨이브 ' + game.waveNumber() + ' 클리어';
+    const box = $('up-cards');
+    box.textContent = '';
+    offer.forEach((u, i) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'up-card ' + u.cat;
+      card.dataset.i = String(i);
+      const key = document.createElement('kbd');
+      key.className = 'up-key';
+      key.textContent = String(i + 1);
+      const cat = document.createElement('span');
+      cat.className = 'up-cat';
+      cat.textContent = SZ.rules.UPGRADE_CATS[u.cat];
+      const name = document.createElement('b');
+      name.className = 'up-name';
+      name.textContent = u.name;
+      const desc = document.createElement('span');
+      desc.className = 'up-desc';
+      desc.textContent = u.desc;
+      const pips = document.createElement('span');
+      pips.className = 'up-pips';
+      pips.setAttribute('aria-label', '단계 ' + ((lv[u.id] || 0) + 1) + ' / ' + u.max);
+      for (let k = 0; k < u.max; k++) {
+        const pip = document.createElement('i');
+        if (k < (lv[u.id] || 0)) pip.className = 'on';
+        else if (k === (lv[u.id] || 0)) pip.className = 'next';
+        pips.append(pip);
+      }
+      card.append(key, cat, name, desc, pips);
+      box.append(card);
+    });
+  }
+
+  /** 강화 고르기 (화면이 뜨자마자 누른 클릭·키는 무시해요: 쏘던 손이 잘못 고르지 않게) */
+  function chooseUpgrade(i) {
+    if (Date.now() - upgradeAt < 600) return;
+    if (SZ.game.pickUpgrade(i)) showScreen(null);
   }
 
   /* ---------- 설정 ---------- */
@@ -132,11 +194,16 @@
       } else if (s === 'over') {
         renderResult(game.result);
         showScreen('s-over');
+      } else if (s === 'upgrade') {
+        upgradeAt = Date.now();
+        renderUpgrade();
+        showScreen('s-upgrade');
       }
+      if (s === 'paused') upgradeSummary($('pause-upg'), game.upgradesTaken());
       $('touch').hidden = !(SZ.input.touch && s === 'playing');
     };
     game.onLockRetry = () => {
-      if (game.state === 'playing') game.pause();
+      if (game.state === 'playing' || (game.state === 'upgrade' && !game.offer)) game.pause();
       $('pause-hint').textContent = '마우스를 잠그지 못했어요. 잠시 후 계속하기를 다시 눌러 주세요.';
     };
     SZ.input.onTouchStart = () => {
@@ -182,6 +249,17 @@
       game.start();
     });
     $('b-menu').addEventListener('click', () => game.quit());
+    $('up-cards').addEventListener('click', (e) => {
+      const card = e.target.closest('.up-card');
+      if (card) chooseUpgrade(Number(card.dataset.i));
+    });
+    root.addEventListener('keydown', (e) => {
+      if (game.state !== 'upgrade' || !game.offer) return;
+      const n = { Digit1: 0, Digit2: 1, Digit3: 2, Numpad1: 0, Numpad2: 1, Numpad3: 2 }[e.code];
+      if (n === undefined) return;
+      e.preventDefault();
+      chooseUpgrade(n);
+    });
     $('settings-form').addEventListener('submit', (e) => {
       e.preventDefault();
       showScreen(settingsBack);

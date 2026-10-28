@@ -115,13 +115,22 @@
     <h2>적 정보</h2>
     <ul class="intel">
       <li><i class="dot drone"></i><b>감시 드론</b><span>떠다니며 플라스마를 쏴요. 눈이 밝아지면 곧 발사. 몸 한가운데 코어가 약점.</span></li>
-      <li><i class="dot runner"></i><b>추격자</b><span>빠르게 달려와 칼날로 베요. 머리가 약점. 달리면 떨쳐 낼 수 있어요.</span></li>
+      <li><i class="dot runner"></i><b>추격자</b><span>빠르게 달려와 칼날로 베요. 칼날을 뒤로 들면 물러나세요. 머리가 약점.</span></li>
       <li><i class="dot brute"></i><b>중장갑 로봇</b><span>3웨이브부터. 느리지만 단단하고 3연발을 쏴요. 상자 뒤에 숨으세요.</span></li>
     </ul>
     </div>
   </aside>
 </section>
 
+<section id="s-upgrade" class="screen dim" hidden>
+  <div class="upgrade">
+    <p class="eyebrow" id="up-eyebrow">웨이브 1 클리어</p>
+    <h2 class="dialog-title">강화를 하나 고르세요</h2>
+    <div id="up-cards" class="up-cards"></div>
+    <p class="up-help only-mouse">카드를 클릭하거나 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> 키로 골라요</p>
+    <p class="up-help only-touch">카드를 눌러 골라요</p>
+  </div>
+</section>
 <section id="s-pause" class="screen dim" hidden>
   <div class="panel dialog">
     <p class="eyebrow">작전 중지</p>
@@ -131,6 +140,7 @@
       <button type="button" id="b-pause-settings" class="btn">설정</button>
       <button type="button" id="b-quit" class="btn ghost">작전 포기</button>
     </div>
+    <p id="pause-upg" class="up-list"></p>
     <p id="pause-hint" class="hint" aria-live="polite"></p>
   </div>
 </section>
@@ -149,6 +159,7 @@
       <div><dt>생존 시간</dt><dd id="r-time">0:00</dd></div>
       <div><dt>최고 기록</dt><dd id="r-record">0</dd></div>
     </dl>
+    <p id="r-upg" class="up-list"></p>
     <div class="stack row">
       <button type="button" id="b-retry" class="btn primary">다시 하기</button>
       <button type="button" id="b-menu" class="btn">처음 화면</button>

@@ -183,13 +183,34 @@
       c.fillStyle = p.kind === 'health' ? '#5ee08a' : '#ffc14d';
       c.fillRect(p.x * scale - 3, p.z * scale - 3, 6, 6);
     }
+    c.restore();
+    // 적: 레이더 밖에 있으면 (마지막 몇 기를 알려 줄 때) 테두리에 깜빡이며 붙여요
+    const cs = Math.cos(s.yaw), sn = Math.sin(s.yaw);
+    const rim = half - 7;
     for (const e of s.enemies) {
+      const dx = (e.x - s.px) * scale, dz = (e.z - s.pz) * scale;
+      let x = dx * cs - dz * sn, y = dx * sn + dz * cs;
+      const d = Math.hypot(x, y);
+      const out = d > rim;
+      if (out) {
+        if (!s.reveal) continue;
+        x *= rim / d;
+        y *= rim / d;
+      }
+      c.globalAlpha = out ? 0.55 + 0.45 * Math.sin(s.time * 8) : 1;
       c.fillStyle = e.type === 'brute' ? '#ff9a3c' : '#ff4a3d';
       c.beginPath();
-      c.arc(e.x * scale, e.z * scale, e.type === 'brute' ? 5 : 3.5, 0, Math.PI * 2);
+      c.arc(half + x, half + y, e.type === 'brute' ? 5 : 3.5, 0, Math.PI * 2);
       c.fill();
+      if (s.reveal) {
+        c.strokeStyle = 'rgba(255, 90, 70, 0.7)';
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.arc(half + x, half + y, 7 + 2 * Math.sin(s.time * 8), 0, Math.PI * 2);
+        c.stroke();
+      }
     }
-    c.restore();
+    c.globalAlpha = 1;
     // 가운데: 나 (위쪽이 보는 방향)
     c.fillStyle = '#e6f6ff';
     c.beginPath();
@@ -231,6 +252,11 @@
     bannerTimer = dur || 2.4;
   }
 
+  function hideBanner() {
+    el.banner.classList.remove('on');
+    bannerTimer = 0;
+  }
+
   /** 오른쪽 알림 줄 (처치, 보급) */
   function feed(msg, kind) {
     const row = document.createElement('p');
@@ -254,5 +280,5 @@
     el.vignette.style.opacity = '0';
   }
 
-  SZ.hud = { init, setLevel, show, update, hit, damageFrom, banner, feed, reset };
+  SZ.hud = { init, setLevel, show, update, hit, damageFrom, banner, hideBanner, feed, reset };
 })(typeof window !== 'undefined' ? window : globalThis);

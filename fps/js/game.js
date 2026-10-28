@@ -110,7 +110,10 @@
       recoilDebt: 0,
       lastShot: -9,
       stepDist: 0,
-      weapons: RU.WEAPONS.map((d) => ({ def: d, ammo: d.mag, reserve: d.reserve })),
+      weapons: RU.WEAPONS.map((d) => ({ def: d, st: RU.weaponStats(d), ammo: d.mag, reserve: d.reserve })),
+      upg: {},
+      mods: RU.upgradeMods(null),
+      maxHp: PL.maxHp,
       cur: 0,
       prev: 1,
       switchTo: -1,
@@ -139,6 +142,13 @@
   }
 
   const curW = () => player.weapons[player.cur];
+
+  /** 강화를 고르면 무기·체력·속도 값을 다시 계산해요 */
+  function applyMods() {
+    player.mods = RU.upgradeMods(player.upg);
+    player.maxHp = player.mods.maxHp;
+    for (const w of player.weapons) w.st = RU.weaponStats(w.def, player.mods);
+  }
 
   function forward(yaw, pitch, out) {
     const cp = Math.cos(pitch);
@@ -198,7 +208,7 @@
     player.sprintLock -= dt;
     const wantSprint = (input.down('ShiftLeft') || input.down('ShiftRight') || input.touchSprint) && f > 0.3 && player.sprintLock <= 0 && player.aim < 0.5;
     player.sprint = damp(player.sprint, wantSprint ? 1 : 0, 8, dt);
-    const speed = lerp(PL.walk, PL.sprint, player.sprint) * lerp(1, 0.6, player.aim);
+    const speed = lerp(PL.walk, PL.sprint, player.sprint) * lerp(1, 0.6, player.aim) * player.mods.speed;
     const accel = player.onGround ? 14 : 2.5;
     player.vx = damp(player.vx, wx * speed, accel, dt);
     player.vz = damp(player.vz, wz * speed, accel, dt);
@@ -264,12 +274,12 @@
 
   function startReload() {
     const w = curW();
-    if (player.reloading || busy() || w.ammo >= w.def.mag || w.reserve <= 0) return false;
+    if (player.reloading || busy() || w.ammo >= w.st.mag || w.reserve <= 0) return false;
     player.reloading = true;
     player.reloadFirst = true;
     player.inspectT = 0;
     player.rackT = 0;
-    player.reloadT = player.reloadTotal = w.def.reload + (w.def.shellReload ? A.DUR.shellEnter : 0);
+    player.reloadT = player.reloadTotal = w.st.reload + (w.def.shellReload ? A.DUR.shellEnter : 0);
     return true;
   }
 
@@ -307,14 +317,14 @@
           w.ammo++;
           w.reserve--;
           player.reloadFirst = false;
-          if (w.ammo < d.mag && w.reserve > 0) player.reloadT = player.reloadTotal = d.reload;
+          if (w.ammo < w.st.mag && w.reserve > 0) player.reloadT = player.reloadTotal = w.st.reload;
           else {
             // 다 넣으면 총을 세우며 펌프를 철컥
             player.reloading = false;
             player.rackT = A.DUR.rack;
           }
         } else {
-          const take = Math.min(d.mag - w.ammo, w.reserve);
+          const take = Math.min(w.st.mag - w.ammo, w.reserve);
           w.ammo += take;
           if (w.reserve !== Infinity) w.reserve -= take;
           player.reloading = false;
@@ -359,9 +369,10 @@
 
   function fire(w) {
     const d = w.def;
+    const st = w.st;
     w.ammo--;
-    player.fireT = d.fireDelay;
-    player.holdT = d.holdDelay;
+    player.fireT = st.fireDelay;
+    player.holdT = st.holdDelay;
     player.lastShot = game.time;
     player.flashT = 0.06;
     player.flashAng = Math.random() * TAU;
@@ -380,11 +391,11 @@
     const right = [cy, 0, -sy];
     const up = [sy * sp, cp, cy * sp];
     const hs = Math.hypot(player.vx, player.vz);
-    let cone = d.spread + player.bloom + hs * 0.0032 + (player.onGround ? 0 : 0.03);
+    let cone = st.spread + player.bloom + hs * 0.0032 + (player.onGround ? 0 : 0.03);
     cone *= lerp(1, d.pellets > 1 ? 0.75 : 0.28, player.aim);
 
     const hits = new Map();
-    for (let i = 0; i < d.pellets; i++) {
+    for (let i = 0; i < st.pellets; i++) {
       const a = Math.random() * Math.PI * 2;
       const r = Math.sqrt(Math.random()) * cone;
       const ox = Math.cos(a) * r, oy = Math.sin(a) * r;
@@ -398,7 +409,7 @@
       const res = trace(e[0], e[1], e[2], dx, dy, dz, d.range);
       const hx = e[0] + dx * res.t, hy = e[1] + dy * res.t, hz = e[2] + dz * res.t;
       if (res.enemy) {
-        const dmg = RU.damageAt(d, res.t) * (res.crit ? d.headMul : 1);
+        const dmg = RU.damageAt(st, res.t) * (res.crit ? st.headMul : 1);
         const h = hits.get(res.enemy) || { dmg: 0, crit: false, x: hx, y: hy, z: hz, dx, dz };
         h.dmg += dmg;
         h.crit = h.crit || res.crit;
@@ -424,11 +435,11 @@
       hud.hit(killed ? 'kill' : crit ? 'crit' : 'hit');
       audio.play(crit ? 'crit' : 'hit', null, 0.9);
     }
-    player.bloom = Math.min(d.maxSpread, player.bloom + d.bloom);
-    const k = d.recoil * lerp(1, 0.6, player.aim) * (0.85 + Math.random() * 0.3);
+    player.bloom = Math.min(st.maxSpread, player.bloom + st.bloom);
+    const k = st.recoil * lerp(1, 0.6, player.aim) * (0.85 + Math.random() * 0.3);
     player.pitch = clamp(player.pitch + k, -1.45, 1.45);
     player.recoilDebt += k * 0.75;
-    player.yaw += (Math.random() - 0.5) * d.recoil * 0.5;
+    player.yaw += (Math.random() - 0.5) * st.recoil * 0.5;
     // 총구 연기
     const big = d.pellets > 1 ? 1.8 : 1;
     emit({ layer: 'alpha', x: muzzle[0] + fwd[0] * 0.1, y: muzzle[1] + fwd[1] * 0.1, z: muzzle[2] + fwd[2] * 0.1, vx: fwd[0] * 0.4 * big, vy: 0.35, vz: fwd[2] * 0.4 * big, life: 0.75, size: 0.05 * big, size1: 0.32 * big, r: 0.55, g: 0.55, b: 0.58, a: 0.22 * big });
@@ -454,7 +465,7 @@
           u = el / A.DUR.shellEnter;
         } else {
           action = 'shell';
-          u = (player.reloadFirst ? el - A.DUR.shellEnter : el) / d.reload;
+          u = (player.reloadFirst ? el - A.DUR.shellEnter : el) / curW().st.reload;
         }
       } else {
         action = 'reload';
@@ -573,7 +584,9 @@
     let ok = cands.filter((c) => c.d > 14 && free(c) && !LV.lineOfSight(lv, c.s.x, 1.6, c.s.z, player.x, player.y + PL.eye, player.z));
     if (!ok.length) ok = cands.filter((c) => c.d > 9 && free(c));
     if (!ok.length) ok = cands.slice().sort((a, b) => b.d - a.d).slice(0, 2);
-    return ok[Math.floor(Math.random() * ok.length)].s;
+    // 가까운 출현 지점을 더 자주 골라요: 멀리서 오래 걸어오는 동안 기다리지 않게
+    ok.sort((a, b) => a.d - b.d);
+    return ok[Math.floor(Math.pow(Math.random(), 1.7) * ok.length)].s;
   }
 
   function spawnEnemy(type, at) {
@@ -632,6 +645,10 @@
     audio.play('spawn', e);
   }
 
+  const TRANSIT = { drone: 1.8, runner: 1.15, brute: 1.7 };
+  const SWING = 0.44; // 추격자 베기 길이(초)
+  const SWING_HIT = 0.14; // 끝나기 0.14초 전에 맞아요 → 시작하고 0.3초 뒤라 물러나면 피할 수 있어요
+
   function enemyEyeY(e) {
     return e.type === 'drone' ? e.y : e.y + (e.type === 'brute' ? 2.2 : 1.6);
   }
@@ -660,12 +677,16 @@
       const ey = enemyEyeY(e);
       e.losT -= dt;
       if (e.losT <= 0) {
+        const had = e.los;
         e.los = LV.lineOfSight(lv, e.x, ey, e.z, player.x, peY, player.z);
+        // 플레이어를 새로 찾으면 금방 쏴요 (눈이 밝아지거나 총신이 도는 예고는 그대로)
+        if (e.los && !had && def.fireEvery && e.windup <= 0 && e.burstLeft <= 0) e.fireT = Math.min(e.fireT, e.type === 'brute' ? rnd(0.9, 1.5) : rnd(0.55, 1.1));
         // 상자 너머로 보여도 걸어서 곧장 갈 수 있는지는 따로 봐요
         e.walkClear = e.los && LV.lineOfSight(lv, e.x, 0.4, e.z, player.x, Math.max(0.4, player.y + 0.4), player.z);
         e.losT = rnd(0.12, 0.22);
       }
-      const speed = def.speed * plan.speedMul;
+      // 플레이어가 안 보이고 멀면 서둘러 와요
+      const speed = def.speed * plan.speedMul * (!e.los && dist > 10 ? TRANSIT[e.type] : 1);
       let mx = 0, mz = 0;
       const follow = () => {
         const step = LV.nextStep(lv, field, e.x, e.z);
@@ -690,7 +711,7 @@
         e.atkT -= dt;
         if (dist < reach && vertical < 2.3 && e.atkT <= 0) {
           e.atkT = def.meleeEvery;
-          e.swingT = 0.32;
+          e.swingT = SWING;
           e.swingHit = false;
           audio.play('swing', e);
         }
@@ -738,11 +759,13 @@
         }
       }
 
-      // 칼날 휘두르기: 휘두르는 도중에 아직 가까우면 맞아요
+      // 칼날 휘두르기: 뒤로 들어 올렸다가(예고) 앞으로 크게 베요. 베는 순간에 아직 가까우면 맞아요
       if (e.swingT > 0) {
         e.swingT -= dt;
-        e.swing = Math.sin(clamp(1 - e.swingT / 0.32, 0, 1) * Math.PI);
-        if (!e.swingHit && e.swingT < 0.16) {
+        const u = clamp(1 - e.swingT / SWING, 0, 1);
+        const k = (u - 0.58) / 0.42;
+        e.swing = u < 0.58 ? -0.55 * Math.sin((u / 0.58) * Math.PI * 0.5) : -0.55 * (1 - k) + 1.5 * Math.sin(k * Math.PI);
+        if (!e.swingHit && e.swingT < SWING_HIT) {
           e.swingHit = true;
           if (dist < def.reach + PL.radius + 0.4 && player.y - e.y < 2.3) hurtPlayer(def.meleeDamage * plan.dmgMul, e.x, e.z);
         }
@@ -827,7 +850,7 @@
     // 중장갑은 움직임을 조금 예측해서 쏴요
     const tx0 = player.x, ty = player.y + 1.15, tz0 = player.z;
     const flight = Math.hypot(tx0 - ox, tz0 - oz) / def.shotSpeed;
-    const lead = e.type === 'brute' ? 0.55 : 0.15;
+    const lead = e.type === 'brute' ? 0.75 : 0.45;
     const err = 0.35 + Math.hypot(tx0 - ox, tz0 - oz) * 0.02;
     const tx = tx0 + player.vx * flight * lead + rnd(-err, err);
     const tz = tz0 + player.vz * flight * lead + rnd(-err, err);
@@ -875,6 +898,14 @@
     if (crit) stats.crits++;
     if (wave) wave.killed++;
     hud.feed((crit ? '치명타! ' : '') + def.name + ' 처치 +' + pts, crit ? 'crit' : '');
+    // 강화: 처치하면 체력·탄약을 조금 돌려받아요
+    if (player.mods.leech) player.hp = Math.min(player.maxHp, player.hp + player.mods.leech);
+    if (player.mods.scavenge) {
+      for (const w of player.weapons) {
+        const add = { rifle: 5, shotgun: 1 }[w.def.id];
+        if (add && w.reserve < w.def.maxReserve) w.reserve = Math.min(w.def.maxReserve, w.reserve + add * player.mods.scavenge);
+      }
+    }
     const cy = e.type === 'drone' ? e.y : e.y + (e.type === 'brute' ? 1.4 : 1.0);
     explosion(e.x, cy, e.z, def.color, e.type === 'brute' ? 1.8 : 1);
     audio.play(e.type === 'brute' ? 'bigExplode' : 'explode', e);
@@ -928,7 +959,7 @@
     // 아이템 떨어뜨리기
     const dropChance = e.type === 'brute' ? 0.9 : 0.16;
     if (Math.random() < dropChance) {
-      const needHealth = player.hp < PL.maxHp * 0.6;
+      const needHealth = player.hp < player.maxHp * 0.6;
       const kind = needHealth ? (Math.random() < 0.7 ? 'health' : 'ammo') : Math.random() < 0.35 ? 'health' : 'ammo';
       pickups.push({ x: e.x, z: e.z, kind, active: true, spot: false, life: 20, baseY: LV.maxHeightUnder(lv, e.x, e.z, 0.1) });
     }
@@ -983,9 +1014,9 @@
   /* ---------------- 아이템 ---------------- */
   function usePickup(p) {
     if (p.kind === 'health') {
-      if (player.hp >= PL.maxHp) return false;
+      if (player.hp >= player.maxHp) return false;
       const before = player.hp;
-      player.hp = Math.min(PL.maxHp, player.hp + RU.PICKUPS.health.amount);
+      player.hp = Math.min(player.maxHp, player.hp + RU.PICKUPS.health.amount);
       hud.feed('체력 +' + Math.round(player.hp - before), 'good');
     } else {
       let got = false;
@@ -1150,11 +1181,11 @@
   /* ---------------- 웨이브 ---------------- */
   function startWave(n) {
     const plan = RU.wavePlan(n);
-    wave = { n, plan, queue: RU.spawnOrder(plan), spawned: 0, killed: 0, phase: 'intro', timer: 2.6, spawnT: 0 };
+    wave = { n, plan, queue: RU.spawnOrder(plan), spawned: 0, killed: 0, phase: 'intro', timer: 1, spawnT: 0, revealed: false };
     let sub = '적 ' + plan.total + '기가 다가와요';
     if (n === 1) sub = '경비 로봇이 몰려와요. 원자로 홀을 지키세요';
     else if (n === 3) sub = '중장갑 로봇 출현! 적 ' + plan.total + '기';
-    hud.banner('WAVE ' + n, sub, 2.6);
+    hud.banner('WAVE ' + n, sub, 2.4);
     audio.play('alarm');
   }
 
@@ -1169,18 +1200,32 @@
         spawnEnemy(wave.queue.shift());
         wave.spawnT = wave.plan.spawnGap;
       }
+      // 마지막 몇 기는 레이더에 거리와 상관없이 보여 줘요 (찾아 헤매지 않게)
+      if (!wave.queue.length && enemies.length && enemies.length <= 3 && !wave.revealed) {
+        wave.revealed = true;
+        hud.feed('남은 적 ' + enemies.length + '기 · 레이더에 위치 표시', 'ammo');
+      }
       if (!wave.queue.length && !enemies.length) {
         wave.phase = 'clear';
-        wave.timer = 5;
+        wave.timer = 1.9;
         stats.waves = wave.n;
         game.score += wave.plan.clearBonus;
         const before = player.hp;
-        player.hp = Math.min(PL.maxHp, player.hp + 20);
+        player.hp = Math.min(player.maxHp, player.hp + 20);
         for (const w of player.weapons) if (w.reserve !== Infinity) w.reserve = Math.min(w.def.maxReserve, w.reserve + Math.ceil(w.def.mag * 0.5));
-        hud.banner('웨이브 ' + wave.n + ' 클리어', '+' + wave.plan.clearBonus + '점 · 체력 +' + Math.round(player.hp - before) + ' · 탄약 보급', 3.2);
+        hud.banner('웨이브 ' + wave.n + ' 클리어', '+' + wave.plan.clearBonus + '점 · 체력 +' + Math.round(player.hp - before) + ' · 탄약 보급', 2.2);
         audio.play('clear');
       }
     } else if (wave.phase === 'clear') {
+      wave.timer -= dt;
+      if (wave.timer <= 0) {
+        // 강화 고르기: 다 고른 게 아니면 셋 중 하나를 골라요
+        const offer = RU.offerUpgrades(player.upg);
+        wave.phase = 'next';
+        wave.timer = 1.2;
+        if (offer.length) openUpgrade(offer);
+      }
+    } else if (wave.phase === 'next') {
       wave.timer -= dt;
       if (wave.timer <= 0) startWave(wave.n + 1);
     }
@@ -1193,6 +1238,36 @@
     if (game.onStateChange) game.onStateChange(s);
   }
 
+  /* ---------------- 강화 고르기 ---------------- */
+  function openUpgrade(offer) {
+    game.offer = offer;
+    hud.hideBanner();
+    input.clearHeld();
+    setState('upgrade');
+    input.exitLock();
+  }
+
+  /** i번째 강화를 골라요 (0~2). 고르면 true */
+  function pickUpgrade(i) {
+    if (game.state !== 'upgrade' || !game.offer || !game.offer[i]) return false;
+    const u = game.offer[i];
+    player.upg[u.id] = (player.upg[u.id] || 0) + 1;
+    applyMods();
+    if (u.id === 'armor') player.hp = player.maxHp;
+    stats.upgrades.push(u.id);
+    game.offer = null;
+    hud.feed('강화: ' + u.name + (player.upg[u.id] > 1 ? ' ' + player.upg[u.id] + '단계' : ''), 'good');
+    audio.play('pickup');
+    input.pressed.clear();
+    // 마우스를 다시 잠근 다음에 이어 가요 (잠글 필요가 없으면 바로)
+    audio.unlock();
+    if (!input.touch && !input.dragLook && !input.locked) {
+      game.pendingResume = true;
+      input.requestLock();
+    } else setState('playing');
+    return true;
+  }
+
   function newRun() {
     resetPlayer();
     enemies = [];
@@ -1201,7 +1276,9 @@
     chunks = [];
     flashes = [];
     pickups = lv.pickups.map((p) => ({ x: p.x, z: p.z, kind: p.kind, active: true, spot: true, t: 0, baseY: 0 }));
-    stats = { shots: 0, hits: 0, kills: 0, crits: 0, taken: 0, waves: 0, started: game.time };
+    stats = { shots: 0, hits: 0, kills: 0, crits: 0, taken: 0, waves: 0, started: game.time, upgrades: [] };
+    game.offer = null;
+    game.pendingResume = false;
     game.score = 0;
     game.combo = 0;
     game.lastKill = -99;
@@ -1224,7 +1301,7 @@
   }
 
   function pause() {
-    if (game.state !== 'playing') return;
+    if (game.state !== 'playing' && !(game.state === 'upgrade' && !game.offer)) return;
     input.clearHeld();
     setState('paused');
     input.exitLock();
@@ -1260,6 +1337,7 @@
       accuracy: stats.shots ? stats.hits / stats.shots : 0,
       time: stats.time,
       best: false,
+      upgrades: stats.upgrades.slice(),
     };
     if (result.score > 0 && (!store.best || result.score > store.best.score)) {
       result.best = true;
@@ -1464,7 +1542,7 @@
     R.drawFx('add');
 
     // 손에 든 총
-    if (playingView && (game.state === 'playing' || game.state === 'paused')) {
+    if (playingView && (game.state === 'playing' || game.state === 'paused' || game.state === 'upgrade')) {
       R.clearDepth();
       R.setAmbient(VM_AMB);
       models.viewmodel(camWorld, vm.pose, vmOut);
@@ -1494,7 +1572,7 @@
     const plan = wave && wave.plan;
     const fovRad = (store.settings.fov * lerp(1, w.def.zoom, player.aim) * Math.PI) / 180;
     const hs = Math.hypot(player.vx, player.vz);
-    let cone = w.def.spread + player.bloom + hs * 0.0032 + (player.onGround ? 0 : 0.03);
+    let cone = w.st.spread + player.bloom + hs * 0.0032 + (player.onGround ? 0 : 0.03);
     cone *= lerp(1, w.def.pellets > 1 ? 0.75 : 0.28, player.aim);
     const spreadPx = (Math.tan(cone) / Math.tan(fovRad / 2)) * (canvas.clientHeight / 2);
     return {
@@ -1504,7 +1582,7 @@
       wave: wave ? wave.n : 1,
       left: wave ? wave.queue.length + enemies.length : 0,
       hp: player.hp,
-      maxHp: PL.maxHp,
+      maxHp: player.maxHp,
       ammo: w.ammo,
       reserve: w.reserve,
       weaponName: w.def.name,
@@ -1520,7 +1598,8 @@
       yaw: player.yaw,
       px: player.x,
       pz: player.z,
-      enemies: enemies.filter((e) => e.spawnT >= 1 && Math.hypot(e.x - player.x, e.z - player.z) < 26),
+      enemies: wave && wave.revealed ? enemies.filter((e) => e.spawnT >= 1) : enemies.filter((e) => e.spawnT >= 1 && Math.hypot(e.x - player.x, e.z - player.z) < 26),
+      reveal: !!(wave && wave.revealed),
       pickups: pickups.filter((p) => p.active),
       touch: input.touch,
       hint: game.hintT > 0 ? game.hint : '',
@@ -1565,7 +1644,7 @@
     } catch (e) {
       if (!R.gl.isContextLost()) throw e;
     }
-    if (game.state === 'playing' || game.state === 'dying' || game.state === 'paused') hud.update(snapshot(), dt);
+    if (game.state === 'playing' || game.state === 'dying' || game.state === 'paused' || game.state === 'upgrade') hud.update(snapshot(), dt);
     input.endFrame();
   }
 
@@ -1613,7 +1692,7 @@
     setupDemo();
     input.onLockChange = (locked) => {
       if (locked) {
-        if (game.state === 'paused' && game.pendingResume) {
+        if ((game.state === 'paused' || game.state === 'upgrade') && game.pendingResume) {
           game.pendingResume = false;
           setState('playing');
         }
@@ -1624,7 +1703,7 @@
       if (!input.everLocked) {
         // 포인터 잠금을 못 쓰는 곳: 마우스를 누른 채 끌어서 둘러봐요
         input.dragLook = true;
-        if (game.state === 'paused') setState('playing');
+        if (game.state === 'paused' || (game.state === 'upgrade' && !game.offer)) setState('playing');
         if (game.state === 'playing') hint('마우스를 누른 채 끌어서 둘러보세요 · Esc 일시정지', 6);
       } else if (game.onLockRetry) game.onLockRetry();
     };
@@ -1645,6 +1724,9 @@
     pause,
     resume,
     quit,
+    pickUpgrade,
+    waveNumber: () => (wave ? wave.n : 1),
+    upgradesTaken: () => (stats ? stats.upgrades.slice() : []),
     store,
     saveStore,
     DEFAULTS,
