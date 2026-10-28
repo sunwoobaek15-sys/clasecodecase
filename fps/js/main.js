@@ -29,6 +29,15 @@
     el.append(strong, ' · 웨이브 ' + b.wave + ' · 처치 ' + (b.kills || 0));
   }
 
+  /** 마지막으로 맞은 공격 */
+  const CAUSE = {
+    drone: '감시 드론의 플라스마에 쓰러졌어요.',
+    runner: '추격자의 칼날에 쓰러졌어요.',
+    brute: '중장갑 로봇의 포격에 쓰러졌어요.',
+    bomber: '자폭 드론 폭발에 휩쓸렸어요.',
+    boss: '지휘관의 포격에 쓰러졌어요.',
+  };
+
   function renderResult(r) {
     $('r-score').textContent = fmt(r.score);
     $('r-wave').textContent = String(r.wave);
@@ -39,6 +48,7 @@
     $('r-time').textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
     $('r-record').textContent = fmt(SZ.game.store.best ? SZ.game.store.best.score : r.score);
     $('r-best').hidden = !r.best;
+    $('r-cause').textContent = CAUSE[r.killedBy] || '';
     upgradeSummary($('r-upg'), r.upgrades);
   }
 

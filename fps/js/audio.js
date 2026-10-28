@@ -237,7 +237,7 @@
       tone(d, t, 0.06, { freq: 1760, gain: 0.16, wave: 'square' });
     },
     whir(d, t) {
-      tone(d, t, 0.5, { freq: 220, freqTo: 420, gain: 0.06, wave: 'sawtooth', attack: 0.2 });
+      tone(d, t, 0.22, { freq: 310, freqTo: 470, gain: 0.07, wave: 'sawtooth', attack: 0.05 });
     },
     click(d, t) {
       tone(d, t, 0.03, { freq: 1200, gain: 0.06, wave: 'square' });

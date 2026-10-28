@@ -309,6 +309,8 @@ body.touch .up-card .up-key { display: none; }
 @keyframes pip { to { opacity: 1; } }
 .up-help { margin: 0; font-size: 13px; color: var(--ink-3); }
 .up-list { margin: 0; font-size: 13px; color: var(--ink-2); }
+.cause { margin: -4px 0 0; font-size: 14px; color: var(--ink-2); }
+.cause:empty { display: none; }
 .up-list:empty { display: none; }
 .up-list b { color: var(--hazard); font-weight: 600; }
 @media (max-width: 640px), (max-height: 460px) {
@@ -342,6 +344,7 @@ body.short .result-grid dd { font-size: 18px; }
 body.short .result-grid .wide dd { font-size: 36px; }
 body.short .dialog .btn { min-height: 42px; }
 body.short .new-best { margin: 0; }
+body.short .result .eyebrow { display: none; }
 body.short .dialog.settings { width: min(720px, 100%); grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
 body.short .settings .eyebrow, body.short .settings .dialog-title, body.short .settings .stack { grid-column: 1 / -1; }
 body.short .settings .field select { min-height: 38px; }

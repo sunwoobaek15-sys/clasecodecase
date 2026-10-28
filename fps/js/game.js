@@ -114,12 +114,12 @@
       upg: {},
       mods: RU.upgradeMods(null),
       maxHp: PL.maxHp,
-      cur: 0,
-      prev: 1,
+      cur: 1, // 소총을 들고 시작해요 (권총은 1번)
+      prev: 0,
       switchTo: -1,
       lowerT: 0,
-      drawT: A.DUR.draw.pistol,
-      drawDur: A.DUR.draw.pistol,
+      drawT: A.DUR.draw.rifle,
+      drawDur: A.DUR.draw.rifle,
       inspectT: 0,
       inspectDur: 1,
       rackT: 0,
@@ -751,6 +751,13 @@
         } else if (dist < def.armDist && Math.abs(peY - e.y) < 2.4) {
           e.fuse = def.fuse;
           e.beepT = 0;
+        } else if (dist < 15) {
+          // 다가오는 소리: 가까울수록 자주 윙윙
+          e.beepT -= dt;
+          if (e.beepT <= 0) {
+            audio.play('whir', e, 0.8);
+            e.beepT = 0.35 + dist * 0.04;
+          }
         }
       } else {
         e.strafeT -= dt;
@@ -800,7 +807,7 @@
         e.swing = u < 0.58 ? -0.55 * Math.sin((u / 0.58) * Math.PI * 0.5) : -0.55 * (1 - k) + 1.5 * Math.sin(k * Math.PI);
         if (!e.swingHit && e.swingT < SWING_HIT) {
           e.swingHit = true;
-          if (dist < def.reach + PL.radius + 0.4 && player.y - e.y < 2.3) hurtPlayer(def.meleeDamage * plan.dmgMul, e.x, e.z);
+          if (dist < def.reach + PL.radius + 0.4 && player.y - e.y < 2.3) hurtPlayer(def.meleeDamage * plan.dmgMul, e.x, e.z, e.type);
         }
       } else e.swing = 0;
 
@@ -897,7 +904,7 @@
     const pd = Math.hypot(player.x - x, player.y + 1 - y, player.z - z);
     if (pd < 9) player.shake = Math.min(1, player.shake + (1 - pd / 9) * 0.8);
     if (pd < def.blast && LV.lineOfSight(lv, x, y, z, player.x, player.y + 1, player.z)) {
-      hurtPlayer(def.blastDamage * plan.dmgMul * lerp(1, 0.4, pd / def.blast), x, z);
+      hurtPlayer(def.blastDamage * plan.dmgMul * lerp(1, 0.4, pd / def.blast), x, z, e.type);
     }
     let chain = 0;
     for (const o of enemies.slice()) {
@@ -951,6 +958,7 @@
         vy: (dy / l) * def.shotSpeed,
         vz: vz * def.shotSpeed,
         dmg: def.shotDamage * plan.dmgMul,
+        from: e.type,
         life: 4,
         col,
         size: heavy(e) ? 0.5 : 0.38,
@@ -1088,7 +1096,7 @@
           const hx = s.x - player.x, hz = s.z - player.z;
           if (Math.hypot(hx, hz) < PL.radius + 0.24 && s.y > player.y - 0.1 && s.y < player.y + PL.height + 0.1) {
             dead = true;
-            hurtPlayer(s.dmg, s.x - s.vx, s.z - s.vz);
+            hurtPlayer(s.dmg, s.x - s.vx, s.z - s.vz, s.from);
             sparks(s.x, s.y, s.z, -s.vx, 0, -s.vz, 5, s.col, 3);
           }
         }
@@ -1100,9 +1108,10 @@
     }
   }
 
-  function hurtPlayer(dmg, sx, sz) {
+  function hurtPlayer(dmg, sx, sz, from) {
     if (game.state !== 'playing') return;
     player.hp -= dmg;
+    if (from) game.lastHitBy = from;
     player.hurt = Math.min(1, player.hurt + dmg / 22);
     player.shake = Math.min(1, player.shake + dmg / 28);
     stats.taken += dmg;
@@ -1384,6 +1393,7 @@
     stats = { shots: 0, hits: 0, kills: 0, crits: 0, taken: 0, waves: 0, started: game.time, upgrades: [] };
     game.offer = null;
     game.pendingResume = false;
+    game.lastHitBy = null;
     game.score = 0;
     game.combo = 0;
     game.lastKill = -99;
@@ -1443,6 +1453,7 @@
       time: stats.time,
       best: false,
       upgrades: stats.upgrades.slice(),
+      killedBy: game.lastHitBy || null,
     };
     if (result.score > 0 && (!store.best || result.score > store.best.score)) {
       result.best = true;
