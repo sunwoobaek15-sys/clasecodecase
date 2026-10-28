@@ -643,15 +643,24 @@ void main() {
         if (ov.rx) m4.rotateX(M, ov.rx);
         if (ov.rz) m4.rotateZ(M, ov.rz);
       }
-      if (node.mesh >= 0) drawPrims(model.prims[node.mesh], M, opts && opts.em, ov && ov.em);
+      if (node.mesh >= 0) drawPrims(model.prims[node.mesh], M, opts && opts.em, ov && ov.em, opts && opts.tint);
       if (!(opts && opts.noChildren)) for (const c of node.children) drawNode(model, c, M, opts, depth + 1, false);
     }
 
     const emSum = [0, 0, 0];
-    function drawPrims(list, M, em, glowEm) {
+    const tintMul = [0, 0, 0];
+    /** tint: 빛나지 않는 조각의 색에 곱할 값 (같은 모델을 다른 색으로, 예: 지휘관) */
+    function drawPrims(list, M, em, glowEm, tint) {
       for (const p of list) {
         if (!p) continue;
         bindMesh(p);
+        let col = p.tint;
+        if (tint && !p.glow) {
+          tintMul[0] = col[0] * tint[0];
+          tintMul[1] = col[1] * tint[1];
+          tintMul[2] = col[2] * tint[2];
+          col = tintMul;
+        }
         let e = em || null;
         const extra = p.glow ? glowEm : p.emitAdd;
         if (extra) {
@@ -660,7 +669,7 @@ void main() {
           emSum[2] = (em ? em[2] : 0) + extra[2];
           e = emSum;
         }
-        setMaterial(M, p.tex || 'grain', p.tint, e, p.spec, p.glow ? 1 : 0);
+        setMaterial(M, p.tex || 'grain', col, e, p.spec, p.glow ? 1 : 0);
         gl.drawElements(gl.TRIANGLES, p.count, p.type, 0);
       }
     }

@@ -144,13 +144,35 @@
     lightPart(P, 0, 2.22 + bob, -0.36, 0.38, 0.08, 0.02, [1, 0.45, 0.08]);
   }
 
-  const ENEMY_DRAW = { drone, runner, brute };
+  /** 자폭 드론 (상자 모델): 둥근 몸통 대신 상자 + 깜빡이는 빨간 코어 */
+  function bomber(e, t) {
+    const em = flashOf(e);
+    const grow = Math.min(1, e.spawnT * 1.3);
+    m4.identity(P);
+    m4.translate(P, e.x, e.y, e.z);
+    m4.rotateY(P, e.yaw);
+    m4.rotateX(P, e.tilt || 0);
+    m4.scale(P, grow, grow, grow);
+    part(P, 0, 0, 0, 0.4, 0.38, 0.42, 'metal', [0.14, 0.15, 0.17], em, 0.6);
+    part(P, 0, 0, 0, 0.43, 0.06, 0.45, 'metal', [0.96, 0.56, 0.1], em, 0.3);
+    for (const s of [-1, 1]) part(P, s * 0.33, 0.05, 0, 0.22, 0.05, 0.22, 'metal', [0.6, 0.62, 0.66], em, 0.5);
+    lightPart(P, 0, 0.23, 0, 0.16, 0.08, 0.16, [1, 0.2, 0.12], 1, [bomberBlink(e, t), 0.1, 0]);
+  }
+
+  /** 자폭 드론 코어 깜빡임: 평소엔 느리게, 터질 준비면 빠르고 밝게 */
+  function bomberBlink(e, t) {
+    if (e.fuse > 0) return Math.sin(t * 60) > 0 ? 4 : 0.6;
+    return Math.sin(t * 7 + e.seed) > 0.4 ? 1.6 : 0;
+  }
+
+  const ENEMY_DRAW = { drone, runner, brute, bomber };
 
   /* 로봇 GLB 자세: 관절 노드마다 돌리는 값 (그릴 때마다 덮어써요) */
   const OV = {
     drone: { eye: { em: [0, 0, 0] }, pod_l: { rx: 0 }, pod_r: { rx: 0 }, antenna: { em: [0, 0, 0] } },
     runner: { hips: { y: 0 }, torso: { rx: 0 }, head: { rx: 0, em: [0, 0, 0] } },
-    brute: { hips: { y: 0 }, head: { ry: 0 } },
+    brute: { hips: { y: 0 }, head: { ry: 0, em: [0, 0, 0] } },
+    bomber: { core: { em: [0, 0, 0] }, rotor_l: { ry: 0 }, rotor_r: { ry: 0 }, body: { rz: 0 } },
   };
   for (const s of ['l', 'r']) {
     for (const n of ['thigh', 'shin', 'foot', 'arm', 'fore']) OV.runner[n + '_' + s] = { rx: 0, rz: 0 };
@@ -158,7 +180,7 @@
     for (const n of ['thigh', 'shin', 'foot', 'cannon']) OV.brute[n + '_' + s] = { rx: 0 };
     OV.brute['barrels_' + s] = { rz: 0, em: [0, 0, 0] };
   }
-  const EN_OPTS = { em: null, ov: null };
+  const EN_OPTS = { em: null, ov: null, tint: null };
 
   function poseDrone(e, t, ov) {
     const pulse = 0.5 + Math.sin(t * 6 + e.seed) * 0.25 + (e.windup > 0 ? 1.4 : 0);
@@ -201,6 +223,11 @@
     const ph = e.phase || 0, stride = Math.min(1, e.moveAmt || 0);
     ov.hips.y = Math.abs(Math.sin(ph)) * 0.04 * stride;
     ov.head.ry = Math.sin(t * 0.7 + e.seed) * 0.15;
+    // 지휘관이 분노하면 눈이 붉게 고동쳐요
+    const rage = e.enraged ? 1.5 + Math.sin(t * 9) : 0;
+    ov.head.em[0] = rage * 1.6;
+    ov.head.em[1] = rage * 0.2;
+    ov.head.em[2] = rage * 0.1;
     const glow = e.windup > 0 ? 2.2 : e.burstLeft > 0 ? 1.4 : 0;
     for (const [s, sg] of [['l', -1], ['r', 1]]) {
       const p = ph + (sg > 0 ? 0 : Math.PI);
@@ -216,27 +243,39 @@
       b.em[1] = glow * 0.25;
     }
   }
-  const POSE = { drone: poseDrone, runner: poseRunner, brute: poseBrute };
+  function poseBomber(e, t, ov) {
+    const b = bomberBlink(e, t);
+    ov.core.em[0] = b;
+    ov.core.em[1] = b * 0.12;
+    ov.rotor_l.ry = t * 47 + e.seed;
+    ov.rotor_r.ry = -t * 47 - e.seed;
+    // 터질 준비: 몸통이 부르르 떨려요
+    ov.body.rz = e.fuse > 0 ? Math.sin(t * 90) * 0.12 : 0;
+  }
+  const POSE = { drone: poseDrone, runner: poseRunner, brute: poseBrute, bomber: poseBomber };
 
   function enemy(e, t) {
-    const m = model('robots/' + e.type);
+    const def = SZ.rules.ENEMIES[e.type];
+    const kind = def.model || e.type; // 지휘관은 중장갑 모델을 키워서 써요
+    const m = model('robots/' + kind);
     if (!m) {
-      ENEMY_DRAW[e.type](e, t);
+      ENEMY_DRAW[kind](e, t);
       return;
     }
-    const grow = Math.min(1, e.spawnT * 1.3);
+    const grow = Math.min(1, e.spawnT * 1.3) * (def.scale || 1);
     m4.identity(P);
     m4.translate(P, e.x, e.y, e.z);
     m4.rotateY(P, e.yaw);
-    if (e.type === 'drone') {
+    if (e.type === 'drone' || e.type === 'bomber') {
       m4.rotateX(P, e.tilt || 0);
       m4.rotateZ(P, e.roll || 0);
     }
     m4.scale(P, grow, grow, grow);
-    const ov = OV[e.type];
-    POSE[e.type](e, t, ov);
+    const ov = OV[kind];
+    POSE[kind](e, t, ov);
     EN_OPTS.em = flashOf(e);
     EN_OPTS.ov = ov;
+    EN_OPTS.tint = def.tint || null;
     R.drawModel(m, P, EN_OPTS);
   }
 
@@ -358,15 +397,19 @@
     drone: ['body', 'pod_l', 'pod_r', 'antenna', 'eye'],
     runner: ['head', 'torso', 'hips', 'arm_l', 'arm_r', 'fore_l', 'fore_r', 'thigh_l', 'thigh_r', 'shin_l', 'shin_r', 'foot_l', 'foot_r'],
     brute: ['head', 'torso', 'hips', 'shoulder_l', 'shoulder_r', 'cannon_l', 'cannon_r', 'barrels_l', 'barrels_r', 'thigh_l', 'thigh_r', 'shin_l', 'shin_r'],
+    bomber: ['body', 'duct_l', 'duct_r', 'core'],
   };
   const partCache = {};
   function partsOf(type) {
     if (partCache[type]) return partCache[type];
-    const key = 'robots/' + type;
+    const def = SZ.rules.ENEMIES[type] || {};
+    const kind = def.model || type;
+    const k = def.scale || 1;
+    const key = 'robots/' + kind;
     const m = model(key);
     const out = [];
     if (m) {
-      for (const name of PART_NAMES[type] || []) {
+      for (const name of PART_NAMES[kind] || []) {
         const i = nodeOf(m, name);
         if (i < 0 || m.nodes[i].mesh < 0) continue;
         const n = m.nodes[i];
@@ -376,8 +419,9 @@
           model: key,
           node: i,
           center: c,
-          size: n.size,
-          at: [W[0] * c[0] + W[4] * c[1] + W[8] * c[2] + W[12], W[1] * c[0] + W[5] * c[1] + W[9] * c[2] + W[13], W[2] * c[0] + W[6] * c[1] + W[10] * c[2] + W[14]],
+          size: n.size.map((v) => v * k),
+          scale: k,
+          at: [(W[0] * c[0] + W[4] * c[1] + W[8] * c[2] + W[12]) * k, (W[1] * c[0] + W[5] * c[1] + W[9] * c[2] + W[13]) * k, (W[2] * c[0] + W[6] * c[1] + W[10] * c[2] + W[14]) * k],
         });
       }
     }
@@ -539,10 +583,12 @@
     const m = d.ref && model(d.ref.model);
     if (m) {
       const c = d.ref.center;
+      if (d.scale && d.scale !== 1) m4.scale(P, d.scale, d.scale, d.scale);
       m4.translate(P, -c[0], -c[1], -c[2]);
       hotEm[0] = d.hot * 1.2;
       hotEm[1] = d.hot * 0.4;
       DEBRIS_OPTS.em = d.hot > 0 ? hotEm : null;
+      DEBRIS_OPTS.tint = d.tintModel || null;
       R.drawModel(m, P, DEBRIS_OPTS, d.ref.node, true);
       return;
     }

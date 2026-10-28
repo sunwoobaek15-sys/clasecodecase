@@ -634,8 +634,16 @@
       stuckT: 0,
       checkX: x,
       checkZ: z,
+      fuse: 0,
+      beepT: 0,
+      dead: false,
+      enraged: false,
     };
     enemies.push(e);
+    if (def.boss) {
+      hud.feed(def.name + ' 출현!', 'crit');
+      audio.play('alarm');
+    }
     wave.spawned++;
     flashes.push({ x, y: 1.4, z, r: 0.2, g: 1.2, b: 1.6, radius: 8, life: 0.9, max: 0.9 });
     for (let i = 0; i < 26; i++) {
@@ -650,8 +658,13 @@
   const SWING_HIT = 0.14; // 끝나기 0.14초 전에 맞아요 → 시작하고 0.3초 뒤라 물러나면 피할 수 있어요
 
   function enemyEyeY(e) {
-    return e.type === 'drone' ? e.y : e.y + (e.type === 'brute' ? 2.2 : 1.6);
+    const def = RU.ENEMIES[e.type];
+    return def.flying ? e.y : e.y + def.head[0];
   }
+
+  /** 중장갑처럼 생긴 적(중장갑, 지휘관)과 그 크기 */
+  const heavy = (e) => e.type === 'brute' || RU.ENEMIES[e.type].model === 'brute';
+  const sizeOf = (e) => RU.ENEMIES[e.type].scale || 1;
 
   function updateEnemies(dt) {
     const plan = wave ? wave.plan : RU.wavePlan(1);
@@ -680,13 +693,13 @@
         const had = e.los;
         e.los = LV.lineOfSight(lv, e.x, ey, e.z, player.x, peY, player.z);
         // 플레이어를 새로 찾으면 금방 쏴요 (눈이 밝아지거나 총신이 도는 예고는 그대로)
-        if (e.los && !had && def.fireEvery && e.windup <= 0 && e.burstLeft <= 0) e.fireT = Math.min(e.fireT, e.type === 'brute' ? rnd(0.9, 1.5) : rnd(0.55, 1.1));
+        if (e.los && !had && def.fireEvery && e.windup <= 0 && e.burstLeft <= 0) e.fireT = Math.min(e.fireT, heavy(e) ? rnd(0.9, 1.5) : rnd(0.55, 1.1));
         // 상자 너머로 보여도 걸어서 곧장 갈 수 있는지는 따로 봐요
         e.walkClear = e.los && LV.lineOfSight(lv, e.x, 0.4, e.z, player.x, Math.max(0.4, player.y + 0.4), player.z);
         e.losT = rnd(0.12, 0.22);
       }
       // 플레이어가 안 보이고 멀면 서둘러 와요
-      const speed = def.speed * plan.speedMul * (!e.los && dist > 10 ? TRANSIT[e.type] : 1);
+      const speed = def.speed * plan.speedMul * (!e.los && dist > 10 ? TRANSIT[e.type] || 1.6 : 1) * (e.enraged ? 1.3 : 1);
       let mx = 0, mz = 0;
       const follow = () => {
         const step = LV.nextStep(lv, field, e.x, e.z);
@@ -719,6 +732,26 @@
           mx *= 0.2;
           mz *= 0.2;
         }
+      } else if (def.attack === 'explode') {
+        // 자폭 드론: 보이면 곧장, 안 보이면 길을 따라 날아와요. 가까우면 삑삑 깜빡이다 터져요
+        if (e.los && dist < 18) {
+          mx = dx / dist;
+          mz = dz / dist;
+        } else follow();
+        if (e.fuse > 0) {
+          e.fuse -= dt;
+          mx *= 0.3;
+          mz *= 0.3;
+          e.beepT -= dt;
+          if (e.beepT <= 0) {
+            audio.play('beep', e, 0.9);
+            e.beepT = 0.11;
+          }
+          if (e.fuse <= 0) e.boom = true;
+        } else if (dist < def.armDist && Math.abs(peY - e.y) < 2.4) {
+          e.fuse = def.fuse;
+          e.beepT = 0;
+        }
       } else {
         e.strafeT -= dt;
         if (e.strafeT <= 0) {
@@ -730,9 +763,9 @@
           const ux = dx / dist, uz = dz / dist;
           mx = ux * radial - uz * e.strafe * 0.75;
           mz = uz * radial + ux * e.strafe * 0.75;
-          e.fireT -= dt * (1 + 0.04 * (plan.wave - 1));
+          e.fireT -= dt * (1 + 0.04 * (plan.wave - 1)) * (e.enraged ? 1.7 : 1);
           if (e.fireT <= 0 && e.burstLeft <= 0 && e.windup <= 0) {
-            e.windup = e.type === 'brute' ? 0.45 : 0.35;
+            e.windup = heavy(e) ? 0.45 : 0.35;
             audio.play('charge', e, 0.8);
           }
         } else {
@@ -793,6 +826,12 @@
       }
       const hit = LV.slide(lv, e, e.vx * dt, e.vz * dt, def.radius, feet);
       if ((hit.hitX || hit.hitZ) && def.attack !== 'melee') e.strafe = -e.strafe;
+      // 지휘관: 체력이 반 아래로 떨어지면 분노해요
+      if (def.boss && !e.enraged && e.hp < e.maxHp * 0.5) {
+        e.enraged = true;
+        hud.feed(def.name + ' 분노! 더 빨리 쏴요', 'crit');
+        audio.play('charge', e, 1.4);
+      }
       // 플레이어와 겹치지 않게 적을 밀어내요
       const pdx = e.x - player.x, pdz = e.z - player.z;
       const pd = Math.hypot(pdx, pdz);
@@ -801,7 +840,7 @@
 
       const ms = Math.hypot(e.vx, e.vz);
       e.moveAmt = ms / def.speed;
-      e.phase += ms * dt * (e.type === 'brute' ? 1.6 : 2.4);
+      e.phase += ms * dt * (heavy(e) ? 1.6 / sizeOf(e) : 2.4);
       const faceYaw = e.los || def.attack === 'melee' ? yawTo(dx, dz) : ms > 0.3 ? yawTo(e.vx, e.vz) : e.yaw;
       e.yaw += angleDiff(e.yaw, faceYaw) * Math.min(1, (def.attack === 'melee' ? 12 : 7) * dt);
       if (def.flying) {
@@ -812,8 +851,8 @@
         e.tilt = damp(e.tilt, -fv * 0.06, 6, dt);
         e.roll = damp(e.roll, -rv * 0.08, 6, dt);
       }
-      if (e.type === 'brute') {
-        e.aimPitch = Math.atan2(peY - 0.4 - (e.y + 1.48), dist) * 0.8;
+      if (heavy(e)) {
+        e.aimPitch = Math.atan2(peY - 0.4 - (e.y + 1.48 * sizeOf(e)), dist) * 0.8;
         // 쏘기 직전과 쏘는 동안 총신이 빠르게 돌아요
         e.spin = ((e.spin || 0) + dt * (e.windup > 0 || e.burstLeft > 0 ? 22 : 1.2)) % (Math.PI * 2);
       }
@@ -832,16 +871,57 @@
         e.spawnT = 0.3;
       }
     }
+    // 시간이 다 된 자폭 드론이 터져요 (점수는 없어요)
+    for (const e of enemies.slice()) {
+      if (!e.boom || e.dead) continue;
+      removeEnemy(e);
+      if (wave) wave.killed++;
+      blast(e);
+    }
+  }
+
+  function removeEnemy(e) {
+    e.dead = true;
+    const i = enemies.indexOf(e);
+    if (i >= 0) enemies.splice(i, 1);
+  }
+
+  /** 자폭 드론 폭발: 둘레의 플레이어와 다른 적이 다쳐요 (다른 자폭 드론이 맞으면 연달아 터져요) */
+  function blast(e) {
+    const def = RU.ENEMIES[e.type];
+    const plan = wave ? wave.plan : RU.wavePlan(1);
+    const x = e.x, y = e.y, z = e.z;
+    explosion(x, y, z, def.color, 1.25);
+    flashes.push({ x, y: y + 0.2, z, r: 3, g: 1.4, b: 0.4, radius: 12, life: 0.45, max: 0.45 });
+    audio.play('bigExplode', e, 0.9);
+    const pd = Math.hypot(player.x - x, player.y + 1 - y, player.z - z);
+    if (pd < 9) player.shake = Math.min(1, player.shake + (1 - pd / 9) * 0.8);
+    if (pd < def.blast && LV.lineOfSight(lv, x, y, z, player.x, player.y + 1, player.z)) {
+      hurtPlayer(def.blastDamage * plan.dmgMul * lerp(1, 0.4, pd / def.blast), x, z);
+    }
+    let chain = 0;
+    for (const o of enemies.slice()) {
+      if (o.dead || o.spawnT < 1) continue;
+      const od = Math.hypot(o.x - x, o.y + RU.ENEMIES[o.type].body[0] - y, o.z - z);
+      if (od >= def.blast || !LV.lineOfSight(lv, x, y, z, o.x, o.y + RU.ENEMIES[o.type].body[0], o.z)) continue;
+      const l = Math.hypot(o.x - x, o.z - z) || 1;
+      if (damageEnemy(o, def.blastEnemy * lerp(1, 0.5, od / def.blast), false, (o.x - x) / l, (o.z - z) / l)) chain++;
+    }
+    if (chain) {
+      stats.chains = (stats.chains || 0) + chain;
+      hud.feed('연쇄 폭발! 적 ' + chain + '기 처치', 'crit');
+    }
   }
 
   function enemyShoot(e, def, plan) {
     const sy = Math.sin(e.yaw), cy = Math.cos(e.yaw);
     let ox, oy, oz;
-    if (e.type === 'brute') {
+    if (heavy(e)) {
+      const k = sizeOf(e);
       e.gun = -e.gun;
-      ox = e.x - sy * 0.95 + cy * 0.86 * e.gun;
-      oy = e.y + 1.48;
-      oz = e.z - cy * 0.95 - sy * 0.86 * e.gun;
+      ox = e.x - sy * 0.95 * k + cy * 0.86 * k * e.gun;
+      oy = e.y + 1.48 * k;
+      oz = e.z - cy * 0.95 * k - sy * 0.86 * k * e.gun;
     } else {
       ox = e.x - sy * 0.45;
       oy = e.y;
@@ -850,35 +930,44 @@
     // 중장갑은 움직임을 조금 예측해서 쏴요
     const tx0 = player.x, ty = player.y + 1.15, tz0 = player.z;
     const flight = Math.hypot(tx0 - ox, tz0 - oz) / def.shotSpeed;
-    const lead = e.type === 'brute' ? 0.75 : 0.45;
+    const lead = def.lead !== undefined ? def.lead : heavy(e) ? 0.75 : 0.35;
     const err = 0.35 + Math.hypot(tx0 - ox, tz0 - oz) * 0.02;
     const tx = tx0 + player.vx * flight * lead + rnd(-err, err);
     const tz = tz0 + player.vz * flight * lead + rnd(-err, err);
     const dx = tx - ox, dy = ty + rnd(-0.25, 0.25) - oy, dz = tz - oz;
     const l = Math.hypot(dx, dy, dz) || 1;
-    const col = e.type === 'brute' ? [1, 0.55, 0.12] : [1, 0.22, 0.15];
-    shots.push({
-      x: ox,
-      y: oy,
-      z: oz,
-      vx: (dx / l) * def.shotSpeed,
-      vy: (dy / l) * def.shotSpeed,
-      vz: (dz / l) * def.shotSpeed,
-      dmg: def.shotDamage * plan.dmgMul,
-      life: 4,
-      col,
-      size: e.type === 'brute' ? 0.5 : 0.38,
-    });
+    const col = def.boss ? [1, 0.3, 0.12] : heavy(e) ? [1, 0.55, 0.12] : [1, 0.22, 0.15];
+    // 지휘관은 부채꼴로 여러 발을 한꺼번에 쏴요
+    const fan = def.fan || 1;
+    for (let f = 0; f < fan; f++) {
+      const a = (f - (fan - 1) / 2) * (def.fanSpread || 0);
+      const ca = Math.cos(a), sa = Math.sin(a);
+      const vx = (dx * ca + dz * sa) / l, vz = (-dx * sa + dz * ca) / l;
+      shots.push({
+        x: ox,
+        y: oy,
+        z: oz,
+        vx: vx * def.shotSpeed,
+        vy: (dy / l) * def.shotSpeed,
+        vz: vz * def.shotSpeed,
+        dmg: def.shotDamage * plan.dmgMul,
+        life: 4,
+        col,
+        size: heavy(e) ? 0.5 : 0.38,
+      });
+    }
     flashes.push({ x: ox, y: oy, z: oz, r: col[0] * 1.5, g: col[1] * 1.5, b: col[2] * 1.5, radius: 5, life: 0.08, max: 0.08 });
-    audio.play(e.type === 'brute' ? 'heavyZap' : 'zap', e);
+    audio.play(heavy(e) ? 'heavyZap' : 'zap', e);
   }
 
   /** 적에게 피해. 쓰러뜨리면 true */
   function damageEnemy(e, dmg, crit, dx, dz) {
+    if (e.dead) return false;
     e.hp -= dmg;
     e.flash = 0.09;
-    e.vx += dx * (e.type === 'brute' ? 0.4 : 2.2);
-    e.vz += dz * (e.type === 'brute' ? 0.4 : 2.2);
+    const push = RU.ENEMIES[e.type].boss ? 0.08 : e.type === 'brute' ? 0.4 : e.type === 'bomber' ? 3 : 2.2;
+    e.vx += dx * push;
+    e.vz += dz * push;
     e.losT = 0;
     if (e.hp > 0) return false;
     killEnemy(e, crit);
@@ -887,8 +976,7 @@
 
   function killEnemy(e, crit) {
     const def = RU.ENEMIES[e.type];
-    const i = enemies.indexOf(e);
-    if (i >= 0) enemies.splice(i, 1);
+    removeEnemy(e);
     if (game.time - game.lastKill <= RU.COMBO_WINDOW) game.combo++;
     else game.combo = 1;
     game.lastKill = game.time;
@@ -906,9 +994,22 @@
         if (add && w.reserve < w.def.maxReserve) w.reserve = Math.min(w.def.maxReserve, w.reserve + add * player.mods.scavenge);
       }
     }
-    const cy = e.type === 'drone' ? e.y : e.y + (e.type === 'brute' ? 1.4 : 1.0);
-    explosion(e.x, cy, e.z, def.color, e.type === 'brute' ? 1.8 : 1);
-    audio.play(e.type === 'brute' ? 'bigExplode' : 'explode', e);
+    const cy = def.flying ? e.y : e.y + (heavy(e) ? 1.4 * sizeOf(e) : 1.0);
+    if (def.attack === 'explode') blast(e);
+    else {
+      explosion(e.x, cy, e.z, def.color, def.boss ? 2.8 : heavy(e) ? 1.8 : 1);
+      audio.play(heavy(e) ? 'bigExplode' : 'explode', e);
+    }
+    if (def.boss) {
+      hud.banner(def.name + ' 격파', '+' + pts + '점 · 보급품을 떨어뜨렸어요', 2.4);
+      player.shake = Math.min(1, player.shake + 0.7);
+      for (const [kind, ox, oz] of [['health', 0.9, 0], ['health', -0.9, 0], ['ammo', 0, 0.9]]) {
+        // 벽이나 상자에 걸치면 지휘관이 서 있던 자리에 떨어뜨려요
+        const free = !LV.blocked(lv, e.x + ox, e.z + oz, 0.35, 0);
+        const px = free ? e.x + ox : e.x, pz = free ? e.z + oz : e.z;
+        pickups.push({ x: px, z: pz, kind, active: true, spot: false, life: 30, baseY: LV.maxHeightUnder(lv, px, pz, 0.1) });
+      }
+    }
     // 로봇이 실제 부품(머리, 팔, 다리, 대포…)으로 부서져 날아가요
     const parts = models.partsOf(e.type);
     const sy = Math.sin(e.yaw), cyw = Math.cos(e.yaw);
@@ -930,14 +1031,16 @@
         wy: rnd(-6, 6),
         s: 0.1,
         ground: Math.max(0.02, Math.min(pt.size[0], pt.size[1], pt.size[2]) * 0.5),
+        scale: pt.scale,
+        tintModel: def.tint,
         ref: pt,
         tint: [0.3, 0.3, 0.3],
         hot: 1,
         life: rnd(3.5, 5),
       });
     }
-    const tints = { drone: [0.34, 0.36, 0.4], runner: [0.3, 0.31, 0.33], brute: [0.46, 0.38, 0.16] };
-    const n = parts.length ? 4 : e.type === 'brute' ? 12 : 7;
+    const tints = { drone: [0.34, 0.36, 0.4], runner: [0.3, 0.31, 0.33], brute: [0.46, 0.38, 0.16], bomber: [0.4, 0.3, 0.12], boss: [0.5, 0.2, 0.12] };
+    const n = parts.length ? (def.boss ? 10 : 4) : heavy(e) ? 12 : 7;
     for (let k = 0; k < n; k++) {
       chunks.push({
         x: e.x + rnd(-0.3, 0.3),
@@ -950,14 +1053,14 @@
         ry: rnd(0, 6),
         wx: rnd(-10, 10),
         wy: rnd(-10, 10),
-        s: rnd(0.1, e.type === 'brute' ? 0.32 : 0.2),
+        s: rnd(0.1, heavy(e) ? 0.32 * sizeOf(e) : 0.2),
         tint: tints[e.type],
         hot: 1,
         life: rnd(2.5, 4),
       });
     }
     // 아이템 떨어뜨리기
-    const dropChance = e.type === 'brute' ? 0.9 : 0.16;
+    const dropChance = def.boss ? 0 : e.type === 'brute' ? 0.9 : e.type === 'bomber' ? 0.1 : 0.2;
     if (Math.random() < dropChance) {
       const needHealth = player.hp < player.maxHp * 0.6;
       const kind = needHealth ? (Math.random() < 0.7 ? 'health' : 'ammo') : Math.random() < 0.35 ? 'health' : 'ammo';
@@ -1185,6 +1288,8 @@
     let sub = '적 ' + plan.total + '기가 다가와요';
     if (n === 1) sub = '경비 로봇이 몰려와요. 원자로 홀을 지키세요';
     else if (n === 3) sub = '중장갑 로봇 출현! 적 ' + plan.total + '기';
+    else if (n === 4) sub = '자폭 드론 출현! 쏴서 적들 사이에서 터뜨리세요';
+    if (plan.bosses) sub = '지휘관 출현! 적 ' + plan.total + '기';
     hud.banner('WAVE ' + n, sub, 2.4);
     audio.play('alarm');
   }
@@ -1211,7 +1316,7 @@
         stats.waves = wave.n;
         game.score += wave.plan.clearBonus;
         const before = player.hp;
-        player.hp = Math.min(player.maxHp, player.hp + 20);
+        player.hp = Math.min(player.maxHp, player.hp + 25);
         for (const w of player.weapons) if (w.reserve !== Infinity) w.reserve = Math.min(w.def.maxReserve, w.reserve + Math.ceil(w.def.mag * 0.5));
         hud.banner('웨이브 ' + wave.n + ' 클리어', '+' + wave.plan.clearBonus + '점 · 체력 +' + Math.round(player.hp - before) + ' · 탄약 보급', 2.2);
         audio.play('clear');
@@ -1600,6 +1705,7 @@
       pz: player.z,
       enemies: wave && wave.revealed ? enemies.filter((e) => e.spawnT >= 1) : enemies.filter((e) => e.spawnT >= 1 && Math.hypot(e.x - player.x, e.z - player.z) < 26),
       reveal: !!(wave && wave.revealed),
+      boss: enemies.find((e) => RU.ENEMIES[e.type].boss && e.spawnT >= 1) || null,
       pickups: pickups.filter((p) => p.active),
       touch: input.touch,
       hint: game.hintT > 0 ? game.hint : '',
@@ -1655,18 +1761,21 @@
     demo.push(Object.assign({ type: 'runner', x: 27.5, y: 0, z: 37, yaw: -0.5, seed: 2 }, base));
     demo.push(Object.assign({ type: 'drone', x: 27, y: 2.1, z: 29, yaw: 0, seed: 3, orbit: 0 }, base));
     demo.push(Object.assign({ type: 'drone', x: 37, y: 2.4, z: 33, yaw: 0, seed: 4, orbit: 2.4 }, base));
+    demo.push(Object.assign({ type: 'bomber', x: 32, y: 1.6, z: 40, yaw: 0, seed: 5, orbit: 4.4, fuse: 0 }, base));
   }
   function updateDemo(dt) {
     const t = game.titleTime;
     for (const e of demo) {
-      if (e.type === 'drone') {
-        const a = t * 0.35 + e.orbit;
-        const nx = 32 + Math.cos(a) * 6.5, nz = 32 + Math.sin(a) * 6.5;
+      if (e.type === 'drone' || e.type === 'bomber') {
+        const bomb = e.type === 'bomber';
+        const a = t * (bomb ? -0.55 : 0.35) + e.orbit;
+        const r = bomb ? 5 : 6.5;
+        const nx = 32 + Math.cos(a) * r, nz = 32 + Math.sin(a) * r;
         e.yaw = yawTo(nx - e.x, nz - e.z);
         e.x = nx;
         e.z = nz;
-        e.y = 2.2 + Math.sin(t * 2 + e.seed) * 0.15;
-        e.roll = 0.18;
+        e.y = (bomb ? 1.6 : 2.2) + Math.sin(t * 2 + e.seed) * 0.15;
+        e.roll = bomb ? -0.25 : 0.18;
       } else {
         e.phase += dt * 0.6;
         e.yaw += Math.sin(t * 0.4 + e.seed) * dt * 0.2;
@@ -1735,6 +1844,7 @@
     // 테스트·디버그용
     _debug: () => ({ enemies, shots, pickups, wave, stats, lv, vm, chunks }),
     _spawn: (type, x, z) => spawnEnemy(type, { x, z }),
+    _startWave: (n) => startWave(n),
     /** 테스트용: 그리지 않고 n 프레임 빨리 돌리기 */
     _step: (dt, n) => {
       for (let i = 0; i < n; i++) {

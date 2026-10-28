@@ -28,6 +28,10 @@
     <i class="sep" aria-hidden="true"></i>
     <span class="label">남은 적</span><b id="h-left">0</b>
   </div>
+  <div id="bossbar" class="bossbar" hidden>
+    <div class="bossbar-head"><b id="boss-name">지휘관</b><span id="boss-state"></span></div>
+    <div class="bar"><div id="boss-hp"></div></div>
+  </div>
   <canvas id="radar" class="radar" width="150" height="150" aria-hidden="true"></canvas>
 
   <div id="crosshair" class="crosshair" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
@@ -117,6 +121,8 @@
       <li><i class="dot drone"></i><b>감시 드론</b><span>떠다니며 플라스마를 쏴요. 눈이 밝아지면 곧 발사. 몸 한가운데 코어가 약점.</span></li>
       <li><i class="dot runner"></i><b>추격자</b><span>빠르게 달려와 칼날로 베요. 칼날을 뒤로 들면 물러나세요. 머리가 약점.</span></li>
       <li><i class="dot brute"></i><b>중장갑 로봇</b><span>3웨이브부터. 느리지만 단단하고 3연발을 쏴요. 상자 뒤에 숨으세요.</span></li>
+      <li><i class="dot bomber"></i><b>자폭 드론</b><span>4웨이브부터. 날아와 터져요. 적들 사이에서 쏘면 함께 터져요.</span></li>
+      <li><i class="dot boss"></i><b>지휘관</b><span>5웨이브마다. 부채꼴로 쏘고 체력이 반 아래면 분노해요.</span></li>
     </ul>
     </div>
   </aside>

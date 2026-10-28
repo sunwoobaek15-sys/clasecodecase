@@ -20,6 +20,7 @@ const MODELS = {
   'robots/drone': robots.drone,
   'robots/runner': robots.runner,
   'robots/brute': robots.brute,
+  'robots/bomber': robots.bomber,
 };
 
 let total = 0;

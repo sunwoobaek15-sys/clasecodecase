@@ -134,6 +134,51 @@
       head: [2.2, 0.3, 0.2],
       color: [1, 0.55, 0.12],
     },
+    // 4웨이브부터. 곧장 날아와 가까우면 깜빡이다 터져요. 쏴서 터뜨리면 둘레의 다른 적도 함께 다쳐요
+    bomber: {
+      name: '자폭 드론',
+      hp: 24,
+      speed: 7.2,
+      radius: 0.36,
+      flying: true,
+      hover: 1.5,
+      score: 150,
+      attack: 'explode',
+      armDist: 2.3, // 이 거리 안에 들어오면 터질 준비
+      fuse: 0.6, // 깜빡이기 시작해서 터지기까지(초)
+      blast: 3.6, // 폭발 반지름(m)
+      blastDamage: 32, // 플레이어 피해 (가운데, 가장자리는 40%)
+      blastEnemy: 110, // 다른 적 피해 (가운데, 가장자리는 50%)
+      body: [0, 0.42, 0.24],
+      head: [0.235, 0.085, 0.05],
+      color: [1, 0.4, 0.12],
+    },
+    // 5웨이브마다 나오는 보스: 중장갑 모델을 1.4배로 키우고 붉게 칠해요. 체력이 반 아래면 분노해서 더 빨리 쏘고 걸어요
+    boss: {
+      name: '지휘관',
+      model: 'brute',
+      scale: 1.4,
+      tint: [0.95, 0.32, 0.3],
+      boss: true,
+      hp: 1100,
+      speed: 2.1,
+      radius: 0.9, // 한 칸(2m) 통로를 지나갈 수 있게 모델보다 조금 작게
+      score: 2500,
+      attack: 'shoot',
+      fireEvery: [2.4, 3.0],
+      burst: 3,
+      burstGap: 0.18,
+      fan: 3, // 한 번에 부채꼴로 3발 (옆으로 피하는 걸 막아서, 예측은 덜 해요)
+      fanSpread: 0.13,
+      lead: 0.4,
+      shotSpeed: 21,
+      shotDamage: 7,
+      range: 36,
+      keepDist: 12,
+      body: [1.4, 1.05, 1.4],
+      head: [3.08, 0.42, 0.28],
+      color: [1, 0.3, 0.12],
+    },
   };
 
   const PLAYER = {
@@ -155,17 +200,22 @@
   /** n번째 웨이브 구성 (1부터) */
   function wavePlan(n) {
     n = Math.max(1, Math.floor(n));
-    const total = 5 + n * 3;
-    const brutes = n >= 3 ? Math.floor((n - 1) / 2) : 0;
+    // 지휘관 웨이브는 지휘관이 주인공: 중장갑 없이 적 수를 3기 줄여요
+    const bosses = n % 5 === 0 ? 1 : 0;
+    const total = 5 + n * 3 - bosses * 3;
+    const brutes = n >= 3 && !bosses ? Math.floor((n - 1) / 2) : 0;
+    const bombers = n >= 4 ? 1 + Math.floor((n - 4) / 2) : 0;
     const runners = Math.round((total - brutes) * Math.min(0.45, 0.28 + n * 0.03));
-    const drones = total - brutes - runners;
+    const drones = total - brutes - runners - bombers - bosses;
     return {
       wave: n,
       total,
       drones,
       runners,
       brutes,
-      maxAlive: Math.min(5 + n, 14),
+      bombers,
+      bosses,
+      maxAlive: Math.min(14, 5 + Math.floor(n * 0.8)),
       spawnGap: Math.max(0.45, 1.4 - n * 0.08),
       hpMul: 1 + 0.07 * (n - 1),
       dmgMul: 1 + 0.05 * (n - 1),
@@ -174,12 +224,13 @@
     };
   }
 
-  /** 웨이브에 나올 적 순서: 섞되, 중장갑은 처음 두 마리 안에 오지 않아요 */
+  /** 웨이브에 나올 적 순서: 섞되, 중장갑은 처음 두 마리 안에 오지 않고, 지휘관은 네 번째쯤 나와요 */
   function spawnOrder(plan, rand) {
     rand = rand || Math.random;
     const list = [];
     for (let i = 0; i < plan.drones; i++) list.push('drone');
     for (let i = 0; i < plan.runners; i++) list.push('runner');
+    for (let i = 0; i < (plan.bombers || 0); i++) list.push('bomber');
     for (let i = list.length - 1; i > 0; i--) {
       const j = Math.floor(rand() * (i + 1));
       const t = list[i];
@@ -190,6 +241,7 @@
       const at = Math.min(list.length, 2 + Math.floor(rand() * Math.max(1, list.length - 1)));
       list.splice(at, 0, 'brute');
     }
+    for (let i = 0; i < (plan.bosses || 0); i++) list.splice(Math.min(list.length, 3), 0, 'boss');
     return list;
   }
 

@@ -156,3 +156,43 @@ export function brute() {
   }
   return root;
 }
+
+/* ---------------- 자폭 드론 (둥근 폭탄 몸통 + 양옆 프로펠러, 폭 약 0.7m) ---------------- */
+export function bomber() {
+  const root = new Part('bomber');
+  const body = root.child(new Part('body'));
+  // 둥근 폭탄 몸통: 위는 어두운 강철, 가운데는 경고 줄무늬 띠
+  body.add('metal', lathe('y', [[0, -0.21], [0.09, -0.2], [0.16, -0.16], [0.2, -0.09], [0.215, -0.03], [0.215, 0.03], [0.2, 0.09], [0.16, 0.15], [0.09, 0.185], [0, 0.19]], 18, C.droneDark));
+  for (let k = 0; k < 12; k++) {
+    const a = (k / 12) * Math.PI * 2;
+    body.add('polymer', B(0.11, 0.05, 0.012, k % 2 ? C.hazard : [0.05, 0.05, 0.06]).at([Math.cos(a) * 0.214, 0, Math.sin(a) * 0.214], [0, -a + Math.PI / 2, 0]));
+  }
+  // 아래 기폭 침과 고리
+  body.add('metal', cylinder('y', 0.06, 0.035, -0.2, -0.25, 12, C.steel));
+  body.add('metal', cylinder('y', 0.022, 0.004, -0.25, -0.33, 8, C.chrome));
+  // 앞 센서 눈 (작은 빨간 렌즈 2개)
+  for (const [, sg] of SIDES) {
+    body.add('metal', cylinder('z', 0.032, 0.03, -0.17, -0.215, 12, [0.04, 0.04, 0.05]).at([sg * 0.06, 0.06, 0]));
+    body.add('glow_red', cylinder('z', 0.02, 0.02, -0.215, -0.218, 10, C.white).at([sg * 0.06, 0.06, 0]));
+  }
+  // 뒤 꼬리 날개 4장
+  for (let k = 0; k < 4; k++) {
+    const a = Math.PI / 4 + (k * Math.PI) / 2;
+    body.add('metal', B(0.008, 0.09, 0.12, C.droneShell, 0.002).at([Math.cos(a) * 0.12, Math.sin(a) * 0.12, 0.22], [0, 0, a - Math.PI / 2]));
+  }
+  // 위: 빨간 유리 코어 (깜빡이는 빛은 core 노드)
+  body.add('metal', cylinder('y', 0.1, 0.11, 0.17, 0.2, 14, C.steelDark));
+  const core = body.child(new Part('core', [0, 0.2, 0]));
+  core.add('glow_red', lathe('y', [[0, 0], [0.085, 0], [0.08, 0.035], [0.055, 0.065], [0, 0.075]], 14, C.white));
+  // 양옆 팔 + 덕트 프로펠러 (rotor 노드가 돌아요)
+  for (const [s, sg] of SIDES) {
+    body.add('metal', B(0.12, 0.03, 0.05, C.steelDark, 0.006).at([sg * 0.25, 0.04, 0]));
+    const duct = root.child(new Part('duct_' + s, [sg * 0.36, 0.05, 0], [0.35, 0, -sg * 0.12]));
+    duct.add('metal', lathe('y', [[0.1, -0.035], [0.115, -0.03], [0.115, 0.03], [0.1, 0.035]], 18, C.droneShell, { smooth: false }));
+    duct.add('metal', cylinder('y', 0.103, 0.103, 0.03, -0.03, 18, C.droneDark), B(0.2, 0.008, 0.012, C.droneDark), cylinder('y', 0.02, 0.02, -0.03, 0.012, 8, C.droneDark));
+    duct.add('glow_orange', cylinder('y', 0.04, 0.04, -0.036, -0.04, 10, C.white));
+    const rotor = duct.child(new Part('rotor_' + s, [0, 0.016, 0]));
+    for (let k = 0; k < 3; k++) rotor.add('polymer', B(0.18, 0.004, 0.032, [0.55, 0.57, 0.6]).at([0, 0, 0], [0.18, (k * Math.PI * 2) / 3, 0]));
+  }
+  return root;
+}

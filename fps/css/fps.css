@@ -249,6 +249,8 @@ kbd {
 .intel li span { grid-column: 2; }
 .dot { width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 8px var(--red); }
 .dot.brute { background: #ff9a3c; box-shadow: 0 0 8px #ff9a3c; }
+.dot.bomber { background: #ffe14a; box-shadow: 0 0 8px #ffe14a; }
+.dot.boss { background: #ff5a2a; box-shadow: 0 0 10px #ff5a2a; }
 
 body:not(.touch) .only-touch { display: none; }
 body.touch .only-mouse { display: none; }
@@ -318,6 +320,8 @@ body.touch .up-card .up-key { display: none; }
   .up-desc { font-size: 13px; line-height: 1.4; }
 }
 @media (max-width: 520px) and (min-height: 461px) { .up-cards { grid-template-columns: 1fr; } }
+/* 휴대폰을 세워 들어 화면을 돌린 때: 미디어 쿼리는 돌리기 전 크기로 판단하니 가로 화면 배치를 직접 정해요 */
+body.rotated .up-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .result-grid { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); box-shadow: 0 0 0 1px var(--line); }
 .result-grid div { background: var(--steel-solid); padding: 10px 12px; min-width: 0; }
 .result-grid .wide { grid-column: 1 / -1; }
@@ -325,6 +329,22 @@ body.touch .up-card .up-key { display: none; }
 .result-grid dd { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 22px; font-variant-numeric: tabular-nums; }
 .result-grid .wide dd { font-size: 40px; color: var(--hazard); line-height: 1.1; }
 @media (max-width: 420px) { .result-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* 낮은 가로 화면(휴대폰 가로, 돌린 화면): 결과를 4칸 격자로 한 화면에 */
+body.short .screen.dim { padding-top: max(10px, var(--safe-t)); padding-bottom: max(10px, var(--safe-b)); }
+body.short .dialog { padding: 14px 20px; gap: 8px; }
+body.short .dialog-title { font-size: 24px; }
+body.short .dialog.result { width: min(640px, 100%); }
+body.short .result-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+body.short .result-grid .wide { grid-column: span 2; grid-row: span 2; align-content: center; display: grid; }
+body.short .result-grid div:nth-child(6), body.short .result-grid div:nth-child(7) { grid-column: span 2; }
+body.short .result-grid div { padding: 6px 10px; }
+body.short .result-grid dd { font-size: 18px; }
+body.short .result-grid .wide dd { font-size: 36px; }
+body.short .dialog .btn { min-height: 42px; }
+body.short .new-best { margin: 0; }
+body.short .dialog.settings { width: min(720px, 100%); grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+body.short .settings .eyebrow, body.short .settings .dialog-title, body.short .settings .stack { grid-column: 1 / -1; }
+body.short .settings .field select { min-height: 38px; }
 
 .field { display: grid; gap: 6px; font-size: 14px; color: var(--ink-2); }
 .field span { display: flex; justify-content: space-between; gap: 12px; }
@@ -388,6 +408,22 @@ body.touch .up-card .up-key { display: none; }
 }
 .hud-wave b { font-size: 20px; }
 .hud-wave .sep { width: 1px; height: 14px; background: var(--line-2); margin: 0 4px; align-self: center; }
+.bossbar {
+  position: absolute;
+  top: calc(66px + var(--safe-t));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(460px, 52vw);
+  display: grid;
+  gap: 4px;
+}
+.bossbar-head { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--font-display); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9); }
+.bossbar-head b { font-size: 15px; font-weight: 700; letter-spacing: 0.12em; color: #ff8a5c; }
+.bossbar-head span { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--red); }
+.bossbar .bar { height: 8px; background: rgba(6, 10, 14, 0.75); box-shadow: inset 0 0 0 1px rgba(255, 90, 60, 0.45); }
+#boss-hp { height: 100%; background: linear-gradient(90deg, #ff4a3d, #ff8a3c); transform-origin: left; transition: transform 0.12s; box-shadow: 0 0 12px rgba(255, 74, 61, 0.7); }
+.bossbar.enraged #boss-hp { animation: rage 0.5s ease-in-out infinite alternate; }
+@keyframes rage { to { filter: brightness(1.6); } }
 .radar {
   position: absolute;
   top: calc(14px + var(--safe-t));
@@ -657,6 +693,7 @@ body.touch .feed { top: calc(160px + var(--safe-t)); }
   .hud-score b { font-size: 22px; }
   .radar { width: 104px; height: 104px; }
   .hud-wave { top: calc(64px + var(--safe-t)); }
+  .bossbar { top: calc(108px + var(--safe-t)); width: 56vw; }
   .hud-health { width: 180px; }
   .hud-health b { font-size: 30px; }
   .ammo-line b { font-size: 38px; }
@@ -673,5 +710,6 @@ body.touch .feed { top: calc(160px + var(--safe-t)); }
   .hitmarker.on, .feed-row { animation: none; }
   .up-pips i.next { animation: none; opacity: 1; }
   .up-card { transition: none; }
+  .bossbar.enraged #boss-hp { animation: none; }
   .btn { transition: none; }
 }

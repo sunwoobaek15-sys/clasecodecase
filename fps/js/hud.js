@@ -47,6 +47,10 @@
       ringArc: document.querySelector('#reload-ring circle.arc'),
       prompt: $('prompt'),
       banner: $('banner'),
+      bossbar: $('bossbar'),
+      bossName: $('boss-name'),
+      bossState: $('boss-state'),
+      bossHp: $('boss-hp'),
       bannerTitle: document.querySelector('#banner b'),
       bannerSub: document.querySelector('#banner span'),
       feed: $('feed'),
@@ -154,8 +158,26 @@
       d.node.style.transform = 'rotate(' + (rel * 180) / Math.PI + 'deg)';
       d.node.style.opacity = Math.max(0, Math.min(1, d.t * 1.5)).toFixed(2);
     }
+    // 보스 체력
+    const boss = s.boss;
+    toggle('bossOn', el.bossbar, !!boss);
+    if (boss) {
+      const pct = Math.max(0, boss.hp / boss.maxHp);
+      if (last.bossPct !== pct) {
+        last.bossPct = pct;
+        el.bossHp.style.transform = 'scaleX(' + pct.toFixed(3) + ')';
+      }
+      text('bossName', el.bossName, SZ.rules.ENEMIES[boss.type].name);
+      text('bossState', el.bossState, boss.enraged ? '분노' : '');
+      if (last.rage !== boss.enraged) {
+        last.rage = boss.enraged;
+        el.bossbar.classList.toggle('enraged', boss.enraged);
+      }
+    }
     drawRadar(s);
   }
+
+  const RADAR_COL = { brute: '#ff9a3c', bomber: '#ffe14a', boss: '#ff5a2a' };
 
   function drawRadar(s) {
     const c = radarCtx;
@@ -198,9 +220,9 @@
         y *= rim / d;
       }
       c.globalAlpha = out ? 0.55 + 0.45 * Math.sin(s.time * 8) : 1;
-      c.fillStyle = e.type === 'brute' ? '#ff9a3c' : '#ff4a3d';
+      c.fillStyle = RADAR_COL[e.type] || '#ff4a3d';
       c.beginPath();
-      c.arc(half + x, half + y, e.type === 'brute' ? 5 : 3.5, 0, Math.PI * 2);
+      c.arc(half + x, half + y, e.type === 'boss' ? 7 : e.type === 'brute' ? 5 : e.type === 'bomber' ? 3 : 3.5, 0, Math.PI * 2);
       c.fill();
       if (s.reveal) {
         c.strokeStyle = 'rgba(255, 90, 70, 0.7)';

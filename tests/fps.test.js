@@ -102,16 +102,22 @@ test('규칙: 웨이브가 커질수록 적이 늘고, 중장갑은 3웨이브�
   let prev = 0;
   for (let n = 1; n <= 20; n++) {
     const p = R.wavePlan(n);
-    assert.equal(p.drones + p.runners + p.brutes, p.total);
-    assert.ok(p.total > prev);
+    assert.equal(p.drones + p.runners + p.brutes + p.bombers + p.bosses, p.total);
+    assert.equal(p.bombers > 0, n >= 4, '자폭 드론은 4웨이브부터');
+    assert.equal(p.bosses, n % 5 === 0 ? 1 : 0, '지휘관은 5웨이브마다');
+    if (!p.bosses) assert.ok(p.total > prev);
+    else assert.equal(p.brutes, 0, '지휘관 웨이브에는 중장갑이 없어요');
     prev = p.total;
     assert.ok(p.drones >= 0 && p.runners >= 0);
     assert.ok(p.maxAlive <= 14 && p.spawnGap >= 0.45);
     if (n < 3) assert.equal(p.brutes, 0);
-    else assert.ok(p.brutes >= 1);
+    else assert.ok(p.brutes + p.bosses >= 1);
     const order = R.spawnOrder(p, M.rng(n));
     assert.equal(order.length, p.total);
     assert.equal(order.filter((t) => t === 'brute').length, p.brutes);
+    assert.equal(order.filter((t) => t === 'bomber').length, p.bombers);
+    assert.equal(order.filter((t) => t === 'boss').length, p.bosses);
+    if (p.bosses) assert.equal(order.indexOf('boss'), 3, '지휘관은 네 번째쯤');
     assert.ok(!order.slice(0, 2).includes('brute'), '처음 두 마리는 중장갑이 아니에요');
   }
 });
@@ -148,6 +154,23 @@ test('무기: 탄창과 예비 탄약 값이 말이 돼요', () => {
     assert.ok(w.reserve <= w.maxReserve);
     assert.ok(w.holdDelay >= w.fireDelay);
   });
+});
+
+test('적: 지휘관은 중장갑 모델을 키운 모습이고, 히트박스도 같은 비율이에요', () => {
+  const boss = R.ENEMIES.boss, brute = R.ENEMIES.brute;
+  assert.equal(boss.model, 'brute');
+  assert.ok(boss.boss && boss.scale > 1 && boss.fan > 1);
+  for (let i = 0; i < 3; i++) {
+    assert.ok(Math.abs(boss.body[i] - brute.body[i] * boss.scale) < 1e-9, 'body ' + i);
+    assert.ok(Math.abs(boss.head[i] - brute.head[i] * boss.scale) < 1e-9, 'head ' + i);
+  }
+  assert.ok(boss.head[0] + boss.head[2] < L.WALL_H, '천장보다 낮아요');
+  assert.ok(boss.radius * 2 < L.CELL, '한 칸 통로를 지나갈 수 있어요');
+  // 모든 적은 이름·점수·히트박스가 있어요
+  for (const [k, d] of Object.entries(R.ENEMIES)) {
+    assert.ok(d.name && d.score > 0 && d.hp > 0 && d.body.length === 3 && d.head.length === 3, k);
+    assert.ok(['shoot', 'melee', 'explode'].includes(d.attack), k);
+  }
 });
 
 test('강화: 아무것도 안 고르면 무기 값이 그대로예요', () => {
@@ -363,7 +386,7 @@ const nodeT = (g, name) => {
 
 test('3D 모델: 묶음(assets-data.js)이 GLB 파일과 같아요 — 다르면 npm run assets:pack', () => {
   const keys = Object.keys(globalThis.SZ.ASSET_DATA).sort();
-  assert.deepEqual(keys, ['guns/hands', 'guns/pistol', 'guns/rifle', 'guns/shotgun', 'props/casings', 'robots/brute', 'robots/drone', 'robots/runner']);
+  assert.deepEqual(keys, ['guns/hands', 'guns/pistol', 'guns/rifle', 'guns/shotgun', 'props/casings', 'robots/bomber', 'robots/brute', 'robots/drone', 'robots/runner']);
   for (const k of keys) {
     const file = fs.readFileSync(path.join(ASSET_DIR, k + '.glb'));
     assert.ok(Buffer.from(globalThis.SZ.ASSET_DATA[k], 'base64').equals(file), k);
@@ -378,6 +401,7 @@ test('3D 모델: 게임이 움직이는 부품 이름이 다 있어요', () => {
     'guns/hands': ['hand_r', 'hand_l'],
     'props/casings': ['casing_9mm', 'casing_556', 'shell_12g'],
     'robots/drone': ['body', 'eye', 'pod_l', 'pod_r', 'antenna'],
+    'robots/bomber': ['body', 'core', 'duct_l', 'duct_r', 'rotor_l', 'rotor_r'],
     'robots/runner': ['hips', 'torso', 'head', 'arm_l', 'arm_r', 'fore_l', 'fore_r', 'thigh_l', 'thigh_r', 'shin_l', 'shin_r', 'foot_l', 'foot_r'],
     'robots/brute': ['hips', 'torso', 'head', 'shoulder_l', 'shoulder_r', 'cannon_l', 'cannon_r', 'barrels_l', 'barrels_r', 'thigh_l', 'thigh_r', 'shin_l', 'shin_r', 'foot_l', 'foot_r'],
   };
@@ -417,6 +441,11 @@ test('3D 모델: 로봇 크기가 히트박스와 맞고, 삼각형 수가 넉�
   }
   const d = GL.bounds(loadGLB('robots/drone'));
   assert.ok(d.hi[0] - d.lo[0] > 0.8 && d.hi[0] - d.lo[0] < 1.2, '드론 폭');
+  // 자폭 드론: 몸통 히트박스 안에 들어가고, 빨간 코어(치명타)가 맨 위
+  const bm = GL.bounds(loadGLB('robots/bomber'));
+  const bd = R.bomber;
+  assert.ok(bm.hi[0] - bm.lo[0] > 0.6 && bm.hi[0] - bm.lo[0] < 2 * bd.body[1] + 0.25, '자폭 드론 폭 ' + (bm.hi[0] - bm.lo[0]).toFixed(2));
+  assert.ok(Math.abs(bm.hi[1] - (bd.head[0] + bd.head[2])) < 0.06, '자폭 드론 코어 높이 ' + bm.hi[1].toFixed(3));
   for (const k of Object.keys(globalThis.SZ.ASSET_DATA)) {
     const tris = GL.triangles(loadGLB(k));
     assert.ok(tris > 100 && tris < (k.startsWith('robots') ? 5000 : 10000), `${k}: ${tris} 삼각형`);

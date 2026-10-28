@@ -233,6 +233,12 @@
       tone(d, t, 1.4, { freq: 220, freqTo: 40, gain: 0.4, wave: 'sawtooth' });
       noise(d, t, 1.2, { type: 'lowpass', freq: 600, freqTo: 80, gain: 0.3 });
     },
+    beep(d, t) {
+      tone(d, t, 0.06, { freq: 1760, gain: 0.16, wave: 'square' });
+    },
+    whir(d, t) {
+      tone(d, t, 0.5, { freq: 220, freqTo: 420, gain: 0.06, wave: 'sawtooth', attack: 0.2 });
+    },
     click(d, t) {
       tone(d, t, 0.03, { freq: 1200, gain: 0.06, wave: 'square' });
     },

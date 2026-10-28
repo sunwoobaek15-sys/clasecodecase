@@ -99,7 +99,12 @@
   /** 강화 고르기 (화면이 뜨자마자 누른 클릭·키는 무시해요: 쏘던 손이 잘못 고르지 않게) */
   function chooseUpgrade(i) {
     if (Date.now() - upgradeAt < 600) return;
-    if (SZ.game.pickUpgrade(i)) showScreen(null);
+    if (!SZ.game.pickUpgrade(i)) return;
+    showScreen(null);
+    // 마우스 잠금이 응답 없이 끝나면 멈춘 화면에 갇히지 않게 일시정지 화면을 보여 줘요
+    setTimeout(() => {
+      if (SZ.game.state === 'upgrade' && !SZ.game.offer) SZ.game.pause();
+    }, 1500);
   }
 
   /* ---------- 설정 ---------- */
@@ -145,6 +150,8 @@
     const W = root.innerWidth, H = root.innerHeight;
     const rotate = SZ.input.touch && mode !== 'off' && H > W;
     document.body.classList.toggle('rotated', rotate);
+    // 높이가 낮은 가로 화면(돌린 화면 포함): 메뉴를 촘촘하게
+    document.body.classList.toggle('short', (rotate ? W : H) <= 460);
     if (rotate) {
       app.style.width = H + 'px';
       app.style.height = W + 'px';
