@@ -154,7 +154,7 @@ tests/ranking.test.js 랭킹·부정 사용 검사 테스트 (규칙대로 한 �
 ## SECTOR ZERO — 1인칭 슈팅 게임
 
 통제를 잃은 경비 로봇이 연구 시설 원자로 홀로 몰려와요. 끝없이 이어지는 웨이브를 버텨 내고 최고 점수를 남기는 1인칭 슈팅(FPS) 게임이에요.
-라이브러리 없이 WebGL을 직접 다뤄서 만들었고, 질감·소리도 모두 코드로 만들어요. (이미지·음원 파일 없음)
+라이브러리 없이 WebGL을 직접 다뤄서 만들었고, 총·로봇 3D 모델과 질감·소리도 모두 코드로 만들어요. (이미지·음원 파일 없음)
 
 <p>
 <img src="docs/screenshots/fps-title.png" width="400" alt="SECTOR ZERO 첫 화면">
@@ -226,6 +226,35 @@ tests/ranking.test.js 랭킹·부정 사용 검사 테스트 (규칙대로 한 �
 - 적은 네 모서리 격납고에서 나타나고, 플레이어가 있는 칸을 향해 길을 찾아 와요. 상자 너머로도 보고 쏘지만, 상자에 탄이 막혀요.
 - 적 탄은 날아오는 게 보이는 속도라서 옆으로 피할 수 있어요. 맞으면 화면 가운데 빨간 표시가 맞은 방향을 가리켜요.
 
+### 3D 모델
+
+총 3자루, 손, 탄피, 로봇 3종은 진짜 3D 모델(GLB 파일, glTF 2.0)이에요. `scripts/make-assets.mjs`가 코드로 깎아서 만들고, Blender 같은 3D 프로그램에서도 열려요.
+
+| 모델 | 파일 | 삼각형 | 움직이는 부품 (노드 이름) |
+| --- | --- | --- | --- |
+| P-9 권총 | `fps/assets/guns/pistol.glb` | 1,300 | `slide` 슬라이드, `magazine` 탄창 |
+| AR-7 돌격소총 | `fps/assets/guns/rifle.glb` | 2,706 | `bolt` 장전 손잡이, `magazine` 휜 탄창 |
+| SG-12 산탄총 | `fps/assets/guns/shotgun.glb` | 2,158 | `pump` 펌프 (옆에 빨간 예비 탄 6발) |
+| 손 | `fps/assets/guns/hands.glb` | 1,676 | `hand_r` `hand_l` 장갑 낀 손, `arm_r` `arm_l` 소매 |
+| 탄피 | `fps/assets/props/casings.glb` | 344 | `casing_9mm` `casing_556` `shell_12g` |
+| 감시 드론 | `fps/assets/robots/drone.glb` | 1,680 | `eye` 눈(빛남), `pod_l` `pod_r` 추진기, `antenna` |
+| 추격자 | `fps/assets/robots/runner.glb` | 2,768 | `hips` → `torso` → `head`, `arm` → `fore`(칼날), `thigh` → `shin` → `foot` (`_l` `_r`) |
+| 중장갑 로봇 | `fps/assets/robots/brute.glb` | 3,120 | `hips` → `torso` → `head`, `shoulder` → `cannon` → `barrels`(3연장 포신), `thigh` → `shin` → `foot` (`_l` `_r`) |
+
+- 게임은 노드 이름으로 부품을 움직여요. 쏘면 슬라이드·장전 손잡이가 뒤로 가고, 재장전하면 `magazine` 노드가 빠져서 바닥에 떨어지고, 펌프는 앞뒤로 움직여요.
+- 로봇은 관절마다 따로 돌아서 걷고, 추격자는 칼날을 휘두르고, 중장갑은 포신이 돌며 끝이 달아올라요. 부서지면 머리·팔·다리 같은 진짜 부품이 뜨겁게 빛나며 흩어져 바닥에 남아요.
+- 총의 `muzzle`(총구)·`eject`(탄피 나오는 곳) 빈 노드 자리와 `magazine` 자리는 `fps/js/anim.js`의 `GEOM` 값과 같아야 해요. 테스트가 확인해요.
+- 모델은 `fps/js/assets-data.js`에 글자(base64)로 묶여 들어가요. 그래서 `index.html`을 파일로 열어도, 한 파일 버전에서도 인터넷 없이 보여요. 모델이 없거나 깨지면 예전 상자 모델로 그려요.
+
+| 명령 | 하는 일 |
+| --- | --- |
+| `npm run assets` | 코드로 모델을 새로 만들어 `fps/assets/`에 저장하고 `assets-data.js`로 묶어요 |
+| `npm run assets:pack` | `fps/assets/`의 GLB 파일만 다시 묶어요 (직접 만든 모델로 바꿨을 때) |
+
+**내 모델로 바꾸기**: 같은 이름의 GLB 파일을 `fps/assets/`에 덮어쓰고 `npm run assets:pack` → `npm run build` 하면 돼요. (`npm run assets`는 덮어쓰니 쓰지 마세요.)
+단위는 미터, 위쪽이 +Y, 앞(총구·로봇 얼굴)이 −Z예요. 로봇은 발바닥이 y = 0이고, 총은 손잡이를 쥐는 자리가 원점 근처예요. 위 표의 노드 이름을 그대로 쓰면 움직임이 붙어요.
+꼭짓점 색(COLOR_0), 재질 색, 금속·거칠기, 빛(emissive), GLB 안에 든 그림(baseColorTexture)을 읽어요. 뼈대(스킨)와 애니메이션 트랙은 쓰지 않고 노드를 직접 돌려요.
+
 ### 규칙
 
 | 규칙 | 내용 |
@@ -250,11 +279,16 @@ fps/js/rules.js       무기·적·웨이브·점수 규칙 (DOM 없는 순수 �
 fps/js/textures.js    콘크리트·패널·바닥·상자 질감을 픽셀 단위로 계산
 fps/js/renderer.js    WebGL 셰이더(점광원 12개 + 손전등 + 안개), 맵 메시, 빛 효과
 fps/js/anim.js        총 애니메이션: 꺼내기·재장전·살펴보기·펌프 키프레임, 반동 스프링, 흔들림 (DOM 없는 순수 로직)
-fps/js/models.js      로봇·총·아이템 모델 (상자 조각, 총은 슬라이드·장전 손잡이·펌프·탄창이 따로 움직여요)
+fps/js/gltf.js        GLB(glTF 2.0) 읽기: 노드·메시·재질·그림 (DOM 없는 순수 로직)
+fps/js/assets-data.js 3D 모델 묶음 (npm run assets:pack이 만들어요)
+fps/assets/           총·손·탄피·로봇 GLB 파일
+fps/js/models.js      GLB 모델 그리기: 총 부품(슬라이드·장전 손잡이·펌프·탄창)과 로봇 관절 자세, 부서진 부품. 모델이 없으면 상자 모델
+scripts/make-assets.mjs  3D 모델을 코드로 만들어 GLB로 저장 (scripts/assets/: geom 모양 도구, glb 파일 쓰기, kit 재질·색, guns·robots 모델)
+scripts/pack-assets.mjs  fps/assets/*.glb → fps/js/assets-data.js
 fps/js/audio.js       Web Audio 효과음 (방향·거리에 따라 들려요)
 fps/js/input.js       키보드·마우스(포인터 잠금)·터치
 fps/js/hud.js         체력·탄약·레이더·피격 방향·알림
 fps/js/game.js        플레이어, 무기, 적 AI, 웨이브, 그리기 순서
 fps/js/main.js        메뉴·설정·결과 화면 연결, 휴대폰 가로 화면(화면 돌리기)
-tests/fps.test.js     맵 연결, 충돌, 광선, 길찾기, 웨이브·점수 규칙, 총 애니메이션(끊김 없이 이어지는지, 탄창 위치, 사건 순서, 반동) 테스트
+tests/fps.test.js     맵 연결, 충돌, 광선, 길찾기, 웨이브·점수 규칙, 총 애니메이션(끊김 없이 이어지는지, 탄창 위치, 사건 순서, 반동), 3D 모델(부품 이름, 총구·탄창 자리, 로봇 크기, GLB 읽고 쓰기) 테스트
 ```

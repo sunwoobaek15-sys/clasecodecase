@@ -288,3 +288,128 @@ test('총 애니메이션: 정조준하면 가늠쇠가 화면 가운데로 와�
     assert.ok(Math.abs(vm.pose.y - AN.GEOM[id].ads[1]) < 0.01, id);
   }
 });
+
+/* ---------- 3D 모델 (fps/assets/*.glb) ---------- */
+require('../fps/js/gltf.js');
+require('../fps/js/assets-data.js');
+const GL = globalThis.SZ.gltf;
+const fs = require('node:fs');
+const path = require('node:path');
+const ASSET_DIR = path.join(__dirname, '..', 'fps', 'assets');
+const loadGLB = (key) => {
+  const b = fs.readFileSync(path.join(ASSET_DIR, key + '.glb'));
+  return GL.parse(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
+};
+const names = (g) => new Set(g.nodes.map((n) => n.name));
+const nodeT = (g, name) => {
+  const n = g.nodes.find((x) => x.name === name);
+  return [n.local[12], n.local[13], n.local[14]];
+};
+
+test('3D 모델: 묶음(assets-data.js)이 GLB 파일과 같아요 — 다르면 npm run assets:pack', () => {
+  const keys = Object.keys(globalThis.SZ.ASSET_DATA).sort();
+  assert.deepEqual(keys, ['guns/hands', 'guns/pistol', 'guns/rifle', 'guns/shotgun', 'props/casings', 'robots/brute', 'robots/drone', 'robots/runner']);
+  for (const k of keys) {
+    const file = fs.readFileSync(path.join(ASSET_DIR, k + '.glb'));
+    assert.ok(Buffer.from(globalThis.SZ.ASSET_DATA[k], 'base64').equals(file), k);
+  }
+});
+
+test('3D 모델: 게임이 움직이는 부품 이름이 다 있어요', () => {
+  const need = {
+    'guns/pistol': ['slide', 'magazine', 'muzzle', 'eject'],
+    'guns/rifle': ['bolt', 'magazine', 'muzzle', 'eject'],
+    'guns/shotgun': ['pump', 'muzzle', 'eject'],
+    'guns/hands': ['hand_r', 'hand_l'],
+    'props/casings': ['casing_9mm', 'casing_556', 'shell_12g'],
+    'robots/drone': ['body', 'eye', 'pod_l', 'pod_r', 'antenna'],
+    'robots/runner': ['hips', 'torso', 'head', 'arm_l', 'arm_r', 'fore_l', 'fore_r', 'thigh_l', 'thigh_r', 'shin_l', 'shin_r', 'foot_l', 'foot_r'],
+    'robots/brute': ['hips', 'torso', 'head', 'shoulder_l', 'shoulder_r', 'cannon_l', 'cannon_r', 'barrels_l', 'barrels_r', 'thigh_l', 'thigh_r', 'shin_l', 'shin_r', 'foot_l', 'foot_r'],
+  };
+  for (const [k, list] of Object.entries(need)) {
+    const n = names(loadGLB(k));
+    for (const name of list) assert.ok(n.has(name), `${k}: ${name}`);
+  }
+});
+
+test('3D 모델: 총구·탄피 구멍·탄창 자리가 애니메이션 값(GEOM)과 같아요', () => {
+  for (const id of ['pistol', 'rifle', 'shotgun']) {
+    const g = loadGLB('guns/' + id);
+    const geo = AN.GEOM[id];
+    const close = (a, b, msg) => a.forEach((v, i) => assert.ok(Math.abs(v - b[i]) < 1e-4, `${id} ${msg} ${a} vs ${b}`));
+    close(nodeT(g, 'muzzle'), geo.muzzle, '총구');
+    close(nodeT(g, 'eject'), geo.eject, '탄피 구멍');
+    if (geo.mag) {
+      close(nodeT(g, 'magazine'), geo.mag.seat, '탄창 자리');
+      const m = g.nodes.find((x) => x.name === 'magazine').local;
+      // 탄창의 위쪽(+y)이 GEOM 기울기와 같은 방향
+      assert.ok(Math.abs(m[5] - Math.cos(geo.mag.rx)) < 1e-4 && Math.abs(m[6] - Math.sin(geo.mag.rx)) < 1e-4, id + ' 탄창 기울기');
+    }
+    if (geo.bolt) {
+      const b = nodeT(g, 'bolt');
+      assert.ok(Math.hypot(b[0] - geo.bolt[0], b[1] - geo.bolt[1], b[2] - geo.bolt[2]) < 0.012, id + ' 장전 손잡이');
+    }
+  }
+});
+
+test('3D 모델: 로봇 크기가 히트박스와 맞고, 삼각형 수가 넉넉하지 않아요', () => {
+  const R = globalThis.SZ.rules.ENEMIES;
+  const top = (t) => R[t].head[0] + R[t].head[2];
+  for (const t of ['runner', 'brute']) {
+    const b = GL.bounds(loadGLB('robots/' + t));
+    assert.ok(Math.abs(b.lo[1]) < 0.06, t + ' 발이 바닥에');
+    assert.ok(b.hi[1] > top(t) - 0.2 && b.hi[1] < top(t) + 0.15, `${t} 키 ${b.hi[1].toFixed(2)} vs 머리 히트박스 위 ${top(t)}`);
+  }
+  const d = GL.bounds(loadGLB('robots/drone'));
+  assert.ok(d.hi[0] - d.lo[0] > 0.8 && d.hi[0] - d.lo[0] < 1.2, '드론 폭');
+  for (const k of Object.keys(globalThis.SZ.ASSET_DATA)) {
+    const tris = GL.triangles(loadGLB(k));
+    assert.ok(tris > 100 && tris < (k.startsWith('robots') ? 5000 : 10000), `${k}: ${tris} 삼각형`);
+  }
+});
+
+test('3D 모델 만들기 도구: 닫힌 도형은 모든 면이 바깥을 봐요 (뒷면 지우기에 안 사라져요)', async () => {
+  const G3 = await import('../scripts/assets/geom.mjs');
+  const W = [1, 1, 1];
+  const shapes = [
+    G3.box(0.4, 0.2, 0.3, W, 0.03),
+    G3.cylinder('z', 0.1, 0.06, -0.2, 0.2, 12, W),
+    G3.cylinder('x', 0.1, 0.05, 0.2, -0.2, 10, W),
+    G3.lathe('y', [[0, -0.2], [0.2, -0.18], [0.3, 0], [0.2, 0.18], [0, 0.2]], 16, W),
+    G3.sphere(0.2, 12, 8, W),
+    G3.extrude(G3.circle(0.1, 6), -0.05, 0.05, 'x', W, 0.01),
+  ];
+  for (const m of shapes) {
+    for (let k = 0; k < m.i.length; k += 3) {
+      const v = [0, 1, 2].map((j) => [m.p[m.i[k + j] * 3], m.p[m.i[k + j] * 3 + 1], m.p[m.i[k + j] * 3 + 2]]);
+      const cr = G3.cross(G3.sub(v[1], v[0]), G3.sub(v[2], v[0]));
+      if (Math.hypot(...cr) < 1e-12) continue;
+      const c = [0, 1, 2].map((j) => (v[0][j] + v[1][j] + v[2][j]) / 3);
+      assert.ok(G3.dot(cr, c) > 0, '삼각형이 안쪽을 봐요');
+    }
+  }
+  // 오목한 다각형도 삼각형으로 나눠요 (U자 방아쇠울: 꼭짓점 10개 → 8개)
+  assert.equal(G3.triangulate([[0, 0], [1, 0], [1, 1], [0.8, 1], [0.8, 0.2], [0.2, 0.2], [0.2, 1], [0, 1]]).length, 6);
+});
+
+test('GLB 쓰기 ↔ 읽기: 노드 이름·자리·재질 빛이 그대로예요', async () => {
+  const G3 = await import('../scripts/assets/geom.mjs');
+  const { writeGLB } = await import('../scripts/assets/glb.mjs');
+  const glb = writeGLB({
+    materials: [{ name: 'paint', color: [1, 1, 1] }, { name: 'glow', color: [0, 0, 0], emissive: [3, 0.4, 0.2] }],
+    nodes: [
+      { name: 'root', t: [0, 0.5, 0], children: [1], prims: [{ mesh: G3.box(0.1, 0.1, 0.1, [0.5, 0.25, 1]), mat: 0 }] },
+      { name: 'child', t: [0.1, 0, -0.2], r: [0.3, 0, 0], prims: [{ mesh: G3.sphere(0.05, 8, 6, [1, 1, 1]), mat: 1 }] },
+    ],
+    roots: [0],
+  });
+  const g = GL.parse(glb.buffer.slice(glb.byteOffset, glb.byteOffset + glb.byteLength));
+  assert.deepEqual(g.nodes.map((n) => n.name), ['root', 'child']);
+  assert.deepEqual(g.nodes[0].children, [1]);
+  const W = GL.worldMatrices(g);
+  assert.ok(Math.abs(W[1][13] - 0.5) < 1e-6 && Math.abs(W[1][14] + 0.2) < 1e-6, '자식 위치 = 부모 + 자기');
+  assert.ok(Math.abs(g.nodes[1].local[6] - Math.sin(0.3)) < 1e-5, '회전(쿼터니언)');
+  assert.deepEqual(g.materials[1].emissive.map((v) => +v.toFixed(3)), [3, 0.4, 0.2]);
+  const col = g.meshes[0][0].colors;
+  assert.ok(Math.abs(col[0] - 0.5) < 0.01 && Math.abs(col[2] - 1) < 0.01, '꼭짓점 색');
+});

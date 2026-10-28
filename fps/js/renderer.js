@@ -336,6 +336,7 @@ void main() {
     }
     function bindMesh(mesh) {
       if (boundMesh === mesh) return;
+      if (!mesh.vbo) return;
       gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vbo);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.ibo);
       gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 44, 0);
@@ -345,7 +346,7 @@ void main() {
       boundMesh = mesh;
     }
     function bindTex(name) {
-      const t = tex[name] || tex.white;
+      const t = typeof name === 'string' ? tex[name] || tex.white : name || tex.white;
       if (boundTex === t) return;
       gl.bindTexture(gl.TEXTURE_2D, t);
       boundTex = t;
@@ -464,6 +465,206 @@ void main() {
       gl.clear(gl.DEPTH_BUFFER_BIT);
     }
 
+    /* ---------- GLB 모델 ---------- */
+    const uintExt = gl.getExtension('OES_element_index_uint');
+    const GRAIN_TINT = 1.12; // grain 질감이 살짝 어두워서 색을 보정해요
+
+    /** 법선이 없는 메시: 면 법선을 꼭짓점마다 모아서 */
+    function computeNormals(P, I) {
+      const N = new Float32Array(P.length);
+      for (let k = 0; k < I.length; k += 3) {
+        const a = I[k] * 3, b = I[k + 1] * 3, c = I[k + 2] * 3;
+        const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2];
+        const vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
+        const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+        for (const i of [a, b, c]) {
+          N[i] += nx;
+          N[i + 1] += ny;
+          N[i + 2] += nz;
+        }
+      }
+      for (let i = 0; i < N.length; i += 3) {
+        const l = Math.hypot(N[i], N[i + 1], N[i + 2]) || 1;
+        N[i] /= l;
+        N[i + 1] /= l;
+        N[i + 2] /= l;
+      }
+      return N;
+    }
+
+    /** 그림(PNG·JPEG) → 질감 (2의 거듭제곱 크기로 맞춰서). 다 읽히면 prim.tex에 넣어요 */
+    function imageTexture(img, prims) {
+      if (!img || typeof root.Blob !== 'function') return;
+      const url = URL.createObjectURL(new Blob([img.bytes], { type: img.mime }));
+      const im = new Image();
+      im.onload = () => {
+        const pot = (v) => Math.min(1024, Math.pow(2, Math.round(Math.log2(Math.max(1, v)))));
+        const cv = document.createElement('canvas');
+        cv.width = pot(im.width);
+        cv.height = pot(im.height);
+        cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+        const t = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cv);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        boundTex = null;
+        for (const p of prims) p.tex = t;
+        URL.revokeObjectURL(url);
+      };
+      im.onerror = () => URL.revokeObjectURL(url);
+      im.src = url;
+    }
+
+    /** 메시 조각 하나 → GPU (우리 셰이더 형식: 위치3 법선3 uv2 색3) */
+    function buildPrim(p, mat) {
+      const n = p.positions.length / 3;
+      const P = p.positions;
+      const N = p.normals || computeNormals(P, p.indices);
+      const data = new Float32Array(n * 11);
+      for (let i = 0; i < n; i++) {
+        const o = i * 11;
+        const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
+        const nx = N[i * 3], ny = N[i * 3 + 1], nz = N[i * 3 + 2];
+        data[o] = x;
+        data[o + 1] = y;
+        data[o + 2] = z;
+        data[o + 3] = nx;
+        data[o + 4] = ny;
+        data[o + 5] = nz;
+        if (p.uvs) {
+          data[o + 6] = p.uvs[i * 2];
+          data[o + 7] = p.uvs[i * 2 + 1];
+        } else {
+          // uv가 없으면 가장 많이 향한 축으로 비춰서 결을 입혀요
+          const ax = Math.abs(nx), ay = Math.abs(ny), az = Math.abs(nz);
+          const uv = ax >= ay && ax >= az ? [z, y] : ay >= az ? [x, z] : [x, y];
+          data[o + 6] = uv[0] * 8;
+          data[o + 7] = uv[1] * 8;
+        }
+        data[o + 8] = p.colors ? p.colors[i * 3] : 1;
+        data[o + 9] = p.colors ? p.colors[i * 3 + 1] : 1;
+        data[o + 10] = p.colors ? p.colors[i * 3 + 2] : 1;
+      }
+      let idx, type;
+      if (n <= 65535) {
+        idx = p.indices instanceof Uint16Array ? p.indices : Uint16Array.from(p.indices);
+        type = gl.UNSIGNED_SHORT;
+      } else if (uintExt) {
+        idx = p.indices instanceof Uint32Array ? p.indices : Uint32Array.from(p.indices);
+        type = gl.UNSIGNED_INT;
+      } else return null;
+      const vbo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+      const ibo = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+      boundMesh = null;
+      const m = mat || { color: [1, 1, 1, 1], metallic: 0, roughness: 1, emissive: [0, 0, 0], texture: null };
+      const em = m.emissive || [0, 0, 0];
+      const emMax = Math.max(em[0], em[1], em[2]);
+      const baseMax = Math.max(m.color[0], m.color[1], m.color[2]);
+      // 바탕색이 거의 검고 스스로 빛나면 '빛나는 조각', 아니면 빛을 살짝 더해요
+      const glow = emMax > 0.2 && baseMax < 0.1;
+      return {
+        vbo,
+        ibo,
+        count: idx.length,
+        type,
+        glow,
+        tint: glow ? em.slice(0, 3) : [m.color[0] * GRAIN_TINT, m.color[1] * GRAIN_TINT, m.color[2] * GRAIN_TINT],
+        emitAdd: !glow && emMax > 0 ? em.map((v) => v * 0.6) : null,
+        spec: Math.max(0.05, Math.min(0.9, m.metallic * 0.55 + (1 - m.roughness) * 0.45)),
+        tex: null,
+        texIndex: m.texture,
+      };
+    }
+
+    /** 읽은 GLB → 그릴 수 있는 모델 { nodes, prims, roots, byName, rest(가만히 있는 월드 행렬), center/size(노드별) } */
+    function createModel(g) {
+      const prims = g.meshes.map((mesh) => mesh.map((p) => buildPrim(p, g.materials[p.material])));
+      // 그림 질감은 다 읽히면 붙어요 (그동안은 결 질감)
+      g.images.forEach((img, ii) => {
+        const users = [];
+        prims.forEach((list) => list.forEach((p) => p && p.texIndex === ii && users.push(p)));
+        if (users.length) imageTexture(img, users);
+      });
+      const rest = SZ.gltf.worldMatrices(g);
+      const nodes = g.nodes.map((n) => {
+        const out = { name: n.name, mesh: n.mesh, children: n.children, local: n.local, center: [0, 0, 0], size: [0, 0, 0] };
+        if (n.mesh >= 0) {
+          const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+          for (const p of g.meshes[n.mesh]) {
+            for (let k = 0; k < p.positions.length; k += 3) {
+              for (let j = 0; j < 3; j++) {
+                lo[j] = Math.min(lo[j], p.positions[k + j]);
+                hi[j] = Math.max(hi[j], p.positions[k + j]);
+              }
+            }
+          }
+          out.center = lo.map((v, j) => (v + hi[j]) / 2);
+          out.size = lo.map((v, j) => hi[j] - v);
+        }
+        return out;
+      });
+      const byName = new Map();
+      nodes.forEach((n, i) => byName.set(n.name, i));
+      return { nodes, prims, roots: g.roots, byName, rest };
+    }
+
+    const stack = [];
+    for (let i = 0; i < 40; i++) stack.push(m4.create());
+
+    /**
+     * 모델 그리기. base: 월드 행렬, opts = { em: 전체에 더할 빛, ov: {노드이름: {x,y,z,rx,ry,rz,em,hide}} }
+     * ov는 그 노드 자리(관절)에서 더 옮기고 돌려요. em은 빛나는 조각에만 더해요.
+     * start를 주면 그 노드만(자식 포함) 그리고, skipLocal이면 그 노드 자신의 자리 대신 base를 써요.
+     */
+    function drawModel(model, base, opts, start, skipLocal) {
+      use(lit);
+      enableAttribs(4);
+      if (start === undefined) for (const r of model.roots) drawNode(model, r, base, opts, 0, false);
+      else drawNode(model, start, base, opts, 0, !!skipLocal);
+    }
+
+    function drawNode(model, i, parent, opts, depth, skipLocal) {
+      const node = model.nodes[i];
+      const ov = opts && opts.ov && opts.ov[node.name];
+      if (ov && ov.hide) return;
+      const M = stack[Math.min(depth, stack.length - 1)];
+      if (skipLocal) m4.copy(M, parent);
+      else m4.multiply(M, parent, node.local);
+      if (ov) {
+        if (ov.x || ov.y || ov.z) m4.translate(M, ov.x || 0, ov.y || 0, ov.z || 0);
+        if (ov.ry) m4.rotateY(M, ov.ry);
+        if (ov.rx) m4.rotateX(M, ov.rx);
+        if (ov.rz) m4.rotateZ(M, ov.rz);
+      }
+      if (node.mesh >= 0) drawPrims(model.prims[node.mesh], M, opts && opts.em, ov && ov.em);
+      if (!(opts && opts.noChildren)) for (const c of node.children) drawNode(model, c, M, opts, depth + 1, false);
+    }
+
+    const emSum = [0, 0, 0];
+    function drawPrims(list, M, em, glowEm) {
+      for (const p of list) {
+        if (!p) continue;
+        bindMesh(p);
+        let e = em || null;
+        const extra = p.glow ? glowEm : p.emitAdd;
+        if (extra) {
+          emSum[0] = (em ? em[0] : 0) + extra[0];
+          emSum[1] = (em ? em[1] : 0) + extra[1];
+          emSum[2] = (em ? em[2] : 0) + extra[2];
+          e = emSum;
+        }
+        setMaterial(M, p.tex || 'grain', p.tint, e, p.spec, p.glow ? 1 : 0);
+        gl.drawElements(gl.TRIANGLES, p.count, p.type, 0);
+      }
+    }
+
     /* ---------- 효과 (빛 점·광선) ---------- */
     const FX_STRIDE = 9;
     function fxLayer(maxQuads, additive, depthTest) {
@@ -573,7 +774,7 @@ void main() {
       Object.keys(layers).forEach((k) => (layers[k].n = 0));
     }
 
-    return { gl, canvas, resize, setLevel, frame, drawWorld, box, clearDepth, setAmbient, sprite, beam, drawFx, resetFx, MAXL };
+    return { gl, canvas, resize, setLevel, frame, drawWorld, box, createModel, drawModel, clearDepth, setAmbient, sprite, beam, drawFx, resetFx, MAXL };
   }
 
   SZ.renderer = { create: createRenderer, MeshBuilder };

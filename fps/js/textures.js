@@ -256,6 +256,17 @@
     });
   }
 
+  /** 3D 모델에 입히는 잔잔한 결 (밝기 0.8~0.95, 이음매 없음) */
+  function grain(S) {
+    return make(S, (x, y, px) => {
+      const u = x / S, v = y / S;
+      const n = fbm(u, v, 8, 71, 4);
+      const streak = noise(u * 0.15, v, 64, 9);
+      const k = 222 + (n - 0.5) * 40 + (streak - 0.5) * 16;
+      set(px, k, k, k);
+    });
+  }
+
   function white() {
     return make(4, (x, y, px) => set(px, 255, 255, 255));
   }
@@ -281,6 +292,7 @@
       ceiling: ceiling(128),
       crate: crate(128),
       metal: metal(128),
+      grain: grain(128),
       white: white(),
       glow: glow(64),
     };

@@ -509,6 +509,8 @@
     if (EVENT_SOUND[name]) audio.play(EVENT_SOUND[name]);
   }
 
+  const CASING_NODE = { pistol: 'casing_9mm', rifle: 'casing_556', shotgun: 'shell_12g' };
+
   /** 탄피: 총 오른쪽 구멍에서 튀어나와 바닥에 굴러요 */
   function ejectCasing(id) {
     const e = vmOut.eject, r = vmOut.right, u = vmOut.up;
@@ -524,6 +526,7 @@
       vz: r[2] * out + u[2] * up + player.vz,
       rx: rnd(0, 6), ry: player.yaw + rnd(-0.6, 0.6), wx: rnd(-25, 25), wy: rnd(-25, 25),
       s: 0.02, dims: A.GEOM[id].casing, tint: id === 'shotgun' ? [0.75, 0.12, 0.08] : [0.95, 0.72, 0.3], spec: 0.9,
+      ref: models.nodeRef('props/casings', CASING_NODE[id]),
       hot: 0, life: 2.4, casing: true,
     });
   }
@@ -538,6 +541,7 @@
       vx: player.vx * 0.9 + rnd(-0.3, 0.3), vy: -1.2, vz: player.vz * 0.9 + rnd(-0.3, 0.3),
       rx: geo.mag.rx, ry: player.yaw, wx: rnd(-3, 3), wy: rnd(-3, 3),
       s: 0.06, dims: geo.mag.size, tint: [0.11, 0.11, 0.12], spec: 0.4, hot: 0, life: 6, mag: true,
+      ref: models.nodeRef('guns/' + curW().def.id, 'magazine'),
     });
   }
 
@@ -785,7 +789,11 @@
         e.tilt = damp(e.tilt, -fv * 0.06, 6, dt);
         e.roll = damp(e.roll, -rv * 0.08, 6, dt);
       }
-      if (e.type === 'brute') e.aimPitch = Math.atan2(peY - 0.4 - (e.y + 1.48), dist) * 0.8;
+      if (e.type === 'brute') {
+        e.aimPitch = Math.atan2(peY - 0.4 - (e.y + 1.48), dist) * 0.8;
+        // 쏘기 직전과 쏘는 동안 총신이 빠르게 돌아요
+        e.spin = ((e.spin || 0) + dt * (e.windup > 0 || e.burstLeft > 0 ? 22 : 1.2)) % (Math.PI * 2);
+      }
       // 안전장치: 플레이어가 안 보이는 채로 오래 제자리면 출현 지점으로 옮겨요 (웨이브가 멈추지 않게)
       e.stuckT += dt;
       if (e.los || Math.hypot(e.x - e.checkX, e.z - e.checkZ) > 1.5) {
@@ -870,8 +878,35 @@
     const cy = e.type === 'drone' ? e.y : e.y + (e.type === 'brute' ? 1.4 : 1.0);
     explosion(e.x, cy, e.z, def.color, e.type === 'brute' ? 1.8 : 1);
     audio.play(e.type === 'brute' ? 'bigExplode' : 'explode', e);
+    // 로봇이 실제 부품(머리, 팔, 다리, 대포…)으로 부서져 날아가요
+    const parts = models.partsOf(e.type);
+    const sy = Math.sin(e.yaw), cyw = Math.cos(e.yaw);
+    for (const pt of parts) {
+      const lx = pt.at[0], lz = pt.at[2];
+      const wx = e.x + cyw * lx + sy * lz, wz = e.z - sy * lx + cyw * lz;
+      const out = Math.hypot(wx - e.x, wz - e.z) || 1;
+      const push = rnd(1.5, 4.5);
+      chunks.push({
+        x: wx,
+        y: e.y + pt.at[1],
+        z: wz,
+        vx: ((wx - e.x) / out) * push + rnd(-1, 1),
+        vy: rnd(2, 6),
+        vz: ((wz - e.z) / out) * push + rnd(-1, 1),
+        rx: 0,
+        ry: e.yaw,
+        wx: rnd(-6, 6),
+        wy: rnd(-6, 6),
+        s: 0.1,
+        ground: Math.max(0.02, Math.min(pt.size[0], pt.size[1], pt.size[2]) * 0.5),
+        ref: pt,
+        tint: [0.3, 0.3, 0.3],
+        hot: 1,
+        life: rnd(3.5, 5),
+      });
+    }
     const tints = { drone: [0.34, 0.36, 0.4], runner: [0.3, 0.31, 0.33], brute: [0.46, 0.38, 0.16] };
-    const n = e.type === 'brute' ? 12 : 7;
+    const n = parts.length ? 4 : e.type === 'brute' ? 12 : 7;
     for (let k = 0; k < n; k++) {
       chunks.push({
         x: e.x + rnd(-0.3, 0.3),
@@ -1090,7 +1125,7 @@
         c.z = nz;
       }
       c.y += c.vy * dt;
-      const g = LV.heightAtPos(lv, c.x, c.z) + (c.dims ? c.dims[1] * 0.5 : c.s * 0.35);
+      const g = LV.heightAtPos(lv, c.x, c.z) + (c.ground !== undefined ? c.ground : c.dims ? c.dims[1] * 0.5 : c.s * 0.35);
       if (c.y < g) {
         if ((c.casing || c.mag) && !c.tink && c.vy < -0.8) {
           c.tink = true;
