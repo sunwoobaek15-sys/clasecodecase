@@ -328,8 +328,8 @@
       player.rackT = 0;
     }
 
-    // 발사
-    if (input.fire && !busy() && player.fireT <= 0 && (input.firePressed || player.holdT <= 0)) {
+    // 발사 (한 프레임 안에 눌렀다 뗀 빠른 탭·클릭도 한 발로 쳐요)
+    if ((input.fire || input.firePressed) && !busy() && player.fireT <= 0 && (input.firePressed || player.holdT <= 0)) {
       if (w.ammo > 0 && (!player.reloading || d.shellReload)) {
         player.reloading = false;
         fire(w);
