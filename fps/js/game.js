@@ -65,6 +65,7 @@
     hintT: 0,
     autoScale: 1,
     slowFrames: 0,
+    fastFrames: 0,
     onStateChange: null,
   };
   const player = {};
@@ -247,7 +248,7 @@
   /** 무기 바꾸기: 지금 총을 내리고(lower) → 새 총을 꺼내요(draw). 꺼내는 동안은 못 쏴요 */
   function switchWeapon(i) {
     if (i < 0 || i >= player.weapons.length) return;
-    if (player.switchTo === i || (player.switchTo < 0 && i === player.cur && player.drawT <= 0)) return;
+    if (player.switchTo === i || (player.switchTo < 0 && i === player.cur)) return;
     if (player.switchTo < 0) {
       player.lowerT = A.DUR.lower;
       audio.play('swap');
@@ -512,7 +513,10 @@
   function ejectCasing(id) {
     const e = vmOut.eject, r = vmOut.right, u = vmOut.up;
     const out = rnd(1.6, 2.5), up = rnd(1.3, 2.2);
-    if (chunks.length > 140) chunks.splice(chunks.findIndex((c) => c.casing), 1);
+    if (chunks.length > 140) {
+      const old = chunks.findIndex((c) => c.casing);
+      if (old >= 0) chunks.splice(old, 1);
+    }
     chunks.push({
       x: e[0], y: e[1], z: e[2],
       vx: r[0] * out + u[0] * up + player.vx,
@@ -572,7 +576,12 @@
     const def = RU.ENEMIES[type];
     const plan = wave.plan;
     const s = at || pickSpawn();
-    const x = s.x + (at ? 0 : rnd(-0.4, 0.4)), z = s.z + (at ? 0 : rnd(-0.4, 0.4));
+    let x = s.x + (at ? 0 : rnd(-0.4, 0.4)), z = s.z + (at ? 0 : rnd(-0.4, 0.4));
+    // 큰 적은 흔들린 자리가 벽에 걸칠 수 있어요: 그러면 칸 가운데에서 나와요
+    if (LV.blocked(lv, x, z, def.radius, def.flying ? def.hover - 0.4 : 0)) {
+      x = s.x;
+      z = s.z;
+    }
     const e = {
       id: nextId++,
       type,
@@ -605,6 +614,9 @@
       tilt: 0,
       roll: 0,
       aimPitch: 0,
+      stuckT: 0,
+      checkX: x,
+      checkZ: z,
     };
     enemies.push(e);
     wave.spawned++;
@@ -746,6 +758,12 @@
       e.vx = damp(e.vx, mx * speed, 7, dt);
       e.vz = damp(e.vz, mz * speed, 7, dt);
       const feet = def.flying ? e.y - 0.4 : 0;
+      // 벽에 걸쳐 있으면 (밀리거나 떠 있는 높이가 바뀌어서) 칸 가운데 쪽으로 빼내요
+      if (LV.blocked(lv, e.x, e.z, def.radius, feet)) {
+        const k = Math.min(1, dt * 8);
+        e.x += ((LV.cellOf(e.x) + 0.5) * LV.CELL - e.x) * k;
+        e.z += ((LV.cellOf(e.z) + 0.5) * LV.CELL - e.z) * k;
+      }
       const hit = LV.slide(lv, e, e.vx * dt, e.vz * dt, def.radius, feet);
       if ((hit.hitX || hit.hitZ) && def.attack !== 'melee') e.strafe = -e.strafe;
       // 플레이어와 겹치지 않게 적을 밀어내요
@@ -768,6 +786,20 @@
         e.roll = damp(e.roll, -rv * 0.08, 6, dt);
       }
       if (e.type === 'brute') e.aimPitch = Math.atan2(peY - 0.4 - (e.y + 1.48), dist) * 0.8;
+      // 안전장치: 플레이어가 안 보이는 채로 오래 제자리면 출현 지점으로 옮겨요 (웨이브가 멈추지 않게)
+      e.stuckT += dt;
+      if (e.los || Math.hypot(e.x - e.checkX, e.z - e.checkZ) > 1.5) {
+        e.stuckT = 0;
+        e.checkX = e.x;
+        e.checkZ = e.z;
+      } else if (e.stuckT > 12) {
+        const sp = pickSpawn();
+        e.x = e.checkX = sp.x;
+        e.z = e.checkZ = sp.z;
+        e.vx = e.vz = 0;
+        e.stuckT = 0;
+        e.spawnT = 0.3;
+      }
     }
   }
 
@@ -1472,12 +1504,18 @@
     let dt = lastNow ? (now - lastNow) / 1000 : 1 / 60;
     lastNow = now;
     // 느린 기기는 해상도를 조금씩 낮춰요 (자동 화질)
+    // 다시 빨라지면(4초 넘게 부드러우면) 조금씩 되돌려요
     if (store.settings.quality === 'auto' && game.state === 'playing') {
       if (dt > 0.026) game.slowFrames++;
       else game.slowFrames = Math.max(0, game.slowFrames - 1);
+      if (dt < 0.019) game.fastFrames++;
+      else game.fastFrames = 0;
       if (game.slowFrames > 90 && game.autoScale > 0.5) {
         game.autoScale = Math.max(0.5, game.autoScale - 0.1);
         game.slowFrames = 0;
+      } else if (game.fastFrames > 240 && game.autoScale < 1) {
+        game.autoScale = Math.min(1, game.autoScale + 0.1);
+        game.fastFrames = 0;
       }
     }
     dt = Math.min(dt, 0.05);
@@ -1580,6 +1618,14 @@
     // 테스트·디버그용
     _debug: () => ({ enemies, shots, pickups, wave, stats, lv, vm, chunks }),
     _spawn: (type, x, z) => spawnEnemy(type, { x, z }),
+    /** 테스트용: 그리지 않고 n 프레임 빨리 돌리기 */
+    _step: (dt, n) => {
+      for (let i = 0; i < n; i++) {
+        if (game.state === 'playing') update(dt);
+        else if (game.state === 'dying') updateDying(dt);
+        input.endFrame();
+      }
+    },
   });
   SZ.game = game;
 })(window);
