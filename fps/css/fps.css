@@ -149,6 +149,26 @@ body[data-state='playing'] #view { cursor: none; }
 .rotate-row p { margin: 0; font-size: 13px; color: var(--ink-2); }
 .rotate-row b { color: var(--hazard); font-weight: 700; }
 .btn.small { min-height: 36px; padding: 0 14px; font-size: 13px; --cut: 8px; }
+/* 난이도 고르기 (첫 화면) */
+.diff { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.diff-label { font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.14em; color: var(--ink-3); margin-right: 2px; }
+.diff-btn {
+  appearance: none;
+  min-height: 32px;
+  padding: 0 14px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink-2);
+  background: rgba(13, 19, 25, 0.8);
+  border: 1px solid var(--line-2);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.diff-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.diff-btn[aria-checked='true'] { color: var(--on-hazard); background: var(--hazard); border-color: var(--hazard); }
+.diff-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.diff-note { flex-basis: 100%; font-size: 13px; color: var(--ink-3); }
 body:not(.touch) .only-portrait, body.rotated .only-portrait, body:not(.rotated) .only-rotated { display: none; }
 @media (orientation: landscape) { .only-portrait { display: none; } }
 
@@ -345,7 +365,7 @@ body.short .result-grid .wide dd { font-size: 36px; }
 body.short .dialog .btn { min-height: 42px; }
 body.short .new-best { margin: 0; }
 body.short .result .eyebrow { display: none; }
-body.short .dialog.settings { width: min(720px, 100%); grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+body.short .dialog.settings { width: min(860px, 100%); grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 20px; }
 body.short .settings .eyebrow, body.short .settings .dialog-title, body.short .settings .stack { grid-column: 1 / -1; }
 body.short .settings .field select { min-height: 38px; }
 

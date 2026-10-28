@@ -122,6 +122,24 @@ test('규칙: 웨이브가 커질수록 적이 늘고, 중장갑은 3웨이브�
   }
 });
 
+test('난이도: 쉬움은 적이 약하고 적고, 어려움은 강하고 많아요 (구성은 늘 맞아요)', () => {
+  assert.deepEqual(R.wavePlan(3), R.wavePlan(3, 'normal'), '난이도를 안 주면 보통');
+  for (let n = 1; n <= 15; n++) {
+    const e = R.wavePlan(n, 'easy'), m = R.wavePlan(n, 'normal'), h = R.wavePlan(n, 'hard');
+    for (const p of [e, m, h]) {
+      assert.equal(p.drones + p.runners + p.brutes + p.bombers + p.bosses, p.total, 'n=' + n);
+      assert.ok(p.drones >= 0 && p.runners >= 0 && p.maxAlive >= 3);
+    }
+    assert.ok(e.total <= m.total && m.total <= h.total, 'n=' + n);
+    assert.ok(e.hpMul < m.hpMul && m.hpMul < h.hpMul);
+    assert.ok(e.dmgMul < m.dmgMul && m.dmgMul < h.dmgMul);
+    assert.ok(e.fireRate < 1 && h.fireRate > 1);
+    assert.equal(e.bosses, m.bosses, '지휘관 웨이브는 같아요');
+  }
+  assert.ok(R.DIFFICULTY.easy.regen > 0 && !R.DIFFICULTY.normal.regen && !R.DIFFICULTY.hard.regen, '쉬움만 체력이 차올라요');
+  assert.equal(R.diffOf('없는 값'), R.DIFFICULTY.normal);
+});
+
 test('규칙: 콤보 점수, 치명타, 산탄총 거리 감소', () => {
   assert.equal(R.killScore('drone', false, 1), 100);
   assert.equal(R.killScore('drone', true, 1), 150);

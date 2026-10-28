@@ -15,7 +15,7 @@
 
   /* ---------------- 저장 (최고 기록, 설정) ---------------- */
   const STORE_KEY = 'sectorzero.v1';
-  const DEFAULTS = { sens: 1, volume: 0.8, fov: 74, quality: 'auto', invertY: false, orient: 'left' };
+  const DEFAULTS = { sens: 1, volume: 0.8, fov: 74, quality: 'auto', invertY: false, orient: 'left', difficulty: 'easy' };
   const store = { best: null, settings: Object.assign({}, DEFAULTS) };
   function loadStore() {
     try {
@@ -30,6 +30,7 @@
           if (typeof v.fov === 'number') st.fov = clamp(v.fov, 60, 95);
           if (['auto', 'high', 'low'].includes(v.quality)) st.quality = v.quality;
           if (['left', 'right', 'off'].includes(v.orient)) st.orient = v.orient;
+          if (Object.prototype.hasOwnProperty.call(RU.DIFFICULTY, v.difficulty)) st.difficulty = v.difficulty;
           st.invertY = !!v.invertY;
         }
       }
@@ -109,6 +110,7 @@
       shake: 0,
       recoilDebt: 0,
       lastShot: -9,
+      lastHurt: -99,
       stepDist: 0,
       weapons: RU.WEAPONS.map((d) => ({ def: d, st: RU.weaponStats(d), ammo: d.mag, reserve: d.reserve })),
       upg: {},
@@ -251,6 +253,11 @@
     }
     player.land = damp(player.land, 0, 7, dt);
     player.hurt = damp(player.hurt, 0, 2.2, dt);
+    // 쉬움: 한동안 안 맞으면 체력이 조금씩 차올라요
+    const df = RU.diffOf(st.difficulty);
+    if (df.regen && player.hp > 0 && player.hp < player.maxHp && game.time - player.lastHurt > df.regenDelay) {
+      player.hp = Math.min(player.maxHp, player.hp + df.regen * dt);
+    }
     player.shake = damp(player.shake, 0, 6, dt);
   }
 
@@ -770,7 +777,7 @@
           const ux = dx / dist, uz = dz / dist;
           mx = ux * radial - uz * e.strafe * 0.75;
           mz = uz * radial + ux * e.strafe * 0.75;
-          e.fireT -= dt * (1 + 0.04 * (plan.wave - 1)) * (e.enraged ? 1.7 : 1);
+          e.fireT -= dt * (1 + 0.04 * (plan.wave - 1)) * (e.enraged ? 1.7 : 1) * (plan.fireRate || 1);
           if (e.fireT <= 0 && e.burstLeft <= 0 && e.windup <= 0) {
             e.windup = heavy(e) ? 0.45 : 0.35;
             audio.play('charge', e, 0.8);
@@ -1110,6 +1117,7 @@
     player.hp -= dmg;
     if (from) game.lastHitBy = from;
     player.hurt = Math.min(1, player.hurt + dmg / 22);
+    player.lastHurt = game.time;
     player.shake = Math.min(1, player.shake + dmg / 28);
     stats.taken += dmg;
     hud.damageFrom(yawTo(sx - player.x, sz - player.z));
@@ -1289,7 +1297,7 @@
 
   /* ---------------- 웨이브 ---------------- */
   function startWave(n) {
-    const plan = RU.wavePlan(n);
+    const plan = RU.wavePlan(n, store.settings.difficulty);
     wave = { n, plan, queue: RU.spawnOrder(plan), spawned: 0, killed: 0, phase: 'intro', timer: 1, spawnT: 0, revealed: false };
     let sub = '적 ' + plan.total + '기가 다가와요';
     if (n === 1) sub = '경비 로봇이 몰려와요. 원자로 홀을 지키세요';
@@ -1451,10 +1459,11 @@
       best: false,
       upgrades: stats.upgrades.slice(),
       killedBy: game.lastHitBy || null,
+      difficulty: store.settings.difficulty,
     };
     if (result.score > 0 && (!store.best || result.score > store.best.score)) {
       result.best = true;
-      store.best = { score: result.score, wave: result.wave, kills: result.kills, at: Date.now() };
+      store.best = { score: result.score, wave: result.wave, kills: result.kills, difficulty: result.difficulty, at: Date.now() };
       saveStore();
     }
     game.result = result;

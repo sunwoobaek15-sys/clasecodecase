@@ -26,7 +26,7 @@
     el.append('최고 기록 ');
     const strong = document.createElement('b');
     strong.textContent = fmt(b.score) + '점';
-    el.append(strong, ' · 웨이브 ' + b.wave + ' · 처치 ' + (b.kills || 0));
+    el.append(strong, ' · 웨이브 ' + b.wave + ' · 처치 ' + (b.kills || 0) + (b.difficulty ? ' · ' + SZ.rules.diffOf(b.difficulty).name : ''));
   }
 
   /** 마지막으로 맞은 공격 */
@@ -48,7 +48,7 @@
     $('r-time').textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
     $('r-record').textContent = fmt(SZ.game.store.best ? SZ.game.store.best.score : r.score);
     $('r-best').hidden = !r.best;
-    $('r-cause').textContent = CAUSE[r.killedBy] || '';
+    $('r-cause').textContent = (CAUSE[r.killedBy] ? CAUSE[r.killedBy] + ' ' : '') + '난이도 ' + SZ.rules.diffOf(r.difficulty).name;
     upgradeSummary($('r-upg'), r.upgrades);
   }
 
@@ -117,6 +117,18 @@
     }, 1500);
   }
 
+  /* ---------- 난이도 ---------- */
+  const DIFF_NOTE = {
+    easy: '적이 약하고, 잠깐 안 맞으면 체력이 차올라요.',
+    normal: '적이 웨이브마다 조금씩 강해져요.',
+    hard: '적이 더 단단하고 아프게 때려요.',
+  };
+  function renderDifficulty() {
+    const d = SZ.game.store.settings.difficulty;
+    document.querySelectorAll('.diff-btn').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.diff === d)));
+    $('diff-note').textContent = DIFF_NOTE[d] || '';
+  }
+
   /* ---------- 설정 ---------- */
   function syncSettings() {
     const s = SZ.game.store.settings;
@@ -126,6 +138,8 @@
     $('set-quality').value = s.quality;
     $('set-invert').checked = s.invertY;
     $('set-orient').value = s.orient;
+    $('set-difficulty').value = s.difficulty;
+    renderDifficulty();
     $('out-sens').textContent = Number(s.sens).toFixed(1);
     $('out-volume').textContent = Math.round(s.volume * 100) + '%';
     $('out-fov').textContent = s.fov + '°';
@@ -138,6 +152,7 @@
     s.quality = $('set-quality').value;
     s.invertY = $('set-invert').checked;
     s.orient = $('set-orient').value;
+    s.difficulty = $('set-difficulty').value;
     SZ.audio.setVolume(s.volume);
     SZ.game.autoScale = 1;
     SZ.game.saveStore();
@@ -242,6 +257,7 @@
       return;
     }
     if (SZ.input.touch) document.body.classList.add('touch');
+    renderDifficulty();
     applyOrientation();
     $('view').addEventListener('webglcontextlost', (e) => {
       e.preventDefault();
@@ -255,6 +271,13 @@
       game.start();
     });
     $('b-settings').addEventListener('click', () => openSettings('s-title'));
+    document.querySelectorAll('.diff-btn').forEach((b) =>
+      b.addEventListener('click', () => {
+        game.store.settings.difficulty = b.dataset.diff;
+        game.saveStore();
+        renderDifficulty();
+      })
+    );
     $('b-resume').addEventListener('click', () => {
       tryFullscreen();
       game.resume();

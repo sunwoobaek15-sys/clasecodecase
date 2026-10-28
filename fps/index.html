@@ -85,6 +85,13 @@
       <button type="button" id="b-start" class="btn primary">작전 시작</button>
       <button type="button" id="b-settings" class="btn">설정</button>
     </div>
+    <div class="diff" role="radiogroup" aria-label="난이도">
+      <span class="diff-label">난이도</span>
+      <button type="button" class="diff-btn" role="radio" data-diff="easy">쉬움</button>
+      <button type="button" class="diff-btn" role="radio" data-diff="normal">보통</button>
+      <button type="button" class="diff-btn" role="radio" data-diff="hard">어려움</button>
+      <span class="diff-note" id="diff-note"></span>
+    </div>
     <p class="best" id="best"></p>
     <p class="rotate-hint only-portrait">휴대폰을 세워 들고 있어요. 설정에서 가로 화면을 켜면 눕혀서 할 수 있어요.</p>
     <div class="rotate-row only-rotated">
@@ -184,6 +191,12 @@
       <input type="range" id="set-volume" min="0" max="1" step="0.05" value="0.8"></label>
     <label class="field" for="set-fov"><span>시야각 <output id="out-fov">74°</output></span>
       <input type="range" id="set-fov" min="60" max="95" step="1" value="74"></label>
+    <label class="field" for="set-difficulty"><span>난이도</span>
+      <select id="set-difficulty">
+        <option value="easy">쉬움</option>
+        <option value="normal">보통</option>
+        <option value="hard">어려움</option>
+      </select></label>
     <label class="field" for="set-quality"><span>화질</span>
       <select id="set-quality">
         <option value="auto">자동 (느리면 해상도를 낮춰요)</option>

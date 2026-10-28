@@ -197,12 +197,24 @@
     ammo: { rifle: 45, shotgun: 8, respawn: 24 },
   };
 
-  /** n번째 웨이브 구성 (1부터) */
-  function wavePlan(n) {
+  /*
+   * 난이도: 적 체력·공격력·쏘는 빠르기·적 수, 그리고 쉬움에서는 한동안 안 맞으면 체력이 차올라요
+   * regen: 초당 회복, regenDelay: 마지막으로 맞고 나서 기다리는 시간(초)
+   */
+  const DIFFICULTY = {
+    easy: { name: '쉬움', enemyHp: 0.8, enemyDmg: 0.6, fireRate: 0.8, count: 0.85, alive: -1, regen: 6, regenDelay: 4 },
+    normal: { name: '보통', enemyHp: 1, enemyDmg: 1, fireRate: 1, count: 1, alive: 0, regen: 0, regenDelay: 0 },
+    hard: { name: '어려움', enemyHp: 1.15, enemyDmg: 1.25, fireRate: 1.15, count: 1.1, alive: 1, regen: 0, regenDelay: 0 },
+  };
+  const diffOf = (key) => DIFFICULTY[key] || DIFFICULTY.normal;
+
+  /** n번째 웨이브 구성 (1부터). difficulty: 'easy' | 'normal' | 'hard' (없으면 보통) */
+  function wavePlan(n, difficulty) {
     n = Math.max(1, Math.floor(n));
+    const df = diffOf(difficulty);
     // 지휘관 웨이브는 지휘관이 주인공: 중장갑 없이 적 수를 3기 줄여요
     const bosses = n % 5 === 0 ? 1 : 0;
-    const total = 5 + n * 3 - bosses * 3;
+    const total = Math.round((5 + n * 3 - bosses * 3) * df.count);
     const brutes = n >= 3 && !bosses ? Math.floor((n - 1) / 2) : 0;
     const bombers = n >= 4 ? 1 + Math.floor((n - 4) / 2) : 0;
     const runners = Math.round((total - brutes) * Math.min(0.45, 0.28 + n * 0.03));
@@ -215,10 +227,11 @@
       brutes,
       bombers,
       bosses,
-      maxAlive: Math.min(14, 5 + Math.floor(n * 0.8)),
+      maxAlive: Math.max(3, Math.min(14, 5 + Math.floor(n * 0.8)) + df.alive),
       spawnGap: Math.max(0.45, 1.4 - n * 0.08),
-      hpMul: 1 + 0.06 * (n - 1),
-      dmgMul: 1 + 0.04 * (n - 1),
+      hpMul: (1 + 0.06 * (n - 1)) * df.enemyHp,
+      dmgMul: (1 + 0.04 * (n - 1)) * df.enemyDmg,
+      fireRate: df.fireRate,
       speedMul: 1 + Math.min(0.25, 0.02 * (n - 1)),
       clearBonus: 250 * n,
     };
@@ -377,6 +390,8 @@
     ENEMIES,
     PLAYER,
     PICKUPS,
+    DIFFICULTY,
+    diffOf,
     UPGRADES,
     UPGRADE_BY_ID,
     UPGRADE_CATS,
