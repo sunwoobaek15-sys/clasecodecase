@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Kiwi &amp; Kimchi Party</title>
+    <meta name="description" content="Korea × New Zealand culture mini-games: Kimchi Run, Pavlova Dash, Palace Builder and Kiwi Forest Rescue." />
+    <meta name="theme-color" content="#ff7a59" />
+    <link rel="icon" href="assets/images/icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Jua&display=swap" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/games.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>This game needs JavaScript. / 이 게임은 JavaScript가 필요해요.</noscript>
+
+    <!-- 순서가 중요해요: 공통 도구 → 게임 관리자 → 각 미니게임 → 화면 → 시작 -->
+    <script src="src/i18n.js"></script>
+    <script src="src/save-manager.js"></script>
+    <script src="src/audio.js"></script>
+    <script src="src/ui-manager.js"></script>
+    <script src="src/art/menu-art.js"></script>
+    <script src="src/game-manager.js"></script>
+    <script src="src/games/kimchi-run.js"></script>
+    <script src="src/screens/menu.js"></script>
+    <script src="src/screens/records.js"></script>
+    <script src="src/router.js"></script>
+    <script src="src/main.js"></script>
+  </body>
+</html>

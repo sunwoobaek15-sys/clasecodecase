@@ -1,5 +1,7 @@
 # SAVE CITY
 
+> 이 저장소에는 새 프로젝트 **Kiwi & Kimchi Party**(한국 × 뉴질랜드 문화 미니게임)도 들어 있어요 → [`kiwi-kimchi-party/`](kiwi-kimchi-party/README.md)
+
 **돈을 아끼는 행동을 할수록 게임 속 도시가 성장하는 게임**
 절약 습관 + 도시 경영 + 수집 + 성장 + 게임화
 
