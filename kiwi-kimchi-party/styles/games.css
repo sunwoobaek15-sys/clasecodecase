@@ -139,6 +139,7 @@
 /* ---------- 무대 / 캔버스 ---------- */
 .stage {
   position: relative;
+  touch-action: none;
   flex: 1;
   min-height: 0;
   display: grid;
@@ -549,6 +550,9 @@
 }
 .breakdown b {
   font-variant-numeric: tabular-nums;
+}
+.breakdown b.neg {
+  color: #c2412b;
 }
 .result-best {
   margin-top: 10px;

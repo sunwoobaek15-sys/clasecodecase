@@ -137,6 +137,7 @@
     right: { icon: 'right', input: ['right'], side: 'l', aria: 'ctrl.right' },
     jump: { icon: 'up', input: ['jump'], side: 'r', label: 'ctrl.jump', big: true },
     mix: { icon: 'spoon', input: ['action'], side: 'r', label: 'ctrl.mix', big: true },
+    drop: { icon: 'down', input: ['action'], side: 'r', label: 'ctrl.drop', big: true },
   };
 
   /* ---------- 게임 화면 하나를 만든다 (라우터가 호출) ---------- */
@@ -302,10 +303,34 @@
       input.pulse('tap');
     });
 
+    /* 포인터 위치 (게임 좌표). 마우스는 움직이기만 해도, 터치는 누르고 있는 동안 갱신된다.
+     * 캔버스 바깥(세로 화면의 빈 공간)에서 끌어도 가로 위치를 따라간다. */
+    const pointer = { x: W / 2, y: H / 2, down: false, version: 0 };
+    const toGame = (e) => {
+      const r = canvas.getBoundingClientRect();
+      pointer.x = Math.max(0, Math.min(W, ((e.clientX - r.left) / r.width) * W));
+      pointer.y = ((e.clientY - r.top) / r.height) * H;
+      pointer.version += 1;
+    };
+    stage.addEventListener('pointerdown', (e) => {
+      if (state !== 'playing' || e.target.closest('.ctrl-btn')) return;
+      pointer.down = true;
+      toGame(e);
+    });
+    stage.addEventListener('pointermove', (e) => {
+      if (state !== 'playing' || e.target.closest('.ctrl-btn')) return;
+      if (pointer.down || e.pointerType === 'mouse') toGame(e);
+    });
+    const pointerUp = () => (pointer.down = false);
+    stage.addEventListener('pointerup', pointerUp);
+    stage.addEventListener('pointercancel', pointerUp);
+    stage.addEventListener('pointerleave', pointerUp);
+
     const api = {
       width: W,
       height: H,
       input,
+      pointer,
       hud,
       t,
       audio: KK.audio,
@@ -474,7 +499,7 @@
         el(
           'ul',
           { class: 'breakdown' },
-          result.breakdown.map((r) => el('li', null, el('span', { text: r.label }), el('b', { text: '+' + formatNum(r.value) })))
+          result.breakdown.map((r) => el('li', null, el('span', { text: r.label }), el('b', { class: r.value < 0 ? 'neg' : null, text: (r.value < 0 ? '−' : '+') + formatNum(Math.abs(r.value)) })))
         ),
         el(
           'p',

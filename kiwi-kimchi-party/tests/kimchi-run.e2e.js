@@ -63,8 +63,8 @@ const placeObstacle = (page) => page.evaluate(() => {
   const names = await page.$$eval('.game-card h3', (n) => n.map((x) => x.textContent));
   check('카드 이름 순서', JSON.stringify(names) === JSON.stringify(['Kimchi Run', 'Pavlova Dash', 'Palace Builder', 'Kiwi Forest Rescue']), names);
   check('Culture Match 없음', !(await page.content()).toLowerCase().includes('culture match'));
-  check('Kimchi Run 에만 PLAY 버튼', (await page.$$('.btn-play')).length === 1 && !!(await page.$('[data-game="kimchi-run"] .btn-play')));
-  check('미구현 게임은 "Coming soon" 표시', (await page.$$('.soon-pill')).length === 3);
+  check('구현된 게임(Kimchi Run, Pavlova Dash)에 PLAY 버튼', (await page.$$('.btn-play')).length === 2 && !!(await page.$('[data-game="kimchi-run"] .btn-play')) && !!(await page.$('[data-game="pavlova-dash"] .btn-play')));
+  check('미구현 게임은 "Coming soon" 표시', (await page.$$('.soon-pill')).length === 2);
 
   await page.click('.topbar .btn:nth-child(1)');
   check('언어 → 한국어', (await page.textContent('.game-card h3')) === '김치 런');
@@ -87,7 +87,7 @@ const placeObstacle = (page) => page.evaluate(() => {
   check('기록 화면 → 메뉴로 돌아옴', true);
 
   console.log('\n[Kimchi Run: 시작/이동/점프]');
-  await page.click('.btn-play');
+  await page.click('[data-game="kimchi-run"] .btn-play');
   await page.waitForSelector('.intro-panel');
   check('게임 소개 화면', (await page.textContent('.intro-panel')).includes('Napa cabbage'));
   await page.click('.intro-panel .btn-primary');
@@ -279,7 +279,7 @@ const placeObstacle = (page) => page.evaluate(() => {
     const overflow = await mp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     check(`${vp.name}: 메뉴 가로 넘침 없음`, overflow <= 0, overflow);
     await mp.screenshot({ path: path.join(SHOTS, `menu-${vp.name}.png`) });
-    await mp.tap('.btn-play');
+    await mp.tap('[data-game="kimchi-run"] .btn-play');
     await mp.waitForSelector('.intro-panel');
     const btnVisible = await mp.evaluate(() => {
       const b = document.querySelector('.intro-panel .btn-primary').getBoundingClientRect();

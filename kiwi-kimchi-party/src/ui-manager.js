@@ -41,6 +41,7 @@
     left: '<path d="M15.5 4.5 7 12l8.5 7.5z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
     right: '<path d="M8.5 4.5 17 12l-8.5 7.5z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
     up: '<path d="M4.5 15.5 12 7l7.5 8.5z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+    down: '<path d="M4.5 8.5 12 17l7.5-8.5z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
     spoon: `<ellipse cx="8" cy="8" rx="3.6" ry="4.6" transform="rotate(-45 8 8)" fill="currentColor"/><path d="M10.5 10.5l8.5 8.5" ${S} stroke-width="3"/>`,
     lock: `<rect x="5.5" y="10.5" width="13" height="9.5" rx="2.2" fill="currentColor"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" ${S}/>`,
     check: `<path d="M5 12.5l4.5 4.5L19 7.5" ${S} stroke-width="3.2"/>`,
