@@ -305,23 +305,32 @@
 
     /* 포인터 위치 (게임 좌표). 마우스는 움직이기만 해도, 터치는 누르고 있는 동안 갱신된다.
      * 캔버스 바깥(세로 화면의 빈 공간)에서 끌어도 가로 위치를 따라간다. */
-    const pointer = { x: W / 2, y: H / 2, down: false, version: 0 };
+    const pointer = { x: W / 2, y: H / 2, down: false, version: 0, presses: 0, releases: 0, pressX: 0, pressY: 0 };
     const toGame = (e) => {
       const r = canvas.getBoundingClientRect();
       pointer.x = Math.max(0, Math.min(W, ((e.clientX - r.left) / r.width) * W));
-      pointer.y = ((e.clientY - r.top) / r.height) * H;
+      pointer.y = Math.max(0, Math.min(H, ((e.clientY - r.top) / r.height) * H));
       pointer.version += 1;
     };
+    // presses/releases 는 누를 때/뗄 때마다 1씩 늘어난다 (아주 빠른 탭도 놓치지 않도록)
     stage.addEventListener('pointerdown', (e) => {
       if (state !== 'playing' || e.target.closest('.ctrl-btn')) return;
       pointer.down = true;
       toGame(e);
+      pointer.pressX = pointer.x;
+      pointer.pressY = pointer.y;
+      pointer.presses += 1;
     });
     stage.addEventListener('pointermove', (e) => {
       if (state !== 'playing' || e.target.closest('.ctrl-btn')) return;
       if (pointer.down || e.pointerType === 'mouse') toGame(e);
     });
-    const pointerUp = () => (pointer.down = false);
+    const pointerUp = (e) => {
+      if (!pointer.down) return;
+      if (e && e.clientX != null) toGame(e);
+      pointer.down = false;
+      pointer.releases += 1;
+    };
     stage.addEventListener('pointerup', pointerUp);
     stage.addEventListener('pointercancel', pointerUp);
     stage.addEventListener('pointerleave', pointerUp);
