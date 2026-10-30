@@ -63,8 +63,8 @@ const placeObstacle = (page) => page.evaluate(() => {
   const names = await page.$$eval('.game-card h3', (n) => n.map((x) => x.textContent));
   check('카드 이름 순서', JSON.stringify(names) === JSON.stringify(['Kimchi Run', 'Pavlova Dash', 'Palace Builder', 'Kiwi Forest Rescue']), names);
   check('Culture Match 없음', !(await page.content()).toLowerCase().includes('culture match'));
-  check('구현된 게임 3개에 PLAY 버튼', (await page.$$('.btn-play')).length === 3 && !!(await page.$('[data-game="palace-builder"] .btn-play')));
-  check('미구현 게임(Kiwi Forest Rescue)은 "Coming soon" 표시', (await page.$$('.soon-pill')).length === 1 && !!(await page.$('[data-game="kiwi-forest-rescue"] .soon-pill')));
+  check('4개 게임 모두 PLAY 버튼', (await page.$$('.btn-play')).length === 4);
+  check('"Coming soon" 없음', (await page.$$('.soon-pill')).length === 0);
 
   await page.click('.topbar .btn:nth-child(1)');
   check('언어 → 한국어', (await page.textContent('.game-card h3')) === '김치 런');

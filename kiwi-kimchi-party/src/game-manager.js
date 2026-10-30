@@ -138,6 +138,7 @@
     jump: { icon: 'up', input: ['jump'], side: 'r', label: 'ctrl.jump', big: true },
     mix: { icon: 'spoon', input: ['action'], side: 'r', label: 'ctrl.mix', big: true },
     drop: { icon: 'down', input: ['action'], side: 'r', label: 'ctrl.drop', big: true },
+    place: { icon: 'down', input: ['down'], side: 'r', label: 'ctrl.place', big: true },
   };
 
   /* ---------- 게임 화면 하나를 만든다 (라우터가 호출) ---------- */

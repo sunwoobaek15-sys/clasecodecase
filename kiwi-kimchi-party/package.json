@@ -5,7 +5,7 @@
   "description": "Kiwi & Kimchi Party — 한국 × 뉴질랜드 문화 체험 미니게임 컬렉션",
   "scripts": {
     "start": "npx --yes http-server -p 8080 -c-1 .",
-    "test": "node tests/kimchi-run.e2e.js && node tests/pavlova-dash.e2e.js && node tests/palace-builder.e2e.js",
+    "test": "node tests/kimchi-run.e2e.js && node tests/pavlova-dash.e2e.js && node tests/palace-builder.e2e.js && node tests/kiwi-forest-rescue.e2e.js",
     "build": "node scripts/build-single.mjs"
   },
   "engines": {

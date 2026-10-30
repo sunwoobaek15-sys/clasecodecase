@@ -101,6 +101,7 @@ window.KK = window.KK || {};
       'ctrl.jump': 'JUMP',
       'ctrl.mix': 'MIX',
       'ctrl.drop': 'DROP',
+      'ctrl.place': 'PLACE',
       'tip.rotate': 'Tip: turn your device sideways for a bigger view.',
 
       'records.title': 'Records',
@@ -180,6 +181,7 @@ window.KK = window.KK || {};
       'ctrl.jump': '점프',
       'ctrl.mix': '섞기',
       'ctrl.drop': '놓기',
+      'ctrl.place': '넣기',
       'tip.rotate': '팁: 기기를 가로로 돌리면 화면이 더 크게 보여요.',
 
       'records.title': '플레이 기록',
