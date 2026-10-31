@@ -155,6 +155,10 @@ export class Input {
     return d;
   }
 
+  setDashLabel(ghost) {
+    if (this.dashBtn && this.dashGhost !== ghost) { this.dashGhost = ghost; this.dashBtn.textContent = ghost ? '⚡폭탄' : '대시'; }
+  }
+
   setDashCooldown(frac) {
     if (this.dashBtn) this.dashBtn.style.setProperty('--p', `${Math.round(frac * 360)}deg`);
   }

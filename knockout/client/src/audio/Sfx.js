@@ -113,6 +113,22 @@ class Sfx {
     for (let i = 0; i < 3; i++) this.tone({ type: 'square', f0: 740, f1: 600, dur: 0.14, vol: 0.08, delay: i * 0.2 });
   }
   crumble(v = 1) { if (this.gate('crumble', 120)) this.noise({ dur: 0.8, vol: 0.25 * v, f0: 500, f1: 80, type: 'lowpass' }); }
+  bombWarn(v = 1) {
+    if (!this.gate('bombWarn', 80)) return;
+    this.tone({ type: 'sawtooth', f0: 900, f1: 1300, dur: 0.12, vol: 0.06 * v });
+    this.tone({ type: 'sawtooth', f0: 900, f1: 1300, dur: 0.12, vol: 0.06 * v, delay: 0.25 });
+  }
+  boom(v = 1) {
+    if (!this.gate('boom', 40)) return;
+    this.noise({ dur: 0.6, vol: 0.4 * v, f0: 1800, f1: 60, type: 'lowpass' });
+    this.tone({ type: 'sine', f0: 140, f1: 40, dur: 0.5, vol: 0.4 * v });
+    this.noise({ dur: 0.15, vol: 0.25 * v, f0: 5000, f1: 2000, q: 0.7 });
+  }
+  finish() {
+    [784, 988, 1175, 1568].forEach((f, i) => this.tone({ type: 'triangle', f0: f, dur: 0.18, vol: 0.16, delay: i * 0.08 }));
+  }
+  respawn() { this.tone({ type: 'sine', f0: 300, f1: 900, dur: 0.25, vol: 0.12 }); }
+  qualify() { [659, 784, 1046].forEach((f, i) => this.tone({ type: 'square', f0: f, dur: 0.16, vol: 0.09, delay: i * 0.1 })); }
   wind() { this.noise({ dur: 2.5, vol: 0.12, f0: 300, f1: 900, q: 0.6 }); }
 }
 

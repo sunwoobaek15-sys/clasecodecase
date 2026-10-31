@@ -71,10 +71,11 @@ export class CameraRig {
         const d = Math.hypot(o.x - f.x, o.z - f.z);
         if (d < 15) spread = Math.max(spread, d);
       }
-      const r = Math.hypot(f.x, f.z);
+      const r = opts.race ? 0 : Math.hypot(f.x, f.z);
       wantDist = 10.5 + spread * 0.42 + Math.max(0, r - 11) * 0.5;
+      if (opts.ghost) { wantDist = 15 + spread * 0.2; wantPitch = Math.max(wantPitch, 0.8); }
       if (opts.overview) { tx = 0; ty = 0; tz = 0; wantDist = 34; wantPitch = 0.9; }
-      wantDist = Math.min(opts.overview ? 34 : 19, wantDist);
+      wantDist = Math.min(opts.overview ? 34 : opts.ghost ? 22 : 19, wantDist);
       // 가장자리에서는 낭떠러지가 보이도록 살짝 위에서 본다
       if (r > 12.5 && !opts.overview) wantPitch = Math.max(wantPitch, 0.55 + (r - 12.5) * 0.04);
       const k = opts.overview ? 3 : 9;

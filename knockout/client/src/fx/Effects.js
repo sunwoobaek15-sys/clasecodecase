@@ -38,6 +38,9 @@ export class Effects {
     }
     // 대시 잔상
     this.ghosts = [];
+    // 번개 폭탄 경고 표시
+    this.warns = [];
+    this.scene = scene;
   }
 
   spawn(x, y, z, o) {
@@ -119,7 +122,41 @@ export class Effects {
     g.t = 0;
   }
 
+  /** 번개 폭탄 예고: 바닥에 붉은 원이 줄어들며 깜빡인다 */
+  bombWarn(x, y, z, fuse, radius) {
+    let w = this.warns.find((q) => !q.group.visible);
+    if (!w) {
+      const group = new THREE.Group();
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(1, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xff3b5c, transparent: true, opacity: 0.25, depthWrite: false }));
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.92, 1, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xff3b5c, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide }));
+      const inner = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffe14d, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide }));
+      group.add(disc, ring, inner);
+      group.renderOrder = 3;
+      this.scene.add(group);
+      w = { group, disc, inner };
+      this.warns.push(w);
+    }
+    w.group.visible = true;
+    w.group.position.set(x, y + 0.07, z);
+    w.group.scale.setScalar(radius);
+    w.t = 0; w.max = fuse;
+  }
+
+  explosion(x, y, z) {
+    this.burst(x, y + 0.5, z, { count: 46, speed: 14, colors: [0xffe14d, 0xffffff, 0xff9a3c], size: 0.28, life: 0.7, up: 5, grav: 10 });
+    this.ring(x, y, z, { size: 7, color: 0xffe14d, life: 0.45 });
+    this.ring(x, y, z, { size: 4, color: 0xffffff, life: 0.3 });
+  }
+
   update(dt) {
+    for (const w of this.warns) {
+      if (!w.group.visible) continue;
+      w.t += dt;
+      const k = Math.min(1, w.t / w.max);
+      w.inner.scale.setScalar(Math.max(0.05, 1 - k));
+      w.disc.material.opacity = 0.18 + 0.2 * (0.5 + 0.5 * Math.sin(w.t * (10 + k * 25)));
+      if (w.t >= w.max) w.group.visible = false;
+    }
     let n = 0;
     const m = this._m;
     for (const p of this.parts) {

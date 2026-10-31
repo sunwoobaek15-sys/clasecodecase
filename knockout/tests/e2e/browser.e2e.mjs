@@ -47,6 +47,9 @@ try {
   await host.fill('#name', '호스트');
   await host.click('[data-act=create]');
   await waitFor(host, () => window.app.room && window.app.room.phase === 'lobby');
+  // 이 시나리오는 클래식(한 판) 모드로 검증하고, 쇼 모드는 show.e2e.mjs에서 검증한다
+  await host.click('[data-act=mode][data-v=classic]');
+  await waitFor(host, () => window.app.room.mode === 'classic');
   const { code } = await state(host);
   assert.match(code, /^[A-Z0-9]{4}$/);
   step(`방 생성: 코드 ${code}`);
@@ -80,7 +83,7 @@ try {
   await waitFor(host, () => !document.querySelector('[data-act=start]').disabled);
   step('준비 → 시작 버튼 활성화');
   await host.click('[data-act=start]');
-  await waitFor(guest, () => window.app.room.phase === 'countdown');
+  await waitFor(guest, () => window.app.room.phase === 'countdown', null, 10000);
   await shot(guest, 'e2e-04-countdown-mobile.png');
   await waitFor(host, () => window.app.room.phase === 'playing', null, 8000);
   await waitFor(guest, () => window.app.room.phase === 'playing', null, 8000);
@@ -154,7 +157,7 @@ try {
 
   // ---- 다시 하기 ----
   await host.click('[data-act=rematch]');
-  await waitFor(guest, () => window.app.room.phase === 'countdown' && window.app.room.matchNo === 2);
+  await waitFor(guest, () => ['intro', 'countdown'].includes(window.app.room.phase) && window.app.room.matchNo === 2);
   step('다시 하기 → 새 경기 카운트다운');
   await waitFor(host, () => window.app.room.phase === 'playing', null, 8000);
 

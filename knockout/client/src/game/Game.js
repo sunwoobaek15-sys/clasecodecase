@@ -1,6 +1,6 @@
 // 3D 월드와 경기 진행 표현을 총괄: 캐릭터 동기화, 로컬 입력 예측 틱, 카메라, 이펙트, HUD 데이터.
 import * as THREE from 'three';
-import { DT, PHYS } from '../../../shared/src/constants.js';
+import { DT, PHYS, GHOST } from '../../../shared/src/constants.js';
 import { BTN, FLAG, PHASE } from '../../../shared/src/messages.js';
 import { groundAt, daisHeight, TILES } from '../../../shared/src/arena.js';
 import { EV } from '../../../shared/src/physics.js';
@@ -8,6 +8,9 @@ import { EVENT_INFO } from '../../../shared/src/events.js';
 import { colorHex } from '../../../shared/src/looks.js';
 import { createRenderer, createScene } from './SceneSetup.js';
 import { ArenaView } from '../arena/ArenaView.js';
+import { CourseView } from '../arena/CourseView.js';
+import { GhostCloud } from '../characters/GhostCloud.js';
+import { RACE } from '../../../shared/src/course.js';
 import { Character } from '../characters/Character.js';
 import { CameraRig } from '../camera/CameraRig.js';
 import { Effects } from '../fx/Effects.js';
@@ -32,6 +35,8 @@ export class Game {
     this.camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 900);
     this.rig = new CameraRig(this.camera);
     this.arena = new ArenaView(this.scene, quality);
+    this.course = new CourseView(this.scene);
+    this.clouds = new Map();
     this.fx = new Effects(this.scene, quality);
     this.sync = new NetSync();
     this.chars = new Map();
@@ -93,6 +98,9 @@ export class Game {
   // ---------- 모드 전환 ----------
   setMenu(look) {
     this.mode = 'menu';
+    this.setMap(false);
+    this.clearClouds();
+    this.roundKey = null;
     this.room = null;
     this.arena.reset();
     this.sync.reset();
@@ -114,6 +122,17 @@ export class Game {
     if (me) me.setLook(look);
   }
 
+  setMap(race) {
+    this.sync.world.course = race ? RACE : null;
+    this.arena.root.visible = !race;
+    this.course.root.visible = race;
+  }
+
+  clearClouds() {
+    for (const c of this.clouds.values()) c.dispose();
+    this.clouds.clear();
+  }
+
   setRoom(room, youId) {
     const prevPhase = this.room && this.room.phase;
     const prevMatch = this.room && this.room.matchNo;
@@ -121,10 +140,14 @@ export class Game {
     this.youId = youId;
     const inGamePhase = room.phase !== PHASE.LOBBY;
     if (room.phase === PHASE.LOBBY) {
-      if (this.mode !== 'lobby') { this.arena.reset(); this.sync.reset(); this.sync.setEvents([]); }
+      if (this.mode !== 'lobby') { this.arena.reset(); this.sync.reset(); this.sync.setEvents([]); this.setMap(false); this.clearClouds(); this.roundKey = null; }
       this.mode = 'lobby';
     } else {
-      if (room.phase === PHASE.COUNTDOWN && (prevPhase !== PHASE.COUNTDOWN || prevMatch !== room.matchNo)) this.beginMatch(room);
+      const roundKey = room.matchNo + ':' + (room.round ? room.round.idx : 0);
+      if ((room.phase === PHASE.INTRO || room.phase === PHASE.COUNTDOWN) && this.roundKey !== roundKey) {
+        this.roundKey = roundKey;
+        this.beginMatch(room);
+      }
       this.mode = room.phase === PHASE.RESULTS ? 'results' : 'match';
     }
     const show = new Set();
@@ -142,6 +165,9 @@ export class Game {
   }
 
   beginMatch(room) {
+    this.round = room.round;
+    this.setMap(room.round && room.round.type === 'race');
+    this.clearClouds();
     this.arena.reset();
     this.sync.reset();
     this.sync.setEvents([]);
@@ -153,6 +179,11 @@ export class Game {
     this.specIdx = 0;
     this.camSnapped = false;
     for (const c of this.chars.values()) { c.stopEmote(); c.outT = -1; }
+  }
+
+  isGhost() {
+    const l = this.sync.latest();
+    return !!(l && l.ghosts.has(this.youId));
   }
 
   isSpectator() {
@@ -173,11 +204,28 @@ export class Game {
       const vol = Math.max(0.15, Math.min(1, 18 / (d + 4)));
       if (f.k === 'hit') {
         this.fx.hit(f.x, f.y, f.z, f.pw, f.d);
+        if (this.sync.world.course) this.course.bump(f.x, f.z);
         sfx.hit(f.pw, mine ? 1 : vol);
         if (mine && settings.shake) this.rig.shake(Math.min(0.6, 0.12 + f.pw * 0.02));
+      } else if (f.k === 'bw') {
+        this.fx.bombWarn(f.x, f.y, f.z, f.f, GHOST.radius);
+        sfx.bombWarn(vol);
+      } else if (f.k === 'bx') {
+        this.fx.explosion(f.x, f.y, f.z);
+        sfx.boom(Math.max(vol, 0.4));
+        const L = this.sync.local;
+        if (settings.shake && L && L.alive && Math.hypot(L.x - f.x, L.z - f.z) < 6) this.rig.shake(0.6);
+      } else if (f.k === 'finish') {
+        this.fx.confetti(f.x, f.y, f.z);
+        if (mine) { sfx.finish(); if (this.onFinish) this.onFinish(f.n); } else sfx.qualify();
+        if (this.onFeed) this.onFeed(f);
+      } else if (f.k === 'respawn') {
+        this.fx.burst(f.x, f.y + 1, f.z, { count: 16, speed: 4, colors: [0xffffff, 0x8ff7ff], size: 0.15, life: 0.5 });
+        if (mine) sfx.respawn();
       } else if (f.k === 'swept') {
         this.fx.hit(f.x, f.y, f.z, 14, true);
         sfx.boing(mine ? 1 : vol);
+        if (this.sync.world.course) this.course.bump(f.x, f.z);
         if (mine && settings.shake) this.rig.shake(0.5);
       }
     }
@@ -203,6 +251,11 @@ export class Game {
   // ---------- 로컬 입력 ----------
   fixedTick() {
     const raw = this.input.sample();
+    if (this.sync.phase === PHASE.PLAYING && this.isGhost()) {
+      const { fx, fz, rx, rz } = this.rig.basis();
+      const mx = fx * raw.y + rx * raw.x, mz = fz * raw.y + rz * raw.x;
+      return this.sync.tickGhost({ mx, mz, buttons: raw.dash ? BTN.DASH : 0 }, GHOST.speed, this.sync.world.course ? RACE.bounds : null);
+    }
     if (!this.sync.canPredict() || this.isSpectator()) return null;
     const { fx, fz, rx, rz } = this.rig.basis();
     const mx = fx * raw.y + rx * raw.x;
@@ -247,7 +300,8 @@ export class Game {
     else if (this.mode === 'lobby') this.frameLobby(dt);
     else this.frameMatch(dt, world);
 
-    this.arena.update(dt, world, this.time);
+    if (this.arena.root.visible) this.arena.update(dt, world, this.time);
+    this.course.update(dt, world);
     this.fx.update(dt);
     this.env.update(dt, this.time);
     this.renderer.render(this.scene, this.camera);
@@ -341,7 +395,9 @@ export class Game {
       // 이름표 상태
       const p = this.room && this.room.players.find((q) => q.id === id);
       const name = p ? p.name : c.name;
-      if (s.out) c.setLabel(name, 'OUT', '#ff9aa9');
+      s.finished = !!(s.flags & FLAG.FINISHED);
+      if (s.finished) c.setLabel(name, '완주!', '#ffe14d');
+      else if (s.out) c.setLabel(name, 'OUT', '#ff9aa9');
       else if (s.disc) c.setLabel(name, '연결 끊김', '#ffcf9a');
       else if (s.stunned) c.setLabel(name, '💫', '#ffffff');
       else c.setLabel(name, '');
@@ -355,6 +411,29 @@ export class Game {
     // HUD용 데이터
     this.hudState = this.collectHud(states, world);
 
+    // 방해꾼 구름
+    const latestG = latest ? latest.ghosts : new Map();
+    for (const [id, c] of this.clouds) if (!latestG.has(id)) { c.dispose(); this.clouds.delete(id); }
+    for (const id of latestG.keys()) {
+      let cloud = this.clouds.get(id);
+      const p = this.room && this.room.players.find((q) => q.id === id);
+      if (!cloud) {
+        if (!p) continue;
+        cloud = new GhostCloud(id, p.look, p.name, id === this.youId);
+        cloud.addTo(this.scene);
+        this.clouds.set(id, cloud);
+      }
+      const g = id === this.youId && sync.ghost ? sync.ghost : sync.sampleGhost(id);
+      if (!g) continue;
+      groundAt(world, g.x, g.z, 50, _g);
+      cloud.update(dt, g.x, g.z, _g.h, 1 - g.cd / GHOST.cooldown, GHOST.height);
+    }
+    if (this.hudState) {
+      const mg = sync.ghost;
+      this.hudState.ghost = !!mg && this.mode === 'match';
+      if (mg) { this.hudState.dashFrac = 1 - Math.min(1, mg.cd / GHOST.cooldown); this.hudState.dashReady = mg.cd <= 0; }
+    }
+
     // 카메라 대상
     const aliveIds = ids.filter((id) => states.get(id) && !states.get(id).out);
     let focusId = this.youId;
@@ -366,6 +445,16 @@ export class Game {
       this.rig.update(dt, { mode: 'results', focus: ws && !ws.out ? ws : { x: 0, y: 1.2, z: 0 } });
       return;
     }
+    if (sync.ghost && this.mode === 'match' && !this.spectateOverride) {
+      groundAt(world, sync.ghost.x, sync.ghost.z, 50, _g);
+      const gf = { x: sync.ghost.x, y: _g.h === -Infinity ? 0 : _g.h, z: sync.ghost.z };
+      if (!this.camSnapped) { this.rig.snapTo(gf); if (world.course) this.rig.yaw = Math.PI; this.camSnapped = true; }
+      const others = [];
+      for (const s of states.values()) if (!s.out) others.push(s);
+      this.spectating = null;
+      this.rig.update(dt, { mode: 'follow', focus: gf, others, ghost: true, race: !!world.course });
+      return;
+    }
     if (meOut) {
       if (!aliveIds.length) focusId = null;
       else { this.specIdx = ((this.specIdx % aliveIds.length) + aliveIds.length) % aliveIds.length; focusId = aliveIds[this.specIdx]; }
@@ -373,10 +462,10 @@ export class Game {
     } else this.spectating = null;
     const fs = focusId && states.get(focusId);
     const focus = fs ? { x: fs.x, y: fs.y, z: fs.z } : { x: 0, y: 0, z: 0 };
-    if (!this.camSnapped && fs) { this.rig.snapTo(focus); this.camSnapped = true; }
+    if (!this.camSnapped && fs) { this.rig.snapTo(focus); if (world.course) this.rig.yaw = Math.PI; this.camSnapped = true; }
     const others = [];
     for (const [id, s] of states) if (id !== focusId && !s.out) others.push(s);
-    this.rig.update(dt, { mode: 'follow', focus, others, overview: this.overview || !fs, falling: fs && fs.y < -0.8 });
+    this.rig.update(dt, { mode: 'follow', focus, others, overview: (this.overview || !fs) && !world.course, falling: fs && fs.y < -0.8, race: !!world.course });
   }
 
   remoteFx(id, s, c) {
@@ -396,7 +485,7 @@ export class Game {
     for (const [id, s] of states) {
       const c = this.chars.get(id);
       if (!s.out) alive++;
-      roster.push({ name: c ? c.name : '', color: c ? c.look.color : 'white', out: s.out });
+      roster.push({ name: c ? c.name : '', color: c ? c.look.color : 'white', out: s.out && !s.finished, done: s.finished });
     }
     const me = states.get(this.youId);
     const cd = me && me.dashCd !== undefined ? me.dashCd : 0;
@@ -416,8 +505,10 @@ export class Game {
       const wx = Math.cos(wind.angle), wz = Math.sin(wind.angle);
       windDeg = (Math.atan2(wx * rx + wz * rz, wx * fx + wz * fz) * 180) / Math.PI;
     }
+    let finished = 0;
+    for (const s of states.values()) if (s.finished) finished++;
     return {
-      alive, total: states.size, time: Math.max(0, world.t), players: roster,
+      alive, total: states.size, time: Math.max(0, world.t), players: roster, finished, round: this.round,
       dashFrac: 1 - Math.min(1, cd / PHYS.dashCooldown), dashReady: cd <= 0, windDeg, fps: this.fps,
     };
   }

@@ -1,7 +1,9 @@
 // 클라이언트 예측(로컬 플레이어) + 서버 보정(reconciliation) + 원격 플레이어 보간(interpolation)
 import { DT } from '../../../shared/src/constants.js';
 import { SP, FLAG, PHASE } from '../../../shared/src/messages.js';
-import { createWorld, applyEvents, MOVERS, moverState } from '../../../shared/src/arena.js';
+import { createWorld, applyEvents, moverShift } from '../../../shared/src/arena.js';
+
+const _shift = {};
 import { createPlayerState, stepPlayer } from '../../../shared/src/physics.js';
 
 const INTERP_DELAY = 0.1;
@@ -39,6 +41,7 @@ export class NetSync {
     this.vis = { x: 0, y: 0, z: 0 };
     this.lastAck = 0;
     this.corrections = 0;
+    this.ghost = null;
     this.world.t = 0;
   }
 
@@ -59,7 +62,15 @@ export class NetSync {
     const t = now();
     const players = new Map();
     for (const a of m.p) players.set(a[SP.ID], a);
-    const snap = { mt: m.mt, ph: m.ph, players, recv: t };
+    const ghosts = new Map();
+    for (const g of m.g || []) ghosts.set(g[0], g);
+    const snap = { mt: m.mt, ph: m.ph, players, ghosts, recv: t };
+    // 내 방해꾼 조준점: 로컬 예측값을 서버 값 쪽으로 보정
+    const myG = ghosts.get(localId);
+    if (myG) {
+      if (!this.ghost || Math.hypot(this.ghost.x - myG[1], this.ghost.z - myG[2]) > 3) this.ghost = { x: myG[1], z: myG[2], cd: myG[3] };
+      else { this.ghost.x += (myG[1] - this.ghost.x) * 0.15; this.ghost.z += (myG[2] - this.ghost.z) * 0.15; this.ghost.cd = myG[3]; }
+    } else this.ghost = null;
     const prevPhase = this.phase;
     this.phase = m.ph;
     this.snaps.push(snap);
@@ -134,6 +145,40 @@ export class NetSync {
     return { ev, packet: [seq, Math.round(input.mx * 1000) / 1000, Math.round(input.mz * 1000) / 1000, input.buttons] };
   }
 
+  /** 방해꾼 입력: 조준점을 로컬에서 바로 움직이고 서버로 보낼 패킷을 만든다 */
+  tickGhost(input, speed, bounds) {
+    const seq = ++this.seq;
+    if (this.ghost) {
+      this.ghost.x += input.mx * speed * DT;
+      this.ghost.z += input.mz * speed * DT;
+      if (bounds) {
+        this.ghost.x = Math.min(bounds.x1, Math.max(bounds.x0, this.ghost.x));
+        this.ghost.z = Math.min(bounds.z1, Math.max(bounds.z0, this.ghost.z));
+      } else {
+        const r = Math.hypot(this.ghost.x, this.ghost.z);
+        if (r > 18) { this.ghost.x *= 18 / r; this.ghost.z *= 18 / r; }
+      }
+      this.ghost.cd = Math.max(0, this.ghost.cd - DT);
+    }
+    return [seq, Math.round(input.mx * 1000) / 1000, Math.round(input.mz * 1000) / 1000, input.buttons];
+  }
+
+  sampleGhost(id) {
+    const snaps = this.snaps;
+    if (!snaps.length) return null;
+    const last = snaps[snaps.length - 1];
+    const renderT = last.ph === PHASE.PLAYING ? this.serverNow() - INTERP_DELAY : last.mt;
+    let a = null, b = null;
+    for (let i = snaps.length - 1; i >= 0; i--) if (snaps[i].mt <= renderT) { a = snaps[i]; b = snaps[i + 1] || null; break; }
+    if (!a) a = snaps[0];
+    const ga = a.ghosts.get(id);
+    const gb = b && b.ghosts.get(id);
+    if (!ga) return gb ? { x: gb[1], z: gb[2], cd: gb[3] } : null;
+    if (!gb || b.mt <= a.mt) return { x: ga[1], z: ga[2], cd: ga[3] };
+    const k = Math.min(1, Math.max(0, (renderT - a.mt) / (b.mt - a.mt)));
+    return { x: ga[1] + (gb[1] - ga[1]) * k, z: ga[2] + (gb[2] - ga[2]) * k, cd: gb[3] };
+  }
+
   decayVisual(dt) {
     const k = Math.exp(-10 * dt);
     this.vis.x *= k; this.vis.y *= k; this.vis.z *= k;
@@ -182,15 +227,13 @@ export class NetSync {
     }
     // 움직이는 발판 위의 원격 플레이어는 표시 시각의 발판 위치에 맞춘다
     if (out.mover >= 0 && out.flags & FLAG.GROUNDED && this.phase === PHASE.PLAYING) {
-      const tShow = this.displayTime();
-      const m = MOVERS[out.mover];
-      if (m) {
-        const da = m.speed * (tShow - renderT);
-        const c = Math.cos(da), s = Math.sin(da);
+      const sh = moverShift(this.world, out.mover, renderT, this.displayTime(), _shift);
+      if (sh.rot !== undefined && !this.world.course) {
+        const c = Math.cos(sh.rot), s = Math.sin(sh.rot);
         const x = out.x * c - out.z * s, z = out.x * s + out.z * c;
         out.x = x; out.z = z;
-        out.y = moverState(m, tShow, {}).top;
-      }
+      } else { out.x += sh.dx; out.z += sh.dz; }
+      if (sh.y !== null) out.y = sh.y;
     }
     return out;
   }

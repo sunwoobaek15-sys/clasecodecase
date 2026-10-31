@@ -57,3 +57,14 @@ export const KNOCK = {
 
 export const SWEEPER = { r0: 5.8, r1: 15.6, y0: 0.2, y1: 1.0, halfWidth: 0.32, speed: 1.2, push: 9, pop: 5.5, stun: 0.5 };
 export const WIND = { airAccel: 9, groundDrift: 3.4 };
+
+// 방해꾼(탈락자/완주자) 번개 폭탄
+export const GHOST = { speed: 15, cooldown: 6, fuse: 1.1, radius: 3.3, push: 11, pop: 6.5, stun: 0.6, height: 7 };
+
+// 쇼 모드 라운드 정보
+export const ROUNDS = {
+  race: { name: '터보 레이스', desc: '장애물을 뚫고 결승선을 통과하세요! 떨어지면 체크포인트에서 다시 시작합니다.', goal: 'finish' },
+  survival: { name: '넉아웃 아레나', desc: '서로 밀어내세요! 목표 인원만 남으면 생존자 전원 통과.', goal: 'survive' },
+  final: { name: '결승: 최후의 섬', desc: '마지막 한 명만이 챔피언! 경기장이 빠르게 무너집니다.', goal: 'last' },
+  classic: { name: '클래식 넉아웃', desc: '마지막까지 살아남으세요!', goal: 'last' },
+};

@@ -203,3 +203,41 @@ test('넉백 밸런스: 대시 한 방은 5~10m, 걸으며 부딪히면 3m 이�
   assert.ok(d > 5 && d < 10, `대시 넉백 ${d.toFixed(2)}m`);
   assert.ok(wlk > 0.3 && wlk < 3, `걷기 넉백 ${wlk.toFixed(2)}m`);
 });
+
+// ---- 레이스 코스 ----
+import { RACE, boxCenter } from '../shared/src/course.js';
+const raceWorld = () => { const w = createWorld(); w.course = RACE; return w; };
+
+test('코스: 경사로를 걸어 올라가 높은 갑판(y=3)에 도착한다', () => {
+  const w = raceWorld();
+  const p = createPlayerState(0, 78);
+  run(p, { mx: 0, mz: 1, buttons: 0 }, 150, w);
+  assert.ok(p.grounded && Math.abs(p.y - 3) < 1e-6 && p.z > 92, `y=${p.y} z=${p.z}`);
+});
+
+test('코스: 움직이는 발판이 위에 선 플레이어를 옆으로 운반한다', () => {
+  const w = raceWorld();
+  const b = RACE.boxes.find((q) => q.id === 'mv1');
+  const c0 = boxCenter(b, 0, {});
+  const p = createPlayerState(c0.x, b.z);
+  run(p, { mx: 0, mz: 0, buttons: 0 }, 60, w);
+  const c1 = boxCenter(b, w.t, {});
+  assert.ok(p.alive && p.grounded);
+  assert.ok(Math.abs(p.x - c1.x) < 0.3, `발판 ${c1.x.toFixed(2)} vs 플레이어 ${p.x.toFixed(2)}`);
+});
+
+test('코스: 범퍼에 부딪히면 튕겨 나간다', () => {
+  const w = raceWorld();
+  const m = RACE.bumpers[2];
+  const p = createPlayerState(m.x, m.z - 3);
+  const ev = run(p, { mx: 0, mz: 1, buttons: 0 }, 40, w);
+  assert.ok(ev & EV.SWEPT);
+  assert.ok(p.z < m.z - m.r, '범퍼 앞쪽으로 튕김');
+});
+
+test('코스: 틈 사이로 걸어가면 떨어진다', () => {
+  const w = raceWorld();
+  const p = createPlayerState(6, 39);
+  run(p, { mx: 0, mz: 1, buttons: 0 }, 200, w);
+  assert.equal(p.alive, false);
+});

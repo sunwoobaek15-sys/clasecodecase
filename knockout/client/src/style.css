@@ -193,3 +193,14 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-size: 16px; 
   .winner-title { top: 4%; }
   .winner-title .crown { font-size: 34px; }
 }
+
+/* ---------- 쇼 모드 ---------- */
+.intro-card { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(520px, calc(100% - 32px)); background: rgba(20, 24, 60, .78); color: #fff; border-radius: 26px; padding: 24px 22px; text-align: center; backdrop-filter: blur(6px); box-shadow: 0 10px 0 rgba(0,0,0,.15); animation: pop .4s cubic-bezier(.3,1.6,.6,1) both; display: flex; flex-direction: column; gap: 8px; }
+.intro-card.lost { background: rgba(80, 20, 40, .8); }
+.intro-round { color: var(--c-yellow); font-size: 18px; letter-spacing: 3px; }
+.intro-name { font-family: var(--font-title); font-size: clamp(34px, 8vw, 54px); line-height: 1.1; text-shadow: 0 4px 0 rgba(0,0,0,.25); }
+.intro-desc { font-size: 17px; line-height: 1.45; }
+.intro-goal { font-size: 19px; background: rgba(255,255,255,.12); border-radius: 12px; padding: 8px; }
+.intro-ghost { font-size: 17px; color: #ffe14d; }
+.ghost-hint { position: absolute; bottom: calc(110px + var(--safe-b)); left: 50%; transform: translateX(-50%); background: rgba(40, 30, 0, .6); color: #ffe14d; padding: 8px 16px; border-radius: 99px; font-size: 16px; white-space: nowrap; }
+@media (max-width: 760px) { .ghost-hint { bottom: calc(150px + var(--safe-b)); font-size: 14px; } }

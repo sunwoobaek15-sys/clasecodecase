@@ -25,6 +25,11 @@ class App {
       sfx.warn();
       if (e.type === 'wind') setTimeout(() => sfx.wind(), 2400);
     };
+    this.game.onFinish = (n) => this.ui.banner('완주!', `${n}등으로 결승선 통과 · 이제 ⚡방해꾼으로 활약하세요`, false, 3000);
+    this.game.onFeed = (f) => {
+      const p = this.room && this.room.players.find((q) => q.id === f.id);
+      this.ui.feed(`🏁 ${p ? p.name : '?'} 완주! (${f.n}등)`);
+    };
     this.room = null;
     this.youId = null;
     this.results = null;
@@ -93,7 +98,16 @@ class App {
       const p = this.room && this.room.players.find((q) => q.id === m.id);
       const name = p ? p.name : '플레이어';
       this.ui.feed(`💥 ${name} 탈락! (${m.rank}위)`);
-      if (m.id === this.youId) { this.ui.showOut(); this.input.setEnabled(false); }
+      if (m.id === this.youId) {
+        this.ui.showOut();
+        const r = this.room && this.room.round;
+        if (r && r.type !== 'final' && r.type !== 'classic') setTimeout(() => this.ui.toast('⚡ 번개 구름 방해꾼이 되었습니다! 조준하고 폭탄을 떨어뜨리세요', 3500), 1200);
+      }
+    });
+    n.on(S2C.ROUND_END, (m) => {
+      this.ui.showRoundEnd(m, this.room, this.youId);
+      if (m.qualified.includes(this.youId)) sfx.qualify();
+      else if (m.eliminated.includes(this.youId)) sfx.lose();
     });
     n.on(S2C.RESULT, (m) => {
       this.results = m;
@@ -133,10 +147,15 @@ class App {
       }
       // 서버가 색상을 바꿨다면(중복) 로컬 프로필에도 반영
       if (me && me.look.color !== settings.look.color) { settings.look = sanitizeLook(me.look); saveSettings(); }
-    } else if (m.phase === PHASE.COUNTDOWN || m.phase === PHASE.PLAYING) {
+    } else if (m.phase === PHASE.INTRO || m.phase === PHASE.COUNTDOWN || m.phase === PHASE.PLAYING || m.phase === PHASE.ROUND_END) {
       if (this.ui.screen !== 'hud' || (prev && prev.matchNo !== m.matchNo)) { this.ui.showHud(); this.game.customizing = false; }
+      if (m.phase === PHASE.INTRO && (!prev || prev.phase !== PHASE.INTRO)) {
+        this.ui.showIntro(m.round, !!me && !me.inMatch);
+        sfx.start();
+      }
       if (m.phase === PHASE.PLAYING && prev && prev.phase === PHASE.COUNTDOWN) { this.goUntil = performance.now() + 800; sfx.start(); }
-      this.input.setEnabled(m.phase === PHASE.PLAYING && !!me && me.inMatch && !this.ui.modalOpen());
+      // 선수뿐 아니라 방해꾼도 조작한다
+      this.input.setEnabled(m.phase === PHASE.PLAYING && !!me && !this.ui.modalOpen());
     } else if (m.phase === PHASE.RESULTS) {
       this.input.setEnabled(false);
       if (this.results) this.ui.showResults(this.results, m, this.youId);
@@ -200,6 +219,7 @@ class App {
         return;
       }
       case 'start': n.send({ t: C2S.START }); return;
+      case 'mode': n.send({ t: C2S.MODE, mode: data.v }); return;
       case 'addBot': n.send({ t: C2S.ADD_BOT }); return;
       case 'removeBot': n.send({ t: C2S.REMOVE_BOT, id: data.id }); return;
       case 'leave':
@@ -250,14 +270,15 @@ class App {
       if (room.phase === PHASE.PLAYING) { this.ui.countdown('GO!'); sfx.countdown(true); setTimeout(() => this.ui.countdown(''), 800); }
       else this.ui.countdown('');
     }
-    if ((room.phase === PHASE.PLAYING || room.phase === PHASE.COUNTDOWN) && this.game.hudState) {
+    if ((room.phase === PHASE.PLAYING || room.phase === PHASE.COUNTDOWN || room.phase === PHASE.ROUND_END) && this.game.hudState) {
       const h = this.game.hudState;
       this.ui.updateHud(h);
       this.input.setDashCooldown(h.dashFrac);
+      this.input.setDashLabel(!!h.ghost);
       this.ui.windArrow(h.windDeg);
       const spec = this.game.spectating;
       const specName = spec ? this.game.chars.get(spec)?.name : null;
-      this.ui.spectate(room.phase === PHASE.PLAYING && (spec || this.game.isSpectator()) ? specName || '전체' : null, this.game.isSpectator());
+      this.ui.spectate(room.phase === PHASE.PLAYING && !h.ghost && (spec || this.game.isSpectator()) ? specName || '전체' : null, this.game.isSpectator());
     }
     if (room.phase === PHASE.RESULTS) {
       this.resultsEnd ??= nowS + room.remain;

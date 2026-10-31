@@ -1,6 +1,6 @@
 // 모든 DOM UI 화면. 게임 로직은 App 콜백으로 전달한다.
 import { COLORS, HATS, OUTFITS, ACCESSORIES, EMOTES, colorHex } from '../../../shared/src/looks.js';
-import { MIN_PLAYERS, MAX_PLAYERS, NAME_MAX } from '../../../shared/src/constants.js';
+import { MIN_PLAYERS, MAX_PLAYERS, NAME_MAX, ROUNDS } from '../../../shared/src/constants.js';
 import { settings, saveSettings, isTouch } from '../settings.js';
 import { sfx } from '../audio/Sfx.js';
 import { OFFLINE } from '../network/LocalServer.js';
@@ -185,6 +185,14 @@ export class UI {
         <ul class="plist">${list}</ul>
       </div>
       <div class="panel col">
+        <div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <b style="font-weight:400;font-size:17px">게임 모드</b>
+          ${isHost ? `<div class="seg">
+            <button class="${room.mode !== 'classic' ? 'on' : ''}" data-act="mode" data-v="show">🏆 쇼 (3라운드)</button>
+            <button class="${room.mode === 'classic' ? 'on' : ''}" data-act="mode" data-v="classic">⚔️ 클래식</button></div>`
+            : `<span class="badge">${room.mode === 'classic' ? '⚔️ 클래식' : '🏆 쇼 (3라운드)'}</span>`}
+        </div>
+        <div class="hint">${room.mode === 'classic' ? '한 판 승부: 경기장에서 마지막까지 살아남기' : '레이스 → 넉아웃 아레나 → 결승. 탈락해도 ⚡번개 구름 방해꾼으로 계속 참여!'}</div>
         <div class="hint">${isHost ? startHint : (me && me.ready ? '방장이 시작하기를 기다리는 중...' : '준비 버튼을 눌러 주세요!')}</div>
         <div class="lobby-actions">
           ${isHost
@@ -212,6 +220,7 @@ export class UI {
         <div id="h-center"></div>
         <div id="h-wind"></div>
         <div id="h-spec"></div>
+        <div id="h-ghost"></div>
         ${isTouch() ? '' : `<div class="dash-meter" id="h-dash"><span>대시<br/>SHIFT</span></div>
         <div class="keys-help">WASD 이동 · SPACE 점프 · SHIFT 대시<br/>마우스 클릭/드래그: 카메라 · ESC: 메뉴</div>`}
         <div class="fps" id="h-fps" style="display:${settings.showFps ? '' : 'none'}"></div>
@@ -219,7 +228,7 @@ export class UI {
     this.hud = {
       alive: this.root.querySelector('#h-alive'), time: this.root.querySelector('#h-time'), dots: this.root.querySelector('#h-dots'),
       feed: this.root.querySelector('#h-feed'), banner: this.root.querySelector('#h-banner'), center: this.root.querySelector('#h-center'),
-      wind: this.root.querySelector('#h-wind'), spec: this.root.querySelector('#h-spec'), dash: this.root.querySelector('#h-dash'), fps: this.root.querySelector('#h-fps'),
+      wind: this.root.querySelector('#h-wind'), spec: this.root.querySelector('#h-spec'), ghost: this.root.querySelector('#h-ghost'), dash: this.root.querySelector('#h-dash'), fps: this.root.querySelector('#h-fps'),
     };
     this.lastHud = {};
   }
@@ -230,9 +239,14 @@ export class UI {
     this.hud[key].innerHTML = html;
   }
 
-  updateHud({ alive, total, time, players, dashFrac, dashReady, fps }) {
+  updateHud({ alive, total, time, players, dashFrac, dashReady, fps, round, finished, ghost }) {
     if (!this.hud) return;
-    this.hudSet('alive', `생존 <b>${alive}</b> / ${total}`);
+    const rn = round ? `<span style="opacity:.75">R${round.idx + 1}</span> ` : '';
+    if (round && round.type === 'race') this.hudSet('alive', `${rn}완주 <b>${finished}</b> / ${round.quota}명 통과`);
+    else if (round && round.type === 'survival') this.hudSet('alive', `${rn}생존 <b>${alive}</b> · ${round.quota}명 남으면 통과`);
+    else this.hudSet('alive', `${rn}생존 <b>${alive}</b> / ${total}`);
+    this.hudSet('ghost', ghost ? `<div class="ghost-hint">⚡ 방해꾼 모드 — ${isTouch() ? '조이스틱: 조준 · 대시 버튼: 번개 폭탄' : 'WASD: 조준 · SHIFT: 번개 폭탄'}</div>` : '');
+    if (this.hud.dash && this.lastHud.dashLabel !== ghost) { this.lastHud.dashLabel = ghost; this.hud.dash.querySelector('span').innerHTML = ghost ? '폭탄<br/>SHIFT' : '대시<br/>SHIFT'; }
     this.hudSet('time', fmtTime(time));
     this.hudSet('dots', players.map((p) => `<span class="alive-dot ${p.out ? 'out' : ''}" style="background:${hex(colorHex(p.color))}" title="${esc(p.name)}"></span>`).join(''));
     if (this.hud.dash) {
@@ -263,6 +277,36 @@ export class UI {
     if (!this.hud) return;
     this.hud.center.innerHTML = text ? `<div class="countdown"><span>${esc(text)}</span></div>` : '';
   }
+
+  showIntro(round, ghost) {
+    if (!this.hud || !round) return;
+    const info = ROUNDS[round.type];
+    const goal = round.type === 'race' ? `상위 ${round.quota}명 통과` : round.type === 'survival' ? `${round.quota}명 남을 때까지 생존` : '최후의 1명이 챔피언';
+    this.hud.center.innerHTML = `<div class="intro-card">
+      <div class="intro-round">ROUND ${round.idx + 1} / ${round.total}</div>
+      <div class="intro-name">${esc(info.name)}</div>
+      <div class="intro-desc">${esc(info.desc)}</div>
+      <div class="intro-goal">🎯 ${esc(goal)}</div>
+      ${ghost ? '<div class="intro-ghost">⚡ 당신은 번개 구름 방해꾼! 선수들 머리 위로 폭탄을 떨어뜨리세요.</div>' : ''}
+    </div>`;
+  }
+
+  showRoundEnd(o, room, youId) {
+    if (!this.hud) return;
+    const name = (id) => esc(room.players.find((p) => p.id === id)?.name ?? '?');
+    const passed = o.qualified.includes(youId);
+    const wasIn = passed || o.eliminated.includes(youId);
+    const title = o.last ? '경기 종료!' : !wasIn ? '라운드 종료' : passed ? '통과! 🎉' : '탈락...';
+    this.hud.center.innerHTML = `<div class="intro-card ${wasIn && !passed ? 'lost' : ''}">
+      <div class="intro-round">${esc(ROUNDS[o.type].name)}</div>
+      <div class="intro-name">${title}</div>
+      <div class="intro-desc">✅ 통과: ${o.qualified.map(name).join(', ') || '-'}</div>
+      ${o.eliminated.length ? `<div class="intro-desc" style="opacity:.8">❌ 탈락: ${o.eliminated.map(name).join(', ')}</div>` : ''}
+      ${wasIn && !passed && !o.last ? '<div class="intro-ghost">다음 라운드부터 ⚡방해꾼으로 참여합니다!</div>' : ''}
+    </div>`;
+  }
+
+  clearCenter() { if (this.hud) this.hud.center.innerHTML = ''; }
 
   showOut() {
     if (!this.hud) return;
@@ -302,13 +346,13 @@ export class UI {
     const sub = res.draw ? winners.map((w) => w.name).join(', ') + ' 동시 생존/탈락' : meWon ? '축하합니다! 최후의 생존자!' : '다음엔 꼭 이겨 봐요!';
     const rows = res.ranking.map((r) => `
       <li class="${r.rank === 1 ? 'first' : ''}"><span class="rk">${r.rank}</span><span class="dot" style="width:18px;height:18px;border-radius:50%;background:${hex(colorHex(r.look.color))}"></span>
-      <span class="grow">${esc(r.name)}${r.id === youId ? ' (나)' : ''}</span><span class="tm">${r.elimAt != null ? `${fmtTime(r.elimAt)} 탈락` : '생존 🏆'}</span></li>`).join('');
-    const elimList = res.eliminated.length ? res.eliminated.map((e) => `${esc(e.name)}`).join(' → ') : '없음';
+      <span class="grow">${esc(r.name)}${r.id === youId ? ' (나)' : ''}</span><span class="tm">${r.label ? esc(r.label) : r.elimAt != null ? `${fmtTime(r.elimAt)} 탈락` : '생존 🏆'}</span></li>`).join('');
+    const elimList = res.rounds ? res.rounds.map(esc).join(' → ') : res.eliminated.length ? res.eliminated.map((e) => `${esc(e.name)}`).join(' → ') : '없음';
     this.layers.main.innerHTML = `
       <div class="screen results">
         <div class="winner-title"><div class="crown">${res.draw ? '🤝' : '🏆'}</div><div class="big">${esc(title)}</div><div class="small">${esc(sub)}</div></div>
         <div class="panel">
-          <div class="stats"><span>⏱ 플레이 시간 ${fmtTime(res.duration)}</span><span>💥 탈락 순서: ${elimList}</span></div>
+          <div class="stats"><span>⏱ 플레이 시간 ${fmtTime(res.duration)}</span><span>${res.rounds ? '🎬 라운드' : '💥 탈락 순서'}: ${elimList}</span></div>
           <ul class="rank-list">${rows}</ul>
           <div class="row">
             <button class="btn green grow" data-act="rematch" ${myVote && !isHost ? 'disabled' : ''}>다시 하기${!isHost && humans.length > 1 ? ` (${votes}/${humans.length})` : ''}</button>

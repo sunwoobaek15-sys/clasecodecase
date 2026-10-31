@@ -12,11 +12,14 @@ const SHRINK = [
 const FINAL_AT = 180;
 
 export class EventDirector {
-  constructor(rand = Math.random) {
+  constructor(rand = Math.random, { offset = 0 } = {}) {
     this.rand = rand;
+    // offset초만큼 경기장 축소 일정을 앞당긴다 (결승 라운드)
+    this.shrink = SHRINK.map((s) => ({ ...s, at: s.at - offset }));
+    this.finalAt = FINAL_AT - offset;
     this.events = [];
     this.nextId = 1;
-    this.nextRandomAt = 7;
+    this.nextRandomAt = offset ? 5 : 7;
     this.shrinkIdx = 0;
     this.finalScheduled = false;
     this.permanentGone = new Set();
@@ -33,21 +36,21 @@ export class EventDirector {
 
   update(t, tiles) {
     // 경기장 축소 일정
-    if (this.shrinkIdx < SHRINK.length && t >= SHRINK[this.shrinkIdx].at - ANNOUNCE - 0.5) {
-      const s = SHRINK[this.shrinkIdx++];
+    if (this.shrinkIdx < this.shrink.length && t >= this.shrink[this.shrinkIdx].at - ANNOUNCE - 0.5) {
+      const s = this.shrink[this.shrinkIdx++];
       const ids = [];
       for (let i = 0; i < RINGS[s.ring].n; i++) ids.push(RING_START[s.ring] + i);
       this.add('shrink', s.at, 9999, { tiles: ids, permanent: true, movers: s.ring === 1 });
     }
-    if (!this.finalScheduled && t >= FINAL_AT - 5) {
+    if (!this.finalScheduled && t >= this.finalAt - 5) {
       this.finalScheduled = true;
-      const e = this.add('final', FINAL_AT, 9999, { tiles: [0], permanent: true });
-      e.announce = FINAL_AT - 5;
+      const e = this.add('final', this.finalAt, 9999, { tiles: [0], permanent: true });
+      e.announce = this.finalAt - 5;
     }
 
     // 랜덤 이벤트 (한 번에 하나)
     const busy = this.events.some((e) => !e.permanent && t < e.end);
-    if (!busy && t >= this.nextRandomAt - ANNOUNCE && t < SHRINK[2].at - 6) {
+    if (!busy && t >= this.nextRandomAt - ANNOUNCE && t < this.shrink[2].at - 6) {
       const r = this.rand();
       const start = this.nextRandomAt;
       if (r < 0.36) {

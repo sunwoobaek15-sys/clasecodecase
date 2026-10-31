@@ -1,5 +1,6 @@
 // 서버 측 AI 플레이어. 사람과 똑같이 입력만 만들어 물리 시뮬레이션에 넣는다.
 import { groundAt, TILE, tileIndexAt, activeEvent, sweeperAngle } from '../../../shared/src/arena.js';
+import { boxCenter } from '../../../shared/src/course.js';
 import { BTN } from '../../../shared/src/messages.js';
 import { SWEEPER } from '../../../shared/src/constants.js';
 
@@ -95,6 +96,126 @@ export class BotBrain {
       }
     }
     if (this.jumpHold > 0) { this.jumpHold -= dt; out.buttons |= BTN.JUMP; }
+    return out;
+  }
+}
+
+// ---------- 레이스 AI ----------
+const _r = { h: 0, vx: 0, vz: 0, mover: -1 };
+const BRIDGES = ['bridgeL', 'bridgeC', 'bridgeR'];
+
+BotBrain.prototype.thinkRace = function thinkRace(self, others, world, dt) {
+  const s = self.state;
+  const out = { mx: 0, mz: 0, buttons: 0 };
+  if (!s.alive) return out;
+  const c = world.course;
+  this.lane ??= (this.rand() - 0.5) * 3;
+  this.bridge ??= BRIDGES[Math.floor(this.rand() * 3)];
+  this.hesitate = Math.max(0, (this.hesitate || 0) - dt);
+
+  let wp = c.path.find(([, z]) => z > s.z + 0.8) || c.path[c.path.length - 1];
+  let tx = wp[0] + (s.z < 38 || (s.z > 56 && s.z < 80) ? this.lane : 0), tz = wp[1];
+  // 움직이는 발판 구간: 바로 앞 발판을 노린다
+  if (s.z > 37 && s.z < 56) {
+    let best = null;
+    for (const b of c.boxes) {
+      if (!b.move || b.z < 40 || b.z > 56 || b.z - b.d < s.z - 0.3) continue;
+      if (!best || b.z < best.z) best = b;
+    }
+    if (best) { const ctr = boxCenter(best, world.t + 0.35, {}); tx = ctr.x; tz = best.z; }
+    else { tx = 0; tz = 58; }
+  }
+  // 다리 구간: 고른 다리를 따라간다
+  if (s.z > 103 && s.z < 123) {
+    const b = c.boxes.find((q) => q.id === this.bridge);
+    const ctr = boxCenter(b, world.t + 0.2, {});
+    tx = ctr.x; tz = s.z > 121 ? 128 : 123;
+  }
+  let dx = tx - s.x, dz = tz - s.z;
+  const dl = Math.hypot(dx, dz) || 1;
+  dx /= dl; dz /= dl;
+
+  const speed = Math.hypot(s.vx, s.vz);
+  const look = 0.9 + speed * 0.1;
+  groundAt(world, s.x + dx * look, s.z + dz * look, s.y + 0.6, _r);
+  const gapAhead = _r.h === -Infinity || _r.h < s.y - 1.5;
+  const wallAhead = _r.h !== -Infinity && _r.h > s.y + 0.45;
+  let jump = false;
+  if (s.grounded && gapAhead) {
+    // 착지 지점이 있을 때만 점프, 아니면 가장자리에서 기다린다
+    const saved = world.t;
+    world.t = saved + 0.45;
+    let landing = false;
+    for (const dist of [2.6, 3.4, 4.2]) {
+      groundAt(world, s.x + dx * dist, s.z + dz * dist, s.y + 0.8, _r);
+      if (_r.h !== -Infinity && _r.h > s.y - 1.2 && _r.h < s.y + 1.2) { landing = true; break; }
+    }
+    world.t = saved;
+    if (landing && this.hesitate <= 0) jump = true;
+    else { dx *= 0.05; dz *= 0.05; if (!this.hesitate) this.hesitate = 0.1 + this.rand() * 0.3 * (1 - this.skill); }
+  } else if (s.grounded && wallAhead && _r.h < s.y + 1.6) jump = true;
+
+  // 회전 막대 피하기
+  for (const sw of c.sweepers) {
+    const rx = s.x - sw.x, rz = s.z - sw.z;
+    const r = Math.hypot(rx, rz);
+    if (r < sw.r0 || r > sw.r1 + 0.6 || !s.grounded) continue;
+    const pa = Math.atan2(rz, rx);
+    const base = world.t * sw.speed * sw.dir + sw.phase;
+    for (let k = 0; k < 2; k++) {
+      let d = (pa - (base + k * Math.PI)) * sw.dir;
+      d = ((d % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      if (d / sw.speed < 0.3 && this.rand() < 0.4 + this.skill * 0.6) jump = true;
+    }
+  }
+  if (jump) this.jumpHold = 0.33;
+  out.mx = dx; out.mz = dz;
+  if (this.jumpHold > 0) { this.jumpHold -= dt; out.buttons |= BTN.JUMP; }
+
+  // 가까운 상대에게 몸통 박치기
+  this.dashWait = (this.dashWait ?? 2) - dt;
+  if (s.grounded && this.dashWait <= 0 && !gapAhead) {
+    for (const o of others) {
+      if (o === self || !o.state.alive) continue;
+      const ox = o.state.x - s.x, oz = o.state.z - s.z;
+      const od = Math.hypot(ox, oz);
+      if (od < 3 && od > 0.8 && (ox * Math.sin(s.yaw) + oz * Math.cos(s.yaw)) / od > 0.8 && this.rand() < 0.04 * this.skill) {
+        out.buttons |= BTN.DASH;
+        this.dashWait = 2 + this.rand() * 2;
+        break;
+      }
+    }
+  }
+  return out;
+};
+
+// ---------- 방해꾼(번개 구름) AI ----------
+export class GhostBrain {
+  constructor(rand = Math.random) {
+    this.rand = rand;
+    this.target = null;
+    this.retarget = 0;
+    this.delay = 1 + rand() * 2;
+  }
+
+  think(g, players, world, dt) {
+    const out = { mx: 0, mz: 0, buttons: 0 };
+    this.retarget -= dt;
+    this.delay -= dt;
+    if (this.retarget <= 0 || !this.target || !this.target.state.alive) {
+      const alive = players.filter((p) => p.state.alive);
+      // 레이스에서는 선두를 노리는 경향
+      alive.sort((a, b) => b.state.z - a.state.z);
+      this.target = alive.length ? alive[Math.floor(this.rand() ** 2 * alive.length)] : null;
+      this.retarget = 3 + this.rand() * 3;
+    }
+    if (!this.target) return out;
+    const t = this.target.state;
+    const tx = t.x + t.vx * 0.8, tz = t.z + t.vz * 0.8;
+    const dx = tx - g.x, dz = tz - g.z;
+    const d = Math.hypot(dx, dz);
+    if (d > 0.4) { out.mx = dx / Math.max(d, 1); out.mz = dz / Math.max(d, 1); }
+    if (d < 1.4 && g.cd <= 0 && this.delay <= 0) { out.buttons |= BTN.DASH; this.delay = 1.5 + this.rand() * 3; }
     return out;
   }
 }

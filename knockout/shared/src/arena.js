@@ -1,5 +1,6 @@
 // 경기장 정의와 지형 질의 함수. 서버 물리와 클라이언트 예측/렌더링이 같은 정의를 쓴다.
 import { PHYS, SWEEPER } from './constants.js';
+import { courseGroundAt, coursePushOut, courseHazards, boxCenter } from './course.js';
 
 const TAU = Math.PI * 2;
 
@@ -73,7 +74,7 @@ export function moverState(m, t, out = {}) {
 }
 
 export function createWorld() {
-  return { t: 0, tiles: new Array(TILE_COUNT).fill(TILE.OK), events: [], moversOffAt: Infinity };
+  return { t: 0, tiles: new Array(TILE_COUNT).fill(TILE.OK), events: [], moversOffAt: Infinity, course: null };
 }
 
 /** 이벤트 목록이 바뀌면 호출해 파생 값을 갱신한다. */
@@ -98,6 +99,7 @@ const _m = {};
  * out: { h, vx, vz, mover } — vx,vz는 움직이는 발판의 운반 속도
  */
 export function groundAt(world, x, z, y, out) {
+  if (world.course) return courseGroundAt(world.course, world, x, z, y, out);
   out.h = -Infinity;
   out.vx = 0;
   out.vz = 0;
@@ -126,6 +128,7 @@ export function groundAt(world, x, z, y, out) {
 
 /** 원통형 장애물(플랫폼 옆면)에 대해 수평으로 밀어낸다. */
 export function pushOutWalls(world, p, radius) {
+  if (world.course) return coursePushOut(world.course, world, p, radius);
   for (const c of RAISED) {
     if (!tileSolid(world, c.tile)) continue;
     if (p.y >= c.top - PHYS.stepUp || p.y + PHYS.height < 0) continue;
@@ -167,7 +170,7 @@ export function windVector(world, out) {
   const e = activeEvent(world, 'wind');
   out.x = 0;
   out.z = 0;
-  if (!e) return out;
+  if (!e || world.course) return out;
   // 시작/끝에서 부드럽게 강해지고 약해진다
   const ramp = Math.min(1, (world.t - e.start) / 1.2, (e.end - world.t) / 1.2);
   out.x = Math.cos(e.angle) * ramp;
@@ -179,6 +182,7 @@ export function windVector(world, out) {
  * 회전 장애물 충돌. 맞으면 회전 방향으로 넉백한다. 충돌 시 true.
  */
 export function sweeperHit(world, p, radius) {
+  if (world.course) return courseHazards(world.course, world, p, radius);
   const e = activeEvent(world, 'sweeper');
   if (!e) return false;
   if (p.y > SWEEPER.y1 || p.y + PHYS.height < SWEEPER.y0) return false;
@@ -209,4 +213,24 @@ export function sweeperHit(world, p, radius) {
     }
   }
   return false;
+}
+
+const _bc = { x: 0, z: 0, vx: 0, vz: 0 };
+/** 움직이는 발판 idx의 t0→t1 사이 이동량 (원격 플레이어 보간 보정용) */
+export function moverShift(world, idx, t0, t1, out) {
+  out.dx = 0; out.dz = 0; out.y = null; out.rot = undefined;
+  if (world.course) {
+    const b = world.course.boxes[idx];
+    if (!b) return out;
+    boxCenter(b, t0, _bc); const x0 = _bc.x, z0 = _bc.z;
+    boxCenter(b, t1, _bc);
+    out.dx = _bc.x - x0; out.dz = _bc.z - z0; out.y = b.y1;
+    return out;
+  }
+  const m = MOVERS[idx];
+  if (!m) return out;
+  const a = moverState(m, t0, {}), b = moverState(m, t1, {});
+  out.dx = b.x - a.x; out.dz = b.z - a.z; out.y = b.top;
+  out.rot = m.speed * (t1 - t0);
+  return out;
 }

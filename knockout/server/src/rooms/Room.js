@@ -4,6 +4,10 @@ import { COUNTDOWN_SEC, RESULTS_SEC, RECONNECT_GRACE_SEC, MAX_PLAYERS, MIN_PLAYE
 import { COLORS, sanitizeLook, randomLook } from '../../../shared/src/looks.js';
 import { Player } from '../players/Player.js';
 import { Match } from '../game/Match.js';
+import { ROUNDS } from '../../../shared/src/constants.js';
+
+const INTRO_MS = 3500;
+const ROUND_END_MS = 4500;
 
 const SNAP_EVERY = Math.round(TICK_RATE / SNAPSHOT_RATE);
 const BOT_NAMES = ['말랑이', '통통이', '데굴이', '퐁퐁이', '쿵쿵이', '뿅뿅이', '몽글이', '방울이'];
@@ -27,6 +31,8 @@ export class Room {
     this.results = null;
     this.matchNo = 0;
     this.lastTilesSent = '';
+    this.mode = 'show';
+    this.show = null;
   }
 
   get humans() { return this.players.filter((p) => !p.isBot); }
@@ -71,7 +77,7 @@ export class Room {
   removePlayer(p, reason = 'leave') {
     const idx = this.players.indexOf(p);
     if (idx < 0) return;
-    if (this.match && p.inMatch && this.phase !== PHASE.RESULTS) this.match.forfeit(p);
+    if (this.match && this.phase !== PHASE.RESULTS) this.match.forfeit(p);
     // 경기 중이면 결과 기록을 위해 참가자 목록에는 남겨 두고 방 목록에서만 제거
     this.players.splice(idx, 1);
     this.manager.unregisterToken(p.token);
@@ -123,6 +129,7 @@ export class Room {
       p.send({ t: S2C.TILES, s: this.match.world.tiles.join('') });
       p.send({ t: S2C.EVENTS, list: this.match.director.list() });
       if (this.results) p.send({ t: S2C.RESULT, ...this.results });
+      if (this.roundOutcome && this.phase === PHASE.ROUND_END) p.send({ t: S2C.ROUND_END, ...this.roundOutcome });
     }
   }
 
@@ -158,6 +165,12 @@ export class Room {
         if (bot && bot.isBot) this.removePlayer(bot);
         return;
       }
+      case C2S.MODE:
+        if (p.id !== this.hostId) return this.error(p, ERR.NOT_HOST);
+        if (this.phase !== PHASE.LOBBY) return;
+        this.mode = msg.mode === 'classic' ? 'classic' : 'show';
+        this.broadcastRoom();
+        return;
       case C2S.START:
         if (p.id !== this.hostId) return this.error(p, ERR.NOT_HOST);
         if (this.phase !== PHASE.LOBBY) return this.error(p, ERR.BAD_PHASE);
@@ -198,32 +211,106 @@ export class Room {
   }
 
   // ---------- 경기 단계 ----------
+  /** 인원에 따른 라운드 구성. 쇼: 레이스 → 서바이벌 → 결승 */
+  static planRounds(n, mode) {
+    if (mode === 'classic') return [{ type: 'classic', quota: 1 }];
+    if (n <= 2) return [{ type: 'race', quota: 1 }];
+    const q1 = Math.min(n - 1, Math.max(2, Math.ceil(n * 0.6)));
+    const rounds = [{ type: 'race', quota: q1 }];
+    if (q1 >= 3) rounds.push({ type: 'survival', quota: Math.min(q1 - 1, Math.max(2, Math.ceil(q1 * 0.5))) });
+    rounds.push({ type: 'final', quota: 1 });
+    return rounds;
+  }
+
   startMatch() {
     const parts = this.participants();
-    for (const p of this.players) { p.inMatch = parts.includes(p); p.rematchVote = false; }
-    this.match = new Match(parts, { rand: this.rand, events: this.opts.events !== false });
+    for (const p of this.players) p.rematchVote = false;
     this.matchNo++;
     this.results = null;
-    this.phase = PHASE.COUNTDOWN;
-    this.phaseEndsAt = this.now() + COUNTDOWN_SEC * 1000;
+    this.show = {
+      rounds: Room.planRounds(parts.length, this.mode),
+      idx: -1,
+      members: new Set(parts.map((p) => p.id)),
+      active: new Set(parts.map((p) => p.id)),
+      groups: [],
+      names: new Map(parts.map((p) => [p.id, { name: p.name, look: p.look, isBot: p.isBot }])),
+      time: 0,
+    };
+    this.startRound(0);
+  }
+
+  startRound(idx) {
+    const show = this.show;
+    show.idx = idx;
+    const round = show.rounds[idx];
+    // 쇼 멤버 중 접속 중인 사람은 모두 참가: 통과자는 선수, 나머지는 방해꾼
+    // 도중에 들어온 사람도 방해꾼으로 참여한다
+    const roster = this.players.filter((p) => p.isBot || p.connected);
+    for (const p of roster) {
+      p.roundActive = show.active.has(p.id);
+      p.inMatch = p.roundActive;
+    }
+    this.match = new Match(roster, { rand: this.rand, events: this.opts.events !== false, type: round.type, quota: round.quota });
+    this.roundOutcome = null;
+    this.phase = PHASE.INTRO;
+    this.phaseEndsAt = this.now() + (this.opts.introMs ?? INTRO_MS);
     this.lastTilesSent = '';
     this.broadcast({ t: S2C.TILES, s: this.match.world.tiles.join('') });
     this.broadcast({ t: S2C.EVENTS, list: [] });
     this.broadcastRoom();
   }
 
-  finishMatch() {
+  endRound() {
+    const show = this.show;
     const m = this.match;
-    const ranking = m.players
-      .map((p) => ({ id: p.id, name: p.name, look: p.look, isBot: p.isBot, rank: p.rank || 1, elimAt: p.elimAt ? Math.round(p.elimAt * 10) / 10 : null }))
-      .sort((a, b) => a.rank - b.rank || (b.elimAt ?? 1e9) - (a.elimAt ?? 1e9));
-    const winners = ranking.filter((r) => r.rank === 1);
+    const out = m.outcome();
+    show.time += m.t;
+    const round = show.rounds[show.idx];
+    const qualified = out.qualified.filter((id) => show.active.has(id));
+    const eliminated = [];
+    const firstGroup = show.groups.length;
+    for (const g of out.groups) {
+      const ids = g.filter((id) => show.active.has(id));
+      if (ids.length) { show.groups.push({ ids, round: show.idx }); eliminated.push(...ids); }
+    }
+    // 결과에 없는(나간) 참가자도 탈락 처리
+    const leftover = [...show.active].filter((id) => !qualified.includes(id) && !eliminated.includes(id));
+    if (leftover.length) { show.groups.splice(firstGroup, 0, { ids: leftover, round: show.idx }); eliminated.push(...leftover); }
+    show.active = new Set(qualified);
+    const last = show.idx >= show.rounds.length - 1 || show.active.size <= 1;
+    this.roundOutcome = { type: round.type, idx: show.idx, qualified, eliminated, last };
+    this.phase = PHASE.ROUND_END;
+    this.phaseEndsAt = this.now() + (this.opts.roundEndMs ?? ROUND_END_MS);
+    this.broadcast({ t: S2C.ROUND_END, ...this.roundOutcome });
+    this.broadcastRoom();
+  }
+
+  afterRoundEnd() {
+    const show = this.show;
+    if (!this.roundOutcome.last && show.active.size >= 2) return this.startRound(show.idx + 1);
+    this.finishShow();
+  }
+
+  finishShow() {
+    const show = this.show;
+    const winners = [...show.active];
+    const ranking = [];
+    const info = (id) => show.names.get(id) || { name: '?', look: {}, isBot: false };
+    const roundName = (i) => ROUNDS[show.rounds[i].type].name;
+    for (const id of winners) ranking.push({ id, ...info(id), rank: 1, label: '챔피언 🏆' });
+    let rank = winners.length + 1;
+    for (let i = show.groups.length - 1; i >= 0; i--) {
+      const g = show.groups[i];
+      for (const id of g.ids) ranking.push({ id, ...info(id), rank, label: `${roundName(g.round)} 탈락` });
+      rank += g.ids.length;
+    }
     this.results = {
-      winners: winners.map((w) => w.id),
+      winners,
       draw: winners.length !== 1,
       ranking,
-      duration: Math.round(m.t * 10) / 10,
-      eliminated: m.players.filter((p) => p.elimAt).sort((a, b) => a.elimAt - b.elimAt).map((p) => ({ id: p.id, name: p.name, at: Math.round(p.elimAt * 10) / 10, rank: p.rank })),
+      duration: Math.round(show.time * 10) / 10,
+      rounds: show.rounds.map((r) => ROUNDS[r.type].name),
+      eliminated: show.groups.flatMap((g) => g.ids.map((id) => ({ id, name: info(id).name, round: g.round }))),
       matchNo: this.matchNo,
     };
     this.phase = PHASE.RESULTS;
@@ -237,6 +324,7 @@ export class Room {
     this.phase = PHASE.LOBBY;
     this.match = null;
     this.results = null;
+    this.show = null;
     for (const p of this.players) { p.inMatch = false; p.rematchVote = false; if (!p.isBot) p.ready = false; }
     this.broadcastRoom();
   }
@@ -258,7 +346,14 @@ export class Room {
       return;
     }
 
-    if (this.phase === PHASE.COUNTDOWN) {
+    if (this.phase === PHASE.INTRO) {
+      this.match.step(true);
+      if (now >= this.phaseEndsAt) {
+        this.phase = PHASE.COUNTDOWN;
+        this.phaseEndsAt = now + COUNTDOWN_SEC * 1000;
+        this.broadcastRoom();
+      }
+    } else if (this.phase === PHASE.COUNTDOWN) {
       this.match.step(true);
       if (now >= this.phaseEndsAt) {
         this.phase = PHASE.PLAYING;
@@ -268,7 +363,11 @@ export class Room {
     } else if (this.phase === PHASE.PLAYING) {
       this.match.step(false);
       this.flushMatchMessages();
-      if (this.match.over) this.finishMatch();
+      if (this.match.over) this.endRound();
+    } else if (this.phase === PHASE.ROUND_END) {
+      this.match.step(true);
+      this.flushMatchMessages();
+      if (now >= this.phaseEndsAt) this.afterRoundEnd();
     } else if (this.phase === PHASE.RESULTS) {
       this.match.step(true);
       if (now >= this.phaseEndsAt) this.toLobby();
@@ -296,7 +395,7 @@ export class Room {
 
   sendSnapshot() {
     const m = this.match;
-    const pj = JSON.stringify(m.snapshotPlayers());
+    const pj = JSON.stringify(m.snapshotPlayers()) + ',"g":' + JSON.stringify(m.snapshotGhosts());
     const head = '{"t":"s","mt":' + Math.round(m.t * 1000) / 1000 + ',"ph":"' + this.phase + '","ack":';
     for (const p of this.players) {
       if (p.isBot || !p.connected) continue;
@@ -313,6 +412,9 @@ export class Room {
       hostId: this.hostId,
       remain: this.phaseEndsAt ? Math.max(0, (this.phaseEndsAt - now) / 1000) : 0,
       matchNo: this.matchNo,
+      mode: this.mode,
+      round: this.show && this.show.idx >= 0 ? { idx: this.show.idx, total: this.show.rounds.length, ...this.show.rounds[this.show.idx] } : null,
+      outcome: this.phase === PHASE.ROUND_END ? this.roundOutcome : null,
       players: this.players.map((p) => p.publicInfo()),
     };
   }
