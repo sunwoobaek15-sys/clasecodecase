@@ -186,8 +186,15 @@ def main() -> None:
         return
 
     host = "0.0.0.0" if args.lan else "127.0.0.1"
+    url = f"http://localhost:{args.port}"
     if not port_free(BACKEND_PORT):
-        fail(f"포트 {BACKEND_PORT}을(를) 다른 프로그램이 쓰고 있습니다. SELF AI가 이미 실행 중인지 확인하세요.")
+        # double-clicked again while SELF AI is already running: just open it
+        if wait_http(f"http://127.0.0.1:{BACKEND_PORT}/api/health", 2) and wait_http(url, 2):
+            say(f"SELF AI가 이미 실행 중입니다: {url}")
+            if not args.no_browser:
+                webbrowser.open(url)
+            return
+        fail(f"포트 {BACKEND_PORT}을(를) 다른 프로그램이 쓰고 있습니다. 그 프로그램을 끄거나 컴퓨터를 다시 시작한 뒤 실행하세요.")
     if not port_free(args.port, host):
         fail(f"포트 {args.port}을(를) 다른 프로그램이 쓰고 있습니다. --port 3001 처럼 다른 포트를 지정하세요.")
 
@@ -202,7 +209,6 @@ def main() -> None:
         frontend = subprocess.Popen([node, str(FRONTEND / "node_modules" / "next" / "dist" / "bin" / "next"), "start",
                                      "-H", host, "-p", str(args.port)], cwd=FRONTEND, **kw)
         procs.append(frontend)
-        url = f"http://localhost:{args.port}"
         if not wait_http(url, 60, frontend):
             fail("웹 화면 서버가 시작되지 않았습니다. 위의 오류 메시지를 확인하세요.")
 
@@ -219,7 +225,7 @@ def main() -> None:
                 say("  -> 휴대폰 화면의 Settings > 접근 토큰에 ACCESS_TOKEN 값을 입력하세요")
         if not ollama_ok:
             say(f"  [!] Ollama({ollama})가 응답하지 않습니다. Ollama 앱을 실행하세요: https://ollama.com")
-        say("  종료: 이 창에서 Ctrl+C")
+        say("  종료: 이 창에서 Ctrl+C 또는 창 닫기")
         say("=" * 56)
         if not args.no_browser:
             webbrowser.open(url)
@@ -235,11 +241,14 @@ def main() -> None:
         stop(procs)
 
 
-def _on_sigterm(*_args) -> None:
+def _on_stop_signal(*_args) -> None:
     raise KeyboardInterrupt  # same clean shutdown as Ctrl+C
 
 
 if __name__ == "__main__":
     if not WINDOWS:
-        signal.signal(signal.SIGTERM, _on_sigterm)
+        # SIGTERM: kill/stop; SIGHUP: the terminal window was closed. The servers run in their own
+        # session, so without this they would keep running in the background after the window closes.
+        signal.signal(signal.SIGTERM, _on_stop_signal)
+        signal.signal(signal.SIGHUP, _on_stop_signal)
     main()

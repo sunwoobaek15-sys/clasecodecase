@@ -1,0 +1,27 @@
+﻿SELF AI - 처음 실행 방법
+========================
+
+1) 아래 3가지를 설치하세요 (처음 한 번만)
+   - Python 3.11 이상 : https://www.python.org/downloads/
+       Windows는 설치 첫 화면에서 "Add python.exe to PATH" 를 꼭 체크하세요.
+   - Node.js 20 이상 (LTS) : https://nodejs.org/
+   - Ollama (로컬 AI) : https://ollama.com/download   설치 후 실행해 두세요.
+
+2) SELF AI 실행
+   - Windows : start.bat 더블클릭
+   - macOS   : start.command 를 우클릭 > 열기 (처음 한 번), 다음부터는 더블클릭
+   - Linux   : 터미널에서 ./start.sh
+   처음에는 설치와 빌드 때문에 몇 분 걸립니다.
+   준비가 끝나면 브라우저가 열립니다: http://localhost:3000
+
+3) AI 모델 받기 (터미널 필요 없음)
+   Settings > AI 모델 > 모델 받기 > qwen2.5:3b 의 [받기]
+   다 받으면 [사용] 을 누르세요.
+
+4) AI Chat 에서 질문하기
+   답이 글자 단위로 나타나고, 답 아래에 "자기 평가 n/5" 가 보이면 정상입니다.
+   답이 너무 느리면 Settings 에서 "답변 자기 평가" 를 끄거나 qwen2.5:1.5b 를 받아 쓰세요.
+
+종료 : 실행 창에서 Ctrl+C, 또는 실행 창 닫기
+데이터 : backend/data 폴더 (내 컴퓨터에만 저장됩니다)
+자세한 설명 : README.md
