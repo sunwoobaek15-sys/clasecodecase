@@ -70,7 +70,9 @@ export class BotBrain {
     out.mx = dx; out.mz = dz;
 
     // 상대가 가깝고 정면이면 대시 공격
-    if (this.target && s.grounded && dist < 3.6 && dist > 1.0 && this.rand() < 0.05 * this.skill) {
+    this.dashWait = (this.dashWait ?? 1.5) - dt;
+    if (this.target && s.grounded && this.dashWait <= 0 && dist < 3.6 && dist > 1.0 && this.rand() < 0.03 * this.skill) {
+      this.dashWait = 1.2 + this.rand() * 1.8;
       const fx = Math.sin(s.yaw), fz = Math.cos(s.yaw);
       const t = this.target.state;
       const tx = (t.x - s.x) / dist, tz = (t.z - s.z) / dist;

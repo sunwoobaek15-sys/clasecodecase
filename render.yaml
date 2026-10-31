@@ -1,0 +1,13 @@
+# Render.com Blueprint — 저장소 루트가 아닌 knockout/ 폴더를 서비스 루트로 사용
+services:
+  - type: web
+    name: knockout
+    runtime: node
+    rootDir: knockout
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

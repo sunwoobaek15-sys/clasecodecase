@@ -265,3 +265,11 @@ test('봇끼리 대전하면 결국 승자가 결정된다 (경기장 축소 포
   assert.ok(winners.length >= 1);
   assert.ok(m.director.events.length >= 0);
 });
+
+test('입력이 끊기면 서버는 잠깐만 마지막 입력을 유지하고 멈춘다', () => {
+  const p = new Player({ name: 'X' });
+  p.pushInputs([[1, 1, 0, 0]]);
+  assert.equal(p.takeInput().mx, 1);
+  for (let i = 0; i < 8; i++) assert.equal(p.takeInput().mx, 1);
+  assert.equal(p.takeInput().mx, 0);
+});

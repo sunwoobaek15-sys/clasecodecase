@@ -184,3 +184,22 @@ test('바람이 플레이어를 민다', () => {
   run(p, { mx: 0, mz: 0, buttons: 0 }, 90, w);
   assert.ok(p.x > -7.5);
 });
+
+test('넉백 밸런스: 대시 한 방은 5~10m, 걸으며 부딪히면 3m 이내로 밀린다 (중앙에서 즉사 없음)', () => {
+  const measure = (dash) => {
+    const w = createWorld();
+    const a = mk('a', -13, 0), b = mk('b', -11, 0);
+    const bx0 = b.x;
+    const cd = new Map();
+    for (let i = 0; i < 240; i++) {
+      stepPlayer(a, { mx: i < 20 ? 1 : 0, mz: 0, buttons: dash && i === 8 ? BTN.DASH : 0 }, DT, w);
+      stepPlayer(b, { mx: 0, mz: 0, buttons: 0 }, DT, w);
+      resolvePlayerCollisions([a, b], cd, DT);
+    }
+    assert.ok(b.alive);
+    return b.x - bx0;
+  };
+  const d = measure(true), wlk = measure(false);
+  assert.ok(d > 5 && d < 10, `대시 넉백 ${d.toFixed(2)}m`);
+  assert.ok(wlk > 0.3 && wlk < 3, `걷기 넉백 ${wlk.toFixed(2)}m`);
+});

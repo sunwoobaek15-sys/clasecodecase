@@ -51,7 +51,7 @@ export class Player {
       this.lastQueuedSeq = seq;
     }
     // 지연이 쌓이지 않도록 큐 길이를 제한 (입력 속도 조작 방지)
-    while (this.inputQueue.length > 6) {
+    while (this.inputQueue.length > 10) {
       const dropped = this.inputQueue.shift();
       // 버려지는 입력의 대시는 다음 입력에 합쳐 손실을 막는다
       if (dropped.buttons & 2) this.inputQueue[0].buttons |= 2;
@@ -63,9 +63,13 @@ export class Player {
     if (inp) {
       this.lastInput = inp;
       this.lastSeq = inp.seq;
+      this.starved = 0;
       return inp;
     }
-    // 입력이 늦으면 마지막 입력을 유지하되 대시는 반복하지 않는다
+    // 입력이 잠깐 늦으면 마지막 입력을 유지하되(대시는 반복 안 함),
+    // 오래 끊기면(새로고침/네트워크 정지) 멈춰 선다 — 혼자 낭떠러지로 달려가지 않도록
+    this.starved = (this.starved || 0) + 1;
+    if (this.starved > 8) return { seq: this.lastSeq, mx: 0, mz: 0, buttons: 0 };
     this.lastInput = { seq: this.lastSeq, mx: this.lastInput.mx, mz: this.lastInput.mz, buttons: this.lastInput.buttons & 1 };
     return this.lastInput;
   }

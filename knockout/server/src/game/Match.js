@@ -9,7 +9,8 @@ import { BotBrain } from './Bot.js';
 const r2 = (v) => Math.round(v * 100) / 100;
 
 export class Match {
-  constructor(participants, { rand = Math.random } = {}) {
+  constructor(participants, { rand = Math.random, events = true } = {}) {
+    this.eventsEnabled = events;
     this.players = participants;
     this.world = createWorld();
     this.director = new EventDirector(rand);
@@ -45,7 +46,7 @@ export class Match {
     if (!frozen) {
       this.t += DT;
       world.t = this.t;
-      this.director.update(this.t, world.tiles);
+      if (this.eventsEnabled) this.director.update(this.t, world.tiles);
       if (this.director.changed) applyEvents(world, this.director.list());
     }
     const stepped = [];

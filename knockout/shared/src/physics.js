@@ -206,28 +206,26 @@ export function resolvePlayerCollisions(players, pairCd, dt, onHit) {
       }
       pairCd.set(key, KNOCK.pairCooldown);
 
-      // 각자 상대를 향해 들고 온 운동량으로 상대를 민다
-      const aPush = Math.max(0, van), bPush = Math.max(0, -vbn);
-      let toB = KNOCK.baseBump + aPush * KNOCK.speedFactor + (aDash ? KNOCK.dashBonus : 0);
-      let toA = KNOCK.baseBump + bPush * KNOCK.speedFactor + (bDash ? KNOCK.dashBonus : 0);
+      // 법선 방향 운동량 교환(반발계수 e) + 고정 범프 + 대시 보너스
+      const e = KNOCK.restitution;
+      const exchange = closing * (1 + e) * 0.5;
+      let toB = KNOCK.baseBump + (aDash ? KNOCK.dashBonus : 0);
+      let toA = KNOCK.baseBump + (bDash ? KNOCK.dashBonus : 0);
       // 대시 공격자는 반동이 작다
       if (aDash && !bDash) toA *= KNOCK.dashRecoil;
       if (bDash && !aDash) toB *= KNOCK.dashRecoil;
       if (!b.grounded) toB *= KNOCK.airBonus;
       if (!a.grounded) toA *= KNOCK.airBonus;
+      a.vx -= nx * (exchange + toA); a.vz -= nz * (exchange + toA);
+      b.vx += nx * (exchange + toB); b.vz += nz * (exchange + toB);
+      // 충돌 강도 = 각자가 받은 속도 변화량
+      const powA = exchange + toA, powB = exchange + toB;
 
-      // 법선 방향 속도를 교환(반발) 후 넉백을 더한다
-      const e = KNOCK.restitution;
-      const vaN = (van + vbn) * 0.5 - (van - vbn) * 0.5 * e;
-      const vbN = (van + vbn) * 0.5 + (van - vbn) * 0.5 * e;
-      a.vx += (vaN - van) * nx - nx * toA; a.vz += (vaN - van) * nz - nz * toA;
-      b.vx += (vbN - vbn) * nx + nx * toB; b.vz += (vbN - vbn) * nz + nz * toB;
-
-      applyHitReaction(a, toA);
-      applyHitReaction(b, toB);
+      applyHitReaction(a, powA);
+      applyHitReaction(b, powB);
       if (aDash) a.dashT = 0;
       if (bDash) b.dashT = 0;
-      if (onHit) onHit(a, b, Math.max(toA, toB), (a.x + b.x) / 2, (a.y + b.y) / 2 + 0.8, (a.z + b.z) / 2, aDash || bDash);
+      if (onHit) onHit(a, b, Math.max(powA, powB), (a.x + b.x) / 2, (a.y + b.y) / 2 + 0.8, (a.z + b.z) / 2, aDash || bDash);
     }
   }
 }

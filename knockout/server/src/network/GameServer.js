@@ -11,8 +11,8 @@ const MIME = {
   '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2',
 };
 
-export function createGameServer({ port = 3001, staticDir = null, host = '0.0.0.0' } = {}) {
-  const manager = new RoomManager();
+export function createGameServer({ port = 3001, staticDir = null, host = '0.0.0.0', roomOptions = {} } = {}) {
+  const manager = new RoomManager(roomOptions);
 
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://x');

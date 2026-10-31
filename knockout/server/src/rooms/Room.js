@@ -16,6 +16,7 @@ export class Room {
   constructor(code, manager, opts = {}) {
     this.code = code;
     this.manager = manager;
+    this.opts = opts;
     this.rand = opts.rand || Math.random;
     this.now = opts.now || (() => Date.now());
     this.players = [];
@@ -200,7 +201,7 @@ export class Room {
   startMatch() {
     const parts = this.participants();
     for (const p of this.players) { p.inMatch = parts.includes(p); p.rematchVote = false; }
-    this.match = new Match(parts, { rand: this.rand });
+    this.match = new Match(parts, { rand: this.rand, events: this.opts.events !== false });
     this.matchNo++;
     this.results = null;
     this.phase = PHASE.COUNTDOWN;

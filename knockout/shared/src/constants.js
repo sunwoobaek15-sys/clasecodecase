@@ -23,7 +23,7 @@ export const PHYS = {
   groundAccel: 55,
   groundDecel: 42,
   airAccel: 16,
-  slideFrictionGround: 3.2,
+  slideFrictionGround: 4.2,
   slideFrictionAir: 0.55,
   turnRate: 14,
   coyoteTime: 0.1,
@@ -40,21 +40,20 @@ export const PHYS = {
 
 // 충돌/넉백 튜닝
 export const KNOCK = {
-  restitution: 0.35,
-  baseBump: 3.2,
-  speedFactor: 0.95,
-  dashBonus: 10.5,
+  restitution: 0.3,
+  baseBump: 2.5,
+  dashBonus: 3,
   dashRecoil: 0.25,
   airBonus: 1.2,
-  popBase: 2.6,
-  popFactor: 0.16,
-  popMax: 7.5,
+  popBase: 1.6,
+  popFactor: 0.09,
+  popMax: 4.2,
   stunBase: 0.12,
-  stunFactor: 0.035,
-  stunMax: 0.9,
+  stunFactor: 0.03,
+  stunMax: 0.8,
   pairCooldown: 0.22,
   minClosing: 1.2,
 };
 
-export const SWEEPER = { r0: 5.8, r1: 15.6, y0: 0.2, y1: 1.0, halfWidth: 0.32, speed: 1.35, push: 12, pop: 6.5, stun: 0.55 };
+export const SWEEPER = { r0: 5.8, r1: 15.6, y0: 0.2, y1: 1.0, halfWidth: 0.32, speed: 1.2, push: 9, pop: 5.5, stun: 0.5 };
 export const WIND = { airAccel: 9, groundDrift: 3.4 };
