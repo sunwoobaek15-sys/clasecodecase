@@ -399,7 +399,7 @@ export class Room {
     const head = '{"t":"s","mt":' + Math.round(m.t * 1000) / 1000 + ',"ph":"' + this.phase + '","ack":';
     for (const p of this.players) {
       if (p.isBot || !p.connected) continue;
-      p.send(head + p.lastSeq + ',"p":' + pj + '}');
+      p.send(head + p.lastSeq + ',"q":' + p.inputQueue.length + ',"p":' + pj + '}');
     }
   }
 

@@ -184,7 +184,7 @@ export function windVector(world, out) {
 export function sweeperHit(world, p, radius) {
   if (world.course) return courseHazards(world.course, world, p, radius);
   const e = activeEvent(world, 'sweeper');
-  if (!e) return false;
+  if (!e || p.hitCd > 0) return false;
   if (p.y > SWEEPER.y1 || p.y + PHYS.height < SWEEPER.y0) return false;
   const base = sweeperAngle(e, world.t);
   for (let k = 0; k < 2; k++) {
@@ -203,10 +203,14 @@ export function sweeperHit(world, p, radius) {
     p.x += tx * side * (push + 0.02);
     p.z += tz * side * (push + 0.02);
     if (side > 0) {
-      p.vx = tx * SWEEPER.push + ax * 2.5;
-      p.vz = tz * SWEEPER.push + az * 2.5;
+      const sp = Math.min(SWEEPER.maxPush, Math.max(SWEEPER.push, SWEEPER.speed * along + 1));
+      p.vx = tx * sp + ax * 2.5;
+      p.vz = tz * sp + az * 2.5;
       p.vy = Math.max(p.vy, SWEEPER.pop);
+      p.hitCd = SWEEPER.hitCd;
       p.grounded = false;
+      p.jumping = false;
+      p.jumpCut = false;
       p.stun = Math.max(p.stun, SWEEPER.stun);
       p.dashT = 0;
       return true;

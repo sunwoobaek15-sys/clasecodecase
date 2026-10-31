@@ -55,7 +55,8 @@ export const KNOCK = {
   minClosing: 1.2,
 };
 
-export const SWEEPER = { r0: 5.8, r1: 15.6, y0: 0.2, y1: 1.0, halfWidth: 0.32, speed: 1.2, push: 9, pop: 5.5, stun: 0.5 };
+// 한 번 맞으면 hitCd 동안 막대와 상호작용하지 않는다 → 막대에 끌려다니며 연속으로 맞지 않는다
+export const SWEEPER = { r0: 5.8, r1: 15.6, y0: 0.2, y1: 1.0, halfWidth: 0.32, speed: 1.2, push: 9, maxPush: 13, pop: 8.5, stun: 0.5, hitCd: 1.0 };
 export const WIND = { airAccel: 9, groundDrift: 3.4 };
 
 // 방해꾼(탈락자/완주자) 번개 폭탄

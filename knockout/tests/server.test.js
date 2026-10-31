@@ -378,3 +378,20 @@ test('쇼 전체 진행: 봇 7 + 사람 1이 레이스 → 서바이벌 → 결�
   assert.equal(ends[0].qualified.length, 5);
   assert.equal(ends[1].qualified.length, 3);
 });
+
+test('방해꾼이 된 선수의 입력은 틱마다 한 번만 처리된다 (폭탄 입력이 사라지지 않음)', () => {
+  const ps = mkPlayers(3);
+  const m = new Match(ps, { type: 'race', quota: 2, rand: () => 0.5 });
+  m.step();
+  Object.assign(ps[0].state, { x: 0, z: RACE.finishZ + 2, y: 3, grounded: true });
+  m.step();
+  assert.ok(ps[0].finished && m.ghosts.has(ps[0].id));
+  const g = m.ghosts.get(ps[0].id);
+  g.cd = 0;
+  m.fx = [];
+  // 이동 입력 2개 + 폭탄 입력 1개를 순서대로 보낸다 → 3틱 안에 폭탄이 떨어져야 한다
+  ps[0].pushInputs([[100, 1, 0, 0], [101, 1, 0, 0], [102, 0, 0, BTN.DASH]]);
+  for (let i = 0; i < 3; i++) m.step();
+  assert.ok(m.fx.some((f) => f.k === 'bw' && f.id === ps[0].id), '폭탄 입력이 처리됨');
+  assert.ok(Math.abs(g.x - 2 * GHOST.speed * (1 / 60)) < 1e-6, `조준점은 이동 입력 2개만큼 움직임 (x=${g.x})`);
+});

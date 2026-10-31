@@ -43,6 +43,8 @@ export const RACE = {
   ],
   checkpoints: [
     { z: -99, x: 0, sz: 0, y: 0 },
+    // 움직이는 발판 직전: 여기서 떨어져도 출발선까지 돌아가지 않는다
+    { z: 38, x: 0, sz: 38.6, y: 0 },
     { z: 56, x: 0, sz: 57.5, y: 0 },
     { z: 80, x: 0, sz: 79, y: 0 },
     { z: 106, x: 0, sz: 105, y: 3 },
@@ -135,13 +137,15 @@ export function courseHazards(course, world, p, radius) {
     if (m.push > 0) {
       p.vx += nx * (m.push - Math.min(0, vn)); p.vz += nz * (m.push - Math.min(0, vn));
       p.vy = Math.max(p.vy, 3.5);
-      p.grounded = false; p.mover = -1;
+      p.grounded = false; p.mover = -1; p.jumping = false; p.jumpCut = false;
       p.stun = Math.max(p.stun, 0.35);
       p.dashT = 0;
       hit = true;
     } else if (vn < 0) { p.vx -= vn * nx; p.vz -= vn * nz; }
   }
   for (const s of course.sweepers) {
+    // 방금 막대에 맞았으면 잠시 막대와 상호작용하지 않는다 (연속 피격 방지)
+    if (p.hitCd > 0) break;
     const ly = p.y - s.base;
     if (ly > s.y1 || ly + PHYS.height < s.y0) continue;
     const base = world.t * s.speed * s.dir + s.phase;
@@ -158,10 +162,12 @@ export function courseHazards(course, world, p, radius) {
       const push = s.half + radius - Math.abs(perp);
       p.x += tx * side * (push + 0.02); p.z += tz * side * (push + 0.02);
       if (side > 0) {
-        const sp = 4 + along * s.speed;
-        p.vx = tx * sp + ax * 2; p.vz = tz * sp + az * 2;
-        p.vy = Math.max(p.vy, 5);
-        p.grounded = false; p.mover = -1;
+        // 레이스에서는 맞아도 코스 밖으로 바로 날아가지 않을 정도로만 밀어낸다 (연속 피격은 hitCd로 방지)
+        const sp = 3 + along * s.speed * 0.7;
+        p.vx = tx * sp + ax * 1.5; p.vz = tz * sp + az * 1.5;
+        p.vy = Math.max(p.vy, 7.4);
+        p.hitCd = 1.0;
+        p.grounded = false; p.mover = -1; p.jumping = false; p.jumpCut = false;
         p.stun = Math.max(p.stun, 0.45);
         p.dashT = 0;
         hit = true;

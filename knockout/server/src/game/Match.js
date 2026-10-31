@@ -92,6 +92,8 @@ export class Match {
     const zero = { mx: 0, mz: 0, buttons: 0 };
     const stepped = [];
     for (const p of this.players) {
+      // 탈락·완주한 선수의 입력은 방해꾼(stepGhosts)이 처리한다 — 여기서 먼저 꺼내면 입력이 사라진다
+      if (!p.state.alive && !frozen) continue;
       let input;
       if (frozen) { if (!p.isBot && p.connected) p.takeInput(); input = zero; }
       else if (p.isBot) input = this.type === 'race' ? p.bot.thinkRace(p, this.players, world, DT) : p.bot.think(p, this.players, world, DT);
@@ -216,6 +218,8 @@ export class Match {
         s.vy = Math.max(s.vy, GHOST.pop * k);
         s.grounded = false;
         s.mover = -1;
+        s.jumping = false;
+        s.jumpCut = false;
         s.dashT = 0;
         s.stun = Math.max(s.stun, GHOST.stun);
       }
@@ -271,7 +275,8 @@ export class Match {
       if (s.jumpCut) f |= FLAG.JUMPCUT;
       if (s.jumpHeld) f |= FLAG.JUMPHELD;
       if (p.finished) f |= FLAG.FINISHED;
-      return [p.id, r2(s.x), r2(s.y), r2(s.z), r2(s.vx), r2(s.vy), r2(s.vz), r2(s.yaw), f, r2(s.dashT), r2(s.dashCd), r2(s.stun), r2(s.coyote), r2(s.jumpBuf), s.mover];
+      if (s.jumping) f |= FLAG.JUMPING;
+      return [p.id, r2(s.x), r2(s.y), r2(s.z), r2(s.vx), r2(s.vy), r2(s.vz), r2(s.yaw), f, r2(s.dashT), r2(s.dashCd), r2(s.stun), r2(s.coyote), r2(s.jumpBuf), s.mover, r2(s.hitCd || 0)];
     });
   }
 

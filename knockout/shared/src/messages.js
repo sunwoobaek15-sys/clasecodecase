@@ -45,10 +45,10 @@ export const PHASE = {
 export const BTN = { JUMP: 1, DASH: 2 };
 
 // 스냅샷 플레이어 플래그 비트
-export const FLAG = { GROUNDED: 1, DASHING: 2, STUNNED: 4, OUT: 8, DISCONNECTED: 16, JUMPCUT: 32, JUMPHELD: 64, FINISHED: 128 };
+export const FLAG = { GROUNDED: 1, DASHING: 2, STUNNED: 4, OUT: 8, DISCONNECTED: 16, JUMPCUT: 32, JUMPHELD: 64, FINISHED: 128, JUMPING: 256 };
 
 // 스냅샷 플레이어 배열 인덱스
-export const SP = { ID: 0, X: 1, Y: 2, Z: 3, VX: 4, VY: 5, VZ: 6, YAW: 7, FLAGS: 8, DASHT: 9, DASHCD: 10, STUN: 11, COYOTE: 12, JUMPBUF: 13 };
+export const SP = { ID: 0, X: 1, Y: 2, Z: 3, VX: 4, VY: 5, VZ: 6, YAW: 7, FLAGS: 8, DASHT: 9, DASHCD: 10, STUN: 11, COYOTE: 12, JUMPBUF: 13, MOVER: 14, HITCD: 15 };
 
 export const ERR = {
   ROOM_NOT_FOUND: '방을 찾을 수 없습니다. 코드를 확인해 주세요.',

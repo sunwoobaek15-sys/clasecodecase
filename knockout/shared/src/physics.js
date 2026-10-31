@@ -11,7 +11,7 @@ export function createPlayerState(x = 0, z = 0, yaw = 0) {
     x, y: 0, z, vx: 0, vy: 0, vz: 0, yaw,
     grounded: true, dashT: 0, dashCd: 0, stun: 0,
     coyote: 0, jumpBuf: 0, jumpHeld: false, jumpCut: false,
-    alive: true, mover: -1, landSpeed: 0,
+    alive: true, mover: -1, landSpeed: 0, hitCd: 0, jumping: false,
   };
 }
 
@@ -41,6 +41,7 @@ export function stepPlayer(p, input, dt, world) {
 
   p.dashCd = Math.max(0, p.dashCd - dt);
   p.stun = Math.max(0, p.stun - dt);
+  p.hitCd = Math.max(0, (p.hitCd || 0) - dt);
   const control = p.stun > 0 ? PHYS.stunControl : 1;
 
   // 대시
@@ -91,10 +92,12 @@ export function stepPlayer(p, input, dt, world) {
     p.coyote = 0;
     p.jumpBuf = 0;
     p.jumpCut = false;
+    p.jumping = true;
     p.mover = -1;
     ev |= EV.JUMP;
   }
-  if (!jump && p.vy > 0) p.jumpCut = true;
+  // 가변 점프: 스스로 뛴 점프만 버튼을 일찍 떼면 짧아진다 (넉백으로 뜬 경우는 해당 없음)
+  if (!jump && p.vy > 0 && p.jumping) p.jumpCut = true;
   p.jumpHeld = jump;
 
   // 바람: 공중에서는 가속, 지면에서는 마찰과 무관한 일정한 표류
@@ -145,6 +148,7 @@ export function stepPlayer(p, input, dt, world) {
       p.vy = 0;
       p.grounded = true;
       p.jumpCut = false;
+      p.jumping = false;
       p.mover = _g.mover;
       ev |= EV.LAND;
     } else if (_g.h !== -Infinity && p.y < _g.h - 0.6) {
@@ -232,6 +236,8 @@ export function resolvePlayerCollisions(players, pairCd, dt, onHit) {
 
 function applyHitReaction(p, power) {
   const pop = Math.min(KNOCK.popMax, KNOCK.popBase + power * KNOCK.popFactor);
+  p.jumping = false;
+  p.jumpCut = false;
   if (p.grounded) {
     p.vy = pop;
     p.grounded = false;

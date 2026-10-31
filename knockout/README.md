@@ -158,7 +158,7 @@ knockout/
 ## 7. 테스트
 
 ```bash
-npm test             # 단위 + 서버 통합 테스트 (node:test, 37개)
+npm test             # 단위 + 서버 통합 테스트 (node:test, 41개)
 npm run build && npm run test:e2e   # 실제 브라우저로 클래식 + 쇼 모드 전체 흐름 검증 (Playwright 필요)
 ```
 

@@ -241,3 +241,35 @@ test('코스: 틈 사이로 걸어가면 떨어진다', () => {
   run(p, { mx: 0, mz: 1, buttons: 0 }, 200, w);
   assert.equal(p.alive, false);
 });
+
+test('회전 막대는 한 번 지나갈 때 한 번만 맞힌다 (막대에 끌려다니며 연속으로 맞지 않음)', () => {
+  for (const r of [6.5, 9, 12, 15]) {
+    const w = createWorld();
+    applyEvents(w, [{ type: 'sweeper', start: 0, end: 10, dir: 1, phase: 0 }]);
+    const p = createPlayerState(Math.cos(0.4) * r, Math.sin(0.4) * r);
+    let hits = 0;
+    // 팔 하나가 지나가는 시간(0.4rad/1.2 + 여유) 동안
+    for (let i = 0; i < 90 && p.alive; i++) { if (stepPlayer(p, { mx: 0, mz: 0, buttons: 0 }, DT, w) & EV.SWEPT) hits++; w.t += DT; }
+    assert.equal(hits, 1, `r=${r}에서 ${hits}번 맞음`);
+  }
+});
+
+test('레이스 회전 막대도 한 번만 맞히고, 제대로 띄워 올린다 (넉백에 가변 점프 감속이 걸리지 않음)', () => {
+  const w = raceWorld();
+  const s = RACE.sweepers[0];
+  const p = createPlayerState(s.x + 4, s.z + 0.8);
+  let hits = 0, maxY = 0;
+  for (let i = 0; i < 120 && p.alive; i++) { if (stepPlayer(p, { mx: 0, mz: 0, buttons: 0 }, DT, w) & EV.SWEPT) hits++; maxY = Math.max(maxY, p.y); w.t += DT; }
+  assert.equal(hits, 1);
+  assert.ok(maxY > 0.85, `최고 높이 ${maxY.toFixed(2)}`);
+  assert.ok(p.alive, '막대 가운데쯤에서 맞으면 코스 안에 남는다');
+});
+
+test('레이스: 움직이는 발판 직전에 체크포인트가 있다', () => {
+  const cp = RACE.checkpoints.find((c) => c.z > 30 && c.z < 41);
+  assert.ok(cp, '발판 구간 앞 체크포인트');
+  const w = raceWorld();
+  const p = createPlayerState(cp.x, cp.sz);
+  run(p, { mx: 0, mz: 0, buttons: 0 }, 30, w);
+  assert.ok(p.alive && p.grounded, '체크포인트 재시작 지점은 바닥 위');
+});

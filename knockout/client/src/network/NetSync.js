@@ -1,6 +1,6 @@
 // 클라이언트 예측(로컬 플레이어) + 서버 보정(reconciliation) + 원격 플레이어 보간(interpolation)
-import { DT } from '../../../shared/src/constants.js';
-import { SP, FLAG, PHASE } from '../../../shared/src/messages.js';
+import { DT, GHOST } from '../../../shared/src/constants.js';
+import { SP, FLAG, PHASE, BTN } from '../../../shared/src/messages.js';
 import { createWorld, applyEvents, moverShift } from '../../../shared/src/arena.js';
 
 const _shift = {};
@@ -18,9 +18,11 @@ export function applySnapToState(st, a) {
   st.alive = !(f & FLAG.OUT);
   st.jumpCut = !!(f & FLAG.JUMPCUT);
   st.jumpHeld = !!(f & FLAG.JUMPHELD);
+  st.jumping = !!(f & FLAG.JUMPING);
   st.dashT = a[SP.DASHT]; st.dashCd = a[SP.DASHCD]; st.stun = a[SP.STUN];
   st.coyote = a[SP.COYOTE]; st.jumpBuf = a[SP.JUMPBUF];
-  st.mover = a[14] ?? -1;
+  st.mover = a[SP.MOVER] ?? -1;
+  st.hitCd = a[SP.HITCD] ?? 0;
 }
 
 export class NetSync {
@@ -41,6 +43,7 @@ export class NetSync {
     this.vis = { x: 0, y: 0, z: 0 };
     this.lastAck = 0;
     this.corrections = 0;
+    this.queueAvg = 0;
     this.ghost = null;
     this.world.t = 0;
   }
@@ -69,7 +72,12 @@ export class NetSync {
     const myG = ghosts.get(localId);
     if (myG) {
       if (!this.ghost || Math.hypot(this.ghost.x - myG[1], this.ghost.z - myG[2]) > 3) this.ghost = { x: myG[1], z: myG[2], cd: myG[3] };
-      else { this.ghost.x += (myG[1] - this.ghost.x) * 0.15; this.ghost.z += (myG[2] - this.ghost.z) * 0.15; this.ghost.cd = myG[3]; }
+      else {
+        this.ghost.x += (myG[1] - this.ghost.x) * 0.15;
+        this.ghost.z += (myG[2] - this.ghost.z) * 0.15;
+        // 방금 폭탄을 눌렀다면 서버가 처리할 때까지 로컬 쿨타임을 유지한다
+        this.ghost.cd = t - (this.ghost.pressedAt || 0) < 0.5 ? Math.max(this.ghost.cd, myG[3]) : myG[3];
+      }
     } else this.ghost = null;
     const prevPhase = this.phase;
     this.phase = m.ph;
@@ -103,6 +111,8 @@ export class NetSync {
     // 서버 보정: 서버 상태에서 아직 확인되지 않은 입력을 다시 시뮬레이션
     const ack = m.ack;
     this.lastAck = ack;
+    // 서버 입력 큐에 쌓여 기다리는 틱 수 (프레임이 낮은 기기에서 입력이 몰려 도착할 때 커진다)
+    this.queueAvg += ((m.q || 0) - this.queueAvg) * 0.1;
     while (this.pending.length && this.pending[0].seq <= ack) this.pending.shift();
     const L = this.local;
     const ox = L.x, oy = L.y, oz = L.z;
@@ -122,7 +132,7 @@ export class NetSync {
   }
 
   predictTarget(rtt) {
-    return this.serverNow() + rtt + DT * 1.5;
+    return this.serverNow() + rtt + DT * (1.5 + this.queueAvg);
   }
 
   canPredict() {
@@ -159,6 +169,7 @@ export class NetSync {
         if (r > 18) { this.ghost.x *= 18 / r; this.ghost.z *= 18 / r; }
       }
       this.ghost.cd = Math.max(0, this.ghost.cd - DT);
+      if (input.buttons & BTN.DASH && this.ghost.cd <= 0) { this.ghost.cd = GHOST.cooldown; this.ghost.pressedAt = now(); }
     }
     return [seq, Math.round(input.mx * 1000) / 1000, Math.round(input.mz * 1000) / 1000, input.buttons];
   }
@@ -204,7 +215,7 @@ export class NetSync {
     if (!pa) return null;
     const pb = b && b.players.get(id);
     out.flags = (pb || pa)[SP.FLAGS];
-    out.mover = (pb || pa)[14] ?? -1;
+    out.mover = (pb || pa)[SP.MOVER] ?? -1;
     if (pb && b.mt > a.mt) {
       const k = Math.min(1, Math.max(0, (renderT - a.mt) / (b.mt - a.mt)));
       out.x = pa[SP.X] + (pb[SP.X] - pa[SP.X]) * k;
