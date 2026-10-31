@@ -1,5 +1,6 @@
 // 앱 진입점: 로딩 → 메뉴/대기실/경기/결과 화면 흐름과 네트워크 이벤트 연결
 import './style.css';
+import { tryFullscreenLandscape } from './view.js';
 import { settings, saveSettings, resolvedQuality, session, isTouch } from './settings.js';
 import { Net } from './network/Net.js';
 import { UI } from './ui/UI.js';
@@ -207,6 +208,9 @@ class App {
         this.ui.renderCustomize(settings.look, this.takenColors());
         return;
       case 'settings': this.ui.showSettings(); return;
+      case 'fullscreen':
+        tryFullscreenLandscape().then((ok) => { if (!ok) this.ui.toast('이 브라우저에서는 전체 화면을 쓸 수 없어 화면을 돌려서 가로로 보여 줍니다.'); });
+        return;
       case 'setSeg': this.ui.setSeg(data.k, data.v); return;
       case 'closeModal':
         this.ui.closeModal();

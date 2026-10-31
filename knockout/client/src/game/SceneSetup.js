@@ -1,12 +1,13 @@
 // 렌더러, 조명, 하늘, 구름, 배경 섬
 import * as THREE from 'three';
 import { toon } from './materials.js';
+import { view } from '../view.js';
 
 export function createRenderer(container, quality) {
   const renderer = new THREE.WebGLRenderer({ antialias: quality !== 'low', powerPreference: 'high-performance' });
   const pr = quality === 'low' ? 1 : quality === 'medium' ? Math.min(1.5, devicePixelRatio) : Math.min(2, devicePixelRatio);
   renderer.setPixelRatio(pr);
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(view.width, view.height);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = quality === 'high';
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;

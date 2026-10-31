@@ -118,11 +118,15 @@ try {
   const g0 = await state(guest);
   const cdp = await guestCtx.newCDPSession(guest);
   const touch = (type, points) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points });
-  await touch('touchStart', [{ x: 90, y: 700, id: 1 }]);
-  for (let i = 1; i <= 6; i++) { await touch('touchMove', [{ x: 90, y: 700 - i * 10, id: 1 }]); await guest.waitForTimeout(16); }
+  // 세로로 든 휴대폰에서도 게임은 가로로 회전되어 표시된다 → 게임 좌표(lx, ly)를 화면 좌표로 변환
+  assert.ok(await guest.evaluate(() => document.body.classList.contains('force-landscape')), '모바일 세로 화면에서 가로 모드');
+  const W = 390;
+  const scr = (lx, ly) => ({ x: W - ly, y: lx });
+  await touch('touchStart', [{ ...scr(110, 260), id: 1 }]);
+  for (let i = 1; i <= 6; i++) { await touch('touchMove', [{ ...scr(110, 260 - i * 10), id: 1 }]); await guest.waitForTimeout(16); }
   await guest.waitForTimeout(700);
   const jumpBox = await guest.locator('.tbtn.jump').boundingBox();
-  await touch('touchStart', [{ x: 90, y: 640, id: 1 }, { x: jumpBox.x + jumpBox.width / 2, y: jumpBox.y + jumpBox.height / 2, id: 2 }]);
+  await touch('touchStart', [{ ...scr(110, 200), id: 1 }, { x: jumpBox.x + jumpBox.width / 2, y: jumpBox.y + jumpBox.height / 2, id: 2 }]);
   await waitFor(guest, () => window.app.game.sync.local.y > 0.1, null, 3000);
   const gAir = await state(guest);
   await touch('touchEnd', []);
@@ -130,7 +134,7 @@ try {
   assert.ok(Math.hypot(g1.local.x - g0.local.x, g1.local.z - g0.local.z) > 2, '조이스틱 이동');
   assert.ok(gAir.local.y > 0.1, `점프 버튼 y=${gAir.local.y}`);
   await shot(guest, 'e2e-06-play-mobile.png');
-  step('모바일 터치 조작: 조이스틱 이동 + 점프 버튼');
+  step('모바일(세로로 들어도 가로 화면) 터치 조작: 조이스틱 이동 + 점프 버튼');
 
   // ---- 새로고침 → 같은 플레이어로 복귀 ----
   const gid = g1.you;

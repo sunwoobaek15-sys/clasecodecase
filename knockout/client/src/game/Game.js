@@ -17,6 +17,7 @@ import { Effects } from '../fx/Effects.js';
 import { NetSync } from '../network/NetSync.js';
 import { sfx } from '../audio/Sfx.js';
 import { settings } from '../settings.js';
+import { view } from '../view.js';
 
 const _g = { h: 0, vx: 0, vz: 0, mover: -1 };
 const MENU_NPCS = [
@@ -32,7 +33,7 @@ export class Game {
     this.renderer = createRenderer(container, quality);
     this.env = createScene(quality);
     this.scene = this.env.scene;
-    this.camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 900);
+    this.camera = new THREE.PerspectiveCamera(55, view.width / view.height, 0.1, 900);
     this.rig = new CameraRig(this.camera);
     this.arena = new ArenaView(this.scene, quality);
     this.course = new CourseView(this.scene);
@@ -64,16 +65,16 @@ export class Game {
       sfx.crumble(0.6);
     };
 
-    addEventListener('resize', () => this.resize());
+    view.onChange(() => this.resize());
     this.resize();
   }
 
   resize() {
-    this.camera.aspect = innerWidth / innerHeight;
+    this.camera.aspect = view.width / view.height;
     // 세로 화면에서는 시야를 넓혀 경기장이 잘 보이게 한다
     this.camera.fov = this.camera.aspect < 0.8 ? 72 : 55;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(innerWidth, innerHeight);
+    this.renderer.setSize(view.width, view.height);
   }
 
   // ---------- 캐릭터 관리 ----------
@@ -321,7 +322,7 @@ export class Game {
 
   /** 대기실/메뉴 카메라: 가로 화면에서는 패널 옆, 세로 화면에서는 패널 위에 캐릭터가 보이도록 */
   lobbyCamera(dt, myPos, center, dist) {
-    const wide = innerWidth > innerHeight * 1.1;
+    const wide = view.width > view.height * 1.1;
     let focus, d, look;
     if (this.customizing && myPos) {
       d = wide ? 5.2 : 6.5;

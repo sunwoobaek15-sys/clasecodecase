@@ -4,6 +4,7 @@ import { MIN_PLAYERS, MAX_PLAYERS, NAME_MAX, ROUNDS } from '../../../shared/src/
 import { settings, saveSettings, isTouch } from '../settings.js';
 import { sfx } from '../audio/Sfx.js';
 import { OFFLINE } from '../network/LocalServer.js';
+import { applyOrientation } from '../view.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const hex = (n) => '#' + n.toString(16).padStart(6, '0');
@@ -67,6 +68,7 @@ export class UI {
           <div class="menu-foot">
             <button class="btn gray small grow" data-act="customize">👕 꾸미기</button>
             <button class="btn gray small grow" data-act="settings">⚙️ 설정</button>
+            ${isTouch() && document.documentElement.requestFullscreen ? '<button class="btn gray small" data-act="fullscreen" title="전체 화면">⛶</button>' : ''}
           </div>
         </div>
       </div>`;
@@ -381,6 +383,7 @@ export class UI {
           <div class="setting">카메라 상하 반전 ${seg('invertY', [[false, '끔'], [true, '켬']])}</div>
           <div class="setting">화면 흔들림 ${seg('shake', [[true, '켬'], [false, '끔']])}</div>
           <div class="setting">FPS 표시 ${seg('showFps', [[false, '끔'], [true, '켬']])}</div>
+          ${isTouch() ? `<div class="setting">모바일 화면 ${seg('orientation', [['landscape', '가로 고정'], ['auto', '기기 방향 따름']])}</div>` : ''}
           <div class="hint" style="margin:10px 0">그래픽 품질 변경은 새로고침 후 적용됩니다.</div>
           <button class="btn block" data-act="closeModal">닫기</button>
         </div>
@@ -415,6 +418,7 @@ export class UI {
     saveSettings();
     this.showSettings();
     if (k === 'showFps' && this.hud) this.hud.fps.style.display = settings.showFps ? '' : 'none';
+    if (k === 'orientation') applyOrientation();
   }
 
   netWarning(on, text = '서버와 연결이 끊겼습니다. 다시 연결하는 중...') {

@@ -11,6 +11,7 @@ const DEFAULTS = {
   invertY: false,
   shake: true,
   showFps: false,
+  orientation: 'landscape',
 };
 
 function load() {

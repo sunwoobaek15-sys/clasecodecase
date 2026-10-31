@@ -1,5 +1,6 @@
 // 키보드/마우스/터치 입력 통합. 카메라 기준 이동 방향으로 변환은 Game에서 한다.
 import { settings, isTouch } from '../settings.js';
+import { view } from '../view.js';
 
 export class Input {
   constructor(dom, uiRoot) {
@@ -72,30 +73,32 @@ export class Input {
         const el = t.target;
         if (el.closest && el.closest('.tbtn')) continue;
         if (el.closest && el.closest('button, .panel, .hud-menu, .spectate')) continue;
-        if (t.clientX < innerWidth * 0.45 && stickId === null) {
-          stickId = t.identifier; cx = t.clientX; cy = t.clientY;
+        const pt = view.toLocal(t.clientX, t.clientY);
+        if (pt.x < view.width * 0.45 && stickId === null) {
+          stickId = t.identifier; cx = pt.x; cy = pt.y;
           base.style.display = 'block';
           base.style.left = cx + 'px'; base.style.top = cy + 'px';
           knob.style.transform = 'translate(0,0)';
           hint.style.display = 'none';
         } else if (lookId === null) {
-          lookId = t.identifier; lx = t.clientX; ly = t.clientY;
+          lookId = t.identifier; lx = pt.x; ly = pt.y;
         }
       }
     };
     const onMove = (e) => {
       for (const t of e.changedTouches) {
+        const pt = view.toLocal(t.clientX, t.clientY);
         if (t.identifier === stickId) {
-          let dx = t.clientX - cx, dy = t.clientY - cy;
+          let dx = pt.x - cx, dy = pt.y - cy;
           const l = Math.hypot(dx, dy);
           if (l > R) { dx = (dx / l) * R; dy = (dy / l) * R; }
           knob.style.transform = `translate(${dx}px, ${dy}px)`;
           const k = Math.min(1, l / R);
           this.touchMove = { x: (dx / R), y: (-dy / R), k };
         } else if (t.identifier === lookId) {
-          this.lookDX += (t.clientX - lx) * 0.006 * settings.sensitivity;
-          this.lookDY += (t.clientY - ly) * 0.004 * settings.sensitivity * (settings.invertY ? -1 : 1);
-          lx = t.clientX; ly = t.clientY;
+          this.lookDX += (pt.x - lx) * 0.006 * settings.sensitivity;
+          this.lookDY += (pt.y - ly) * 0.004 * settings.sensitivity * (settings.invertY ? -1 : 1);
+          lx = pt.x; ly = pt.y;
         }
       }
       if (e.cancelable) e.preventDefault();
