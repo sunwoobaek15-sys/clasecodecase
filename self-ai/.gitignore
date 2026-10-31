@@ -1,0 +1,19 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# python
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# data (personal database, backups)
+backend/data/
+
+# node / next
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+*.tsbuildinfo

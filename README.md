@@ -148,3 +148,7 @@ tests/ranking.test.js 랭킹·부정 사용 검사 테스트 (규칙대로 한 �
 
 - 테스트: `npm test` (Node 20 이상, 추가 설치 없음) — TOKEN 계산표, 하루 제한, STREAK, 보너스, 상점, 업그레이드, 수정·삭제, 저장 데이터 복구, 랭킹 순위·부정 사용 검사·저장 확인값을 확인해요.
 - 그림 파일 없이 모든 건물·장식·탈것을 코드(SVG)로 그려요.
+
+## 같은 저장소의 다른 프로젝트
+
+- [`self-ai/`](self-ai/README.md) — SELF AI, 기억·학습·조사·자기 평가를 하는 개인 AI 웹앱 (Next.js + FastAPI + Ollama)
