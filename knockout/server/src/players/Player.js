@@ -1,13 +1,19 @@
-import crypto from 'node:crypto';
 import { sanitizeLook } from '../../../shared/src/looks.js';
 import { createPlayerState } from '../../../shared/src/physics.js';
 
 let nextId = 1;
 
+// Node(22+)와 브라우저 모두에서 동작 (오프라인 모드는 서버 코드를 브라우저에서 실행)
+function randomToken() {
+  const b = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(b);
+  return Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+}
+
 export class Player {
   constructor({ name, look, isBot = false }) {
     this.id = 'p' + (nextId++).toString(36);
-    this.token = crypto.randomBytes(16).toString('hex');
+    this.token = randomToken();
     this.name = name;
     this.look = sanitizeLook(look);
     this.isBot = isBot;

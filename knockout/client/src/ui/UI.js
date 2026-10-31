@@ -3,6 +3,7 @@ import { COLORS, HATS, OUTFITS, ACCESSORIES, EMOTES, colorHex } from '../../../s
 import { MIN_PLAYERS, MAX_PLAYERS, NAME_MAX } from '../../../shared/src/constants.js';
 import { settings, saveSettings, isTouch } from '../settings.js';
 import { sfx } from '../audio/Sfx.js';
+import { OFFLINE } from '../network/LocalServer.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const hex = (n) => '#' + n.toString(16).padStart(6, '0');
@@ -52,12 +53,16 @@ export class UI {
           <label class="field">닉네임
             <input class="text" id="name" maxlength="${NAME_MAX}" placeholder="이름을 입력하세요" value="${esc(settings.name)}" autocomplete="off" />
           </label>
+          ${OFFLINE ? `
+          <button class="btn yellow block" data-act="practice">🤖 봇과 바로 시작</button>
+          <button class="btn block" data-act="create">방 만들기 (봇 인원 직접 선택)</button>
+          <div class="hint">오프라인 버전: 이 기기에서 봇과 대전합니다. 친구와 온라인 대전은 서버 버전에서 방 코드로 할 수 있어요.</div>` : `
           <button class="btn block" data-act="create">방 만들기</button>
           <div class="row">
             <input class="text code" id="code" maxlength="4" placeholder="코드" value="${esc(code)}" autocomplete="off" />
             <button class="btn blue" data-act="join">참가</button>
           </div>
-          <button class="btn yellow block" data-act="practice">🤖 봇과 연습하기</button>
+          <button class="btn yellow block" data-act="practice">🤖 봇과 연습하기</button>`}
           <div class="err" id="menu-err">${esc(err)}</div>
           <div class="menu-foot">
             <button class="btn gray small grow" data-act="customize">👕 꾸미기</button>
@@ -68,9 +73,9 @@ export class UI {
     const nameEl = this.root.querySelector('#name');
     nameEl.addEventListener('input', () => { settings.name = nameEl.value; saveSettings(); });
     const codeEl = this.root.querySelector('#code');
-    codeEl.addEventListener('input', () => { codeEl.value = codeEl.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
-    codeEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.app.action('join', {}); });
-    if (code && settings.name) codeEl.focus();
+    if (codeEl) codeEl.addEventListener('input', () => { codeEl.value = codeEl.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+    if (codeEl) codeEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.app.action('join', {}); });
+    if (codeEl && code && settings.name) codeEl.focus();
   }
 
   menuValues() {
@@ -170,10 +175,10 @@ export class UI {
             <div class="hint">방 코드</div>
             <div class="roomcode"><span class="code">${esc(room.code)}</span></div>
           </div>
-          <div class="col" style="gap:6px">
+          ${OFFLINE ? '<div class="hint">오프라인 연습 방</div>' : `<div class="col" style="gap:6px">
             <button class="btn blue small" data-act="copyCode">코드 복사</button>
             <button class="btn blue small" data-act="shareLink">초대 링크</button>
-          </div>
+          </div>`}
         </div>
         <div class="row" style="justify-content:space-between"><b style="font-weight:400;font-size:18px">참가자 ${room.players.length}/${MAX_PLAYERS}</b>
           ${isHost ? `<button class="btn yellow small" data-act="addBot" ${room.players.length >= MAX_PLAYERS ? 'disabled' : ''}>🤖 봇 추가</button>` : ''}</div>

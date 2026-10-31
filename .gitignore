@@ -4,3 +4,4 @@ dist/
 .DS_Store
 knockout/client/dist/
 knockout/test-results/
+knockout/client/dist-standalone/

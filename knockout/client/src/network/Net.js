@@ -1,6 +1,7 @@
 // WebSocket 연결, 자동 재연결, 세션 복구(resume), 핑/RTT 측정.
 import { C2S, S2C } from '../../../shared/src/messages.js';
 import { session } from '../settings.js';
+import { OFFLINE, createLocalSocket } from './LocalServer.js';
 
 function serverUrl() {
   const env = import.meta.env.VITE_SERVER_URL;
@@ -29,7 +30,7 @@ export class Net {
 
   connect() {
     if (this.ws && (this.ws.readyState === 0 || this.ws.readyState === 1)) return;
-    const ws = new WebSocket(serverUrl());
+    const ws = OFFLINE ? createLocalSocket() : new WebSocket(serverUrl());
     this.ws = ws;
     ws.onopen = () => {
       this.connected = true;

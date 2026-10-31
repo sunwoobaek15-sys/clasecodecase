@@ -17,6 +17,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     chunkSizeWarningLimit: 1200,
-    rollupOptions: { output: { manualChunks: { three: ['three'] } } },
+    // 오프라인 단일 파일 빌드에서는 청크를 나누지 않는다
+    rollupOptions: process.env.VITE_OFFLINE === '1' ? {} : { output: { manualChunks: { three: ['three'] } } },
   },
 });
