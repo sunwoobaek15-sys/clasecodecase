@@ -12,6 +12,8 @@ from dataclasses import asdict
 from sqlalchemy.orm import Session
 
 from ..services import settings_store
+from collections.abc import Iterator
+
 from .providers import AIError, AIProvider, ChatResult, OllamaProvider, OpenAICompatibleProvider
 
 # Test hook: tests replace these factories to inject fake transports.
@@ -86,6 +88,17 @@ class AIRouter:
         if provider is self.local:
             return self.local.chat(messages, model=self.cfg["local_model"], temperature=t, json_mode=json_mode)
         return provider.chat(messages, temperature=t, json_mode=json_mode)
+
+    def chat_stream(self, messages: list[dict], meta: dict) -> Iterator[str]:
+        """Stream the answer. `meta` receives provider/model (filled before the first piece)."""
+        provider = self._pick()
+        meta["provider"] = provider.name
+        if provider is self.local:
+            meta["model"] = self.cfg["local_model"]
+            return self.local.chat_stream(messages, model=self.cfg["local_model"],
+                                          temperature=self.cfg["temperature"], meta=meta)
+        meta["model"] = self.cloud.model
+        return provider.chat_stream(messages, temperature=self.cfg["temperature"], meta=meta)
 
     @property
     def sends_externally(self) -> bool:

@@ -165,9 +165,35 @@ def extract_rules(text: str) -> list[dict]:
                 content = re.sub(r"\s*(?:이거|이것)?\s*기억해(?:줘|주세요|둬|두세요)?[.!]?\s*$", "", s).strip()
                 content = re.sub(r"^(?:remember(?: that)?[:,]?\s+)", "", content, flags=re.I).strip()
                 if len(content) >= 3:
-                    out.append({"kind": k, "content": content, "importance": imp})
+                    out.append({"kind": k, "content": content, "importance": imp, "explicit": kind == "auto"})
                 break
     return out
+
+
+_PERSONAL_HINT = re.compile(
+    r"(?:^|[\s,.])(?:나|난|내|내가|나는|나의|저|전|제|제가|저는|저의|우리|우리는)(?=[\s,.]|$)|기억|좋아|싫어|선호|결정|하기로|"
+    r"프로젝트|이름|살아|일해|직업|취미|생일|"
+    r"\b(?:i|i'm|i've|my|me|we|our|remember|prefer|decided)\b", re.I)
+
+
+COVERED = 0.2
+
+
+def merge_candidates(rule_items: list[dict], ai_items: list[dict] | None) -> list[dict]:
+    """Rules phrase facts as the user said them ("나는 커피를 좋아해"), the AI as clean statements
+    ("사용자는 커피를 좋아한다"). Keep explicit "기억해" requests always, the AI's facts, and only
+    those rule facts the AI did not already cover (same kind + overlapping words)."""
+    if not ai_items:
+        return rule_items
+    keep = [r for r in rule_items if r.get("explicit") or not any(
+        a["kind"] == r["kind"] and T.similarity(a["content"], r["content"]) >= COVERED for a in ai_items)]
+    return keep + ai_items
+
+
+def worth_ai_extraction(text: str) -> bool:
+    """Only ask the AI for memories when the message plausibly states something personal."""
+    t = (text or "").strip()
+    return len(t) >= 6 and bool(_PERSONAL_HINT.search(t))
 
 
 EXTRACT_PROMPT = """너는 개인 AI의 기억 관리자다. 아래 '사용자 메시지'에서 앞으로의 대화에 도움이 될 사실만 뽑아라.

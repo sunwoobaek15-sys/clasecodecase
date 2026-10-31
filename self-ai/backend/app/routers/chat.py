@@ -1,11 +1,15 @@
+import json
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
+from starlette.background import BackgroundTask
 
 from .. import serialize as S
 from ..ai.providers import AIError
 from ..db import SessionLocal, get_db
-from ..models import Conversation, EvaluationRecord, Message, UserFeedback
+from ..models import Conversation, EvaluationRecord, Memory, Message, UserFeedback
 from ..services import core, evaluation, settings_store
 from ..services import text as T
 
@@ -24,12 +28,17 @@ class ChatIn(BaseModel):
         return v.strip()
 
 
-def _after_chat(message: str, source: str, assistant_id: int | None, do_eval: bool) -> None:
+def _after_chat(message: str, conversation_id: int | None, user_message_id: int | None,
+                assistant_id: int | None, do_eval: bool) -> None:
+    """Runs after the answer was sent: remember facts, evaluate the answer, update the conversation memory."""
     db = SessionLocal()
     try:
-        core.remember_from_message(db, message, source)
+        src = f"chat:{conversation_id}/{user_message_id}" if conversation_id else "chat:unsaved"
+        core.remember_from_message(db, message, src)
         if do_eval and assistant_id:
             evaluation.evaluate(db, assistant_id)
+        if conversation_id:
+            core.summarize_conversation(db, conversation_id)
     finally:
         db.close()
 
@@ -43,10 +52,43 @@ def chat(body: ChatIn, bg: BackgroundTasks, db: Session = Depends(get_db)):
     except AIError as e:
         raise HTTPException(503, {"code": e.code, "message": str(e)}) from e
     cfg = settings_store.get_all(db)
-    src = f"chat:{out['conversation_id']}/{out['user_message_id']}" if out["conversation_id"] else "chat:unsaved"
-    bg.add_task(_after_chat, body.message, src, out["assistant_message_id"], cfg["auto_evaluate"])
+    bg.add_task(_after_chat, body.message, out["conversation_id"], out["user_message_id"],
+                out["assistant_message_id"], cfg["auto_evaluate"])
     out["evaluation_pending"] = bool(cfg["auto_evaluate"] and out["assistant_message_id"])
     return out
+
+
+@router.post("/chat/stream")
+def chat_stream(body: ChatIn):
+    """Same as /chat but streams the answer as NDJSON events: start, delta…, done | error."""
+    db = SessionLocal()  # owned by the stream (dependency sessions may close before streaming ends)
+    try:
+        turn = core.prepare(db, body.message, body.conversation_id)
+    except LookupError as e:
+        db.close()
+        raise HTTPException(404, str(e)) from e
+    except AIError as e:
+        db.close()
+        raise HTTPException(503, {"code": e.code, "message": str(e)}) from e
+    result: dict = {}
+
+    def events():
+        try:
+            for ev in core.chat_stream(db, turn, body.message):
+                if ev["type"] == "done":
+                    ev["evaluation_pending"] = bool(turn.cfg["auto_evaluate"] and ev["assistant_message_id"])
+                    result.update(ev)
+                yield json.dumps(ev, ensure_ascii=False) + "\n"
+        finally:
+            db.close()
+
+    def after():
+        if result:
+            _after_chat(body.message, result["conversation_id"], result["user_message_id"],
+                        result["assistant_message_id"], turn.cfg["auto_evaluate"])
+
+    return StreamingResponse(events(), media_type="application/x-ndjson", background=BackgroundTask(after),
+                             headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"})
 
 
 @router.get("/conversations")
@@ -67,7 +109,8 @@ def get_conversation(cid: int, db: Session = Depends(get_db)):
     ids = [m.id for m in c.messages]
     evals = {e.message_id: S.evaluation(e) for e in db.query(EvaluationRecord).filter(EvaluationRecord.message_id.in_(ids))}
     fbs = {f.message_id: S.feedback(f) for f in db.query(UserFeedback).filter(UserFeedback.message_id.in_(ids))}
-    return {"id": c.id, "title": c.title, "created_at": S.iso(c.created_at),
+    linked = db.query(Memory).filter(Memory.source.like(f"chat:{cid}/%")).count()
+    return {"id": c.id, "title": c.title, "created_at": S.iso(c.created_at), "extracted_memories": linked,
             "messages": [{**S.message(m), "evaluation": evals.get(m.id), "feedback": fbs.get(m.id)} for m in c.messages]}
 
 
@@ -86,13 +129,16 @@ def rename(cid: int, body: RenameIn, db: Session = Depends(get_db)):
 
 
 @router.delete("/conversations/{cid}")
-def delete_conversation(cid: int, db: Session = Depends(get_db)):
+def delete_conversation(cid: int, delete_memories: bool = False, db: Session = Depends(get_db)):
+    """Deletes the conversation and its "대화 기록" memory. Facts remembered from it are kept unless
+    delete_memories=true (they are separate memories the user can see in Memory)."""
     c = db.get(Conversation, cid)
     if not c:
         raise HTTPException(404, "대화를 찾을 수 없습니다.")
+    n = core.forget_conversation(db, cid, include_extracted=delete_memories)
     db.delete(c)
     db.commit()
-    return {"deleted": cid}
+    return {"deleted": cid, "memories_deleted": n}
 
 
 @router.get("/messages/{mid}/evaluation")

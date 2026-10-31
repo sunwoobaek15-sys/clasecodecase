@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from .. import serialize as S
 from ..db import SessionLocal, get_db
-from ..models import Knowledge, LearningRecord
+from ..models import Knowledge, LearningRecord, Memory
 from ..services import files, learning
 from ..services import text as T
 
@@ -74,6 +74,7 @@ def delete_record(rid: int, delete_knowledge: bool = False, db: Session = Depend
     n = 0
     if delete_knowledge:
         n = db.query(Knowledge).filter(Knowledge.learning_record_id == rid).delete()
+        db.query(Memory).filter(Memory.source == f"learning:{rid}").delete()
     db.delete(r)
     db.commit()
     return {"deleted": rid, "knowledge_deleted": n}

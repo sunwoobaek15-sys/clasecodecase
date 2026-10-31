@@ -25,6 +25,7 @@ class SearchHit:
     title: str
     url: str
     snippet: str
+    content: str | None = None  # full text when the provider already returns it (no page fetch needed)
 
 
 class SearchUnavailable(Exception):
@@ -74,16 +75,25 @@ class WikipediaSearch(NoSearch):
         return True, "Wikipedia 공개 API"
 
     def search(self, query, n):
-        lang = "ko" if any("가" <= ch <= "힣" for ch in query) else "en"
+        import re
+        lang = "ko" if any("\uac00" <= ch <= "\ud7a3" for ch in query) else "en"
+        api = f"https://{lang}.wikipedia.org/w/api.php"
         with _client() as c:
-            r = c.get(f"https://{lang}.wikipedia.org/w/api.php",
-                      params={"action": "query", "list": "search", "srsearch": query, "format": "json",
-                              "srlimit": n, "utf8": 1})
+            r = c.get(api, params={"action": "query", "list": "search", "srsearch": query, "format": "json",
+                                   "srlimit": n, "utf8": 1})
             r.raise_for_status()
             res = r.json().get("query", {}).get("search", [])
-        import re
+            extracts: dict[str, str] = {}
+            if res:  # plain-text lead sections in one call instead of downloading whole HTML pages
+                r2 = c.get(api, params={"action": "query", "prop": "extracts", "exintro": 1, "explaintext": 1,
+                                        "exlimit": "max", "titles": "|".join(x["title"] for x in res),
+                                        "format": "json", "utf8": 1})
+                if r2.status_code == 200:
+                    for page in r2.json().get("query", {}).get("pages", {}).values():
+                        if page.get("extract"):
+                            extracts[page.get("title", "")] = page["extract"]
         return [SearchHit(x["title"], f"https://{lang}.wikipedia.org/wiki/{x['title'].replace(' ', '_')}",
-                          re.sub(r"<[^>]+>", "", x.get("snippet", ""))) for x in res]
+                          re.sub(r"<[^>]+>", "", x.get("snippet", "")), extracts.get(x["title"])) for x in res]
 
 
 class BraveSearch(NoSearch):
@@ -117,11 +127,13 @@ class TavilySearch(NoSearch):
         if not ok:
             raise SearchUnavailable(msg)
         with _client() as c:
-            r = c.post("https://api.tavily.com/search",
-                       json={"api_key": get_settings().TAVILY_API_KEY, "query": query, "max_results": n})
+            key = get_settings().TAVILY_API_KEY
+            r = c.post("https://api.tavily.com/search", headers={"Authorization": f"Bearer {key}"},
+                       json={"api_key": key, "query": query, "max_results": n, "include_raw_content": True})
             r.raise_for_status()
             res = r.json().get("results", [])
-        return [SearchHit(x.get("title", ""), x.get("url", ""), x.get("content", "")) for x in res[:n]]
+        return [SearchHit(x.get("title", ""), x.get("url", ""), x.get("content", ""), x.get("raw_content"))
+                for x in res[:n]]
 
 
 PROVIDERS = {p.name: p for p in (NoSearch(), SearxngSearch(), WikipediaSearch(), BraveSearch(), TavilySearch())}

@@ -184,7 +184,8 @@ def _run(db: Session, task_id: int, use_web: bool) -> None:
                     continue
                 seen.add(h.url)
                 src = ResearchSource(task_id=task.id, kind="web", title=h.title[:500] or h.url, url=h.url[:1000],
-                                     snippet=h.snippet[:2000], query=q)
+                                     snippet=h.snippet[:2000], query=q,
+                                     content=h.content[:20000] if h.content else None)
                 db.add(src)
                 sources.append(src)
         if errors and not [s for s in sources if s.kind == "web"]:
@@ -194,7 +195,7 @@ def _run(db: Session, task_id: int, use_web: bool) -> None:
             db.commit()
             return
         _set(db, task, "searching", 45, "출처 본문 가져오는 중")
-        for src in [s for s in sources if s.kind == "web"][:MAX_FETCH]:
+        for src in [s for s in sources if s.kind == "web" and not s.content][:MAX_FETCH]:
             try:
                 src.content = S.fetch_page(src.url)[:20000]
             except Exception as e:  # noqa: BLE001

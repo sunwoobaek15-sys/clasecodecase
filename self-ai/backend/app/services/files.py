@@ -10,7 +10,8 @@ from pathlib import PurePath
 from ..config import get_settings
 
 ALLOWED = {".txt": "text", ".md": "text", ".markdown": "text", ".csv": "text", ".json": "json",
-           ".html": "html", ".htm": "html", ".pdf": "pdf"}
+           ".html": "html", ".htm": "html", ".pdf": "pdf", ".docx": "docx"}
+MAX_DOCX_XML = 30 * 1024 * 1024  # uncompressed document.xml limit (zip-bomb guard)
 
 
 class UploadError(ValueError):
@@ -61,6 +62,40 @@ def html_to_text(html: str) -> str:
     return re.sub(r"\n\s*\n+", "\n\n", text).strip()
 
 
+def _docx_text(data: bytes) -> str:
+    import zipfile
+    import xml.etree.ElementTree as ET
+    if not data.startswith(b"PK"):
+        raise UploadError("Word(.docx) 파일 형식이 올바르지 않습니다.")
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            info = z.getinfo("word/document.xml")
+            if info.file_size > MAX_DOCX_XML:
+                raise UploadError("문서 내용이 너무 큽니다.")
+            xml = z.read(info)
+        root = ET.fromstring(xml)  # ElementTree never resolves external entities
+    except UploadError:
+        raise
+    except (KeyError, zipfile.BadZipFile, ET.ParseError) as e:
+        raise UploadError("Word(.docx) 파일을 읽을 수 없습니다 (손상되었거나 다른 형식).") from e
+    w = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+    paras = []
+    for p in root.iter(f"{w}p"):
+        parts = []
+        for el in p.iter():
+            if el.tag == f"{w}t" and el.text:
+                parts.append(el.text)
+            elif el.tag in (f"{w}tab",):
+                parts.append("\t")
+            elif el.tag in (f"{w}br", f"{w}cr"):
+                parts.append("\n")
+        paras.append("".join(parts))
+    text = "\n\n".join(p for p in paras if p.strip())
+    if not text.strip():
+        raise UploadError("문서에서 텍스트를 찾지 못했습니다.")
+    return text
+
+
 def extract_text(filename: str, data: bytes) -> str:
     ext = PurePath(filename).suffix.lower()
     kind = ALLOWED.get(ext)
@@ -82,6 +117,8 @@ def extract_text(filename: str, data: bytes) -> str:
         if not text.strip():
             raise UploadError("PDF에서 텍스트를 찾지 못했습니다 (스캔 이미지 PDF는 지원하지 않습니다).")
         return text
+    if kind == "docx":
+        return _docx_text(data)
     if b"\x00" in data[:4096]:
         raise UploadError("텍스트 파일이 아닌 것 같습니다 (바이너리 데이터).")
     for enc in ("utf-8-sig", "cp949", "latin-1"):

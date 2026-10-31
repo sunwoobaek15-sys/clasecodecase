@@ -44,7 +44,7 @@ export function Button({ variant = "default", size = "md", loading, className = 
   const s = size === "sm" ? "px-2.5 py-1 text-xs" : "px-3.5 py-2 text-sm";
   return (
     <button {...rest} disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg border font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${v} ${s} ${className}`}>
+      className={`inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${v} ${s} ${className}`}>
       {loading && <Spinner className="h-3.5 w-3.5" />}
       {children}
     </button>
@@ -96,7 +96,7 @@ export function Field({ label, hint, children }: { label: string; hint?: React.R
   );
 }
 
-export const inputCls = "w-full rounded-lg border border-line bg-panel-2 px-3 py-2 text-sm text-text outline-none placeholder:text-muted/70 focus:border-accent";
+export const inputCls = "w-full min-w-0 rounded-lg border border-line bg-panel-2 px-3 py-2 text-sm text-text outline-none placeholder:text-muted/70 focus:border-accent";
 
 export function Toggle({ checked, onChange, label, hint, disabled }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string; disabled?: boolean }) {
   return (

@@ -47,6 +47,7 @@ def client(ollama_up):
     ensure_owner()
     search.transport = None
     search.CHECK_HOSTS = True
+    fake_ollama.reset()
     with TestClient(app) as c:
         yield c
     get_settings.cache_clear()

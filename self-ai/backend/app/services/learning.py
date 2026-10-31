@@ -12,6 +12,7 @@ from ..ai.providers import AIError
 from ..ai.router import try_router
 from ..models import LearningRecord
 from . import knowledge as K
+from . import memory as M
 from . import text as T
 from .logs import log
 
@@ -124,6 +125,10 @@ def run(db: Session, record_id: int, text: str) -> LearningRecord:
         rec.comparison = comparisons
         rec.status = "completed"
         db.commit()
+        if added:
+            note = (rec.summary or "").strip()[:300]
+            M.create(db, "knowledge", f"학습한 자료 '{rec.title}' ({rec.category}): {note}", source=f"learning:{rec.id}",
+                     importance=2)
         log(db, "learning", f"학습 완료: {rec.title} (추가 {added}, 중복 {dups}, 관련 {related})",
             data={"record_id": rec.id, "method": rec.method})
     except Exception as e:  # noqa: BLE001

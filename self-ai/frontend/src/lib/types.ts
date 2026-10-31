@@ -1,4 +1,4 @@
-export type ProviderStatus = { name: string; available: boolean; detail: string; models: string[]; model: string | null };
+export type ProviderStatus = { name: string; available: boolean; detail: string; models: string[]; model: string | null; reachable: boolean };
 export type AIStatus = {
   mode: "AUTO" | "LOCAL" | "CLOUD";
   ready: boolean;
@@ -62,6 +62,7 @@ export type MessageContext = {
 export type ChatMessage = {
   id: number | null; role: "user" | "assistant"; content: string; provider?: string | null; model?: string | null;
   latency_ms?: number | null; context?: MessageContext | null; created_at?: string; evaluation?: Evaluation | null; feedback?: Feedback | null;
+  streaming?: boolean; unsaved?: boolean;
 };
 
 export type LogEntry = { id: number; level: string; category: string; message: string; created_at: string };

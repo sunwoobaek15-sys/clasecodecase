@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
 import { Alert, Badge, Button, Card, Field, Page, Spinner, Toggle, fmtBytes, fmtDate, inputCls } from "@/components/ui";
 import { ApiError, api, download, errText, getToken, setToken } from "@/lib/api";
@@ -15,6 +15,13 @@ type Values = {
 type SettingsResp = { values: Values; env: Record<string, unknown>; options: { ai_modes: string[]; search_providers: string[] } };
 type Provider = { provider: string; connected: boolean; detail: string; options: { name: string; label: string; configured: boolean }[] };
 type Backup = { name: string; size: number; created_at: string };
+type SystemInfo = {
+  version: string; uptime_seconds: number; python: string; database: string; database_size: number | null; data_dir: string;
+  backups: number; last_backup: string | null; external_network_enabled: boolean; access_token_required: boolean;
+  search: { provider: string; connected: boolean; detail: string }; ai: AIStatus; counts: Record<string, number>;
+};
+type PullJob = { model: string; status: string; detail: string; completed: number; total: number; error: string | null };
+type ModelsInfo = { installed: string[]; selected: string; ollama_ok: boolean; suggested: { name: string; size: string; note: string }[]; jobs: PullJob[] };
 
 const SENSITIVE_TEXT: Record<string, string> = {
   cloud_allowed: "클라우드 AI를 켜면 질문이 외부 서버로 전송되고 유료 요금이 발생할 수 있습니다.",
@@ -26,6 +33,10 @@ export default function SettingsPage() {
   const s = useApi<SettingsResp>("/settings");
   const ai = useApi<AIStatus>("/ai/status");
   const prov = useApi<Provider>("/research/provider");
+  const sys = useApi<SystemInfo>("/system");
+  const { reload: reloadAi } = ai;
+  const { reload: reloadSys } = sys;
+  const refreshStatus = useCallback(() => { reloadAi(); reloadSys(); }, [reloadAi, reloadSys]);
   const [msg, setMsg] = useState<{ tone: "ok" | "bad"; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -44,6 +55,7 @@ export default function SettingsPage() {
       setMsg({ tone: "ok", text: "저장했습니다." });
       ai.reload();
       prov.reload();
+      sys.reload();
     } catch (e) {
       setMsg({ tone: "bad", text: errText(e) });
     } finally {
@@ -69,9 +81,10 @@ export default function SettingsPage() {
             </Field>
             <p className="text-xs text-muted">AUTO: 로컬 AI를 우선 사용하고, 로컬이 안 될 때만 (허용된 경우) 클라우드 사용 · LOCAL: Ollama만 · CLOUD: 클라우드만</p>
             {ai.data && (ai.data.ready ? <Alert tone="ok">사용 중: {ai.data.active?.provider === "cloud" ? "클라우드" : "로컬"} · {ai.data.active?.model}</Alert> : <Alert tone="bad">{ai.data.error}</Alert>)}
-            <Field label="로컬 모델 (Ollama)" hint={<>Ollama 주소: {String(env.OLLAMA_BASE_URL)} · 새 모델은 터미널에서 <code>ollama pull 모델명</code></>}>
+            <Field label="로컬 모델 (Ollama)" hint={<>Ollama 주소: {String(env.OLLAMA_BASE_URL)}</>}>
               <ModelPicker key={v.local_model} value={v.local_model} models={ai.data?.local.models ?? []} onSave={(m) => save({ local_model: m })} />
             </Field>
+            <ModelDownloads selected={v.local_model} onInstalled={refreshStatus} onUse={(m) => save({ local_model: m })} />
             <Field label={`답변 다양성 (temperature) ${v.temperature}`}>
               <input type="range" min={0} max={1.5} step={0.1} defaultValue={v.temperature} onMouseUp={(e) => save({ temperature: +(e.target as HTMLInputElement).value })} onTouchEnd={(e) => save({ temperature: +(e.target as HTMLInputElement).value })} className="w-full accent-[var(--accent)]" />
             </Field>
@@ -86,14 +99,18 @@ export default function SettingsPage() {
               {env.CLOUD_MODEL ? <Badge>{String(env.CLOUD_MODEL)}</Badge> : null}
             </div>
             <Toggle checked={v.cloud_allowed} onChange={(x) => save({ cloud_allowed: x })} label="클라우드 AI 사용 허용" hint="서버 .env에서 CLOUD_ENABLED=true와 키가 있어야 실제로 동작합니다. 유료일 수 있습니다." />
-            <Toggle checked={v.cloud_send_memories} onChange={(x) => save({ cloud_send_memories: x })} label="개인 기억·지식을 클라우드로 전송" hint="꺼져 있으면 클라우드 사용 시 기억·지식 없이 질문만 보냅니다." />
             {ai.data && <p className="pt-1 text-xs text-muted">상태: {ai.data.cloud.detail}</p>}
           </div>
         </Card>
 
-        <Card title="기억·대화·평가">
-          <Toggle checked={v.auto_memory} onChange={(x) => save({ auto_memory: x })} label="대화에서 기억 자동 저장" hint="이름·선호·결정 등을 기억합니다." />
-          <Toggle checked={v.save_chat_history} onChange={(x) => save({ save_chat_history: x })} label="대화 기록 저장" hint="끄면 대화가 데이터베이스에 남지 않습니다 (평가도 생략)." />
+        <Card title={<span className="flex items-center gap-1.5"><Icon name="shield" className="h-4 w-4" /> 개인정보</span>}>
+          <Toggle checked={v.save_chat_history} onChange={(x) => save({ save_chat_history: x })} label="대화 기록 저장" hint="끄면 대화가 데이터베이스에 남지 않습니다 (평가·대화 기록 요약도 생략)." />
+          <Toggle checked={v.auto_memory} onChange={(x) => save({ auto_memory: x })} label="대화에서 기억 자동 저장" hint="이름·선호·결정과 대화 요약('대화 기록')을 기억합니다. 저장된 기억은 Memory에서 확인·삭제할 수 있습니다." />
+          <Toggle checked={v.cloud_send_memories} onChange={(x) => save({ cloud_send_memories: x })} label="개인 기억·지식을 클라우드로 전송" hint="꺼져 있으면 클라우드 AI를 쓸 때 기억·지식 없이 질문만 보냅니다." />
+          <p className="mt-2 text-xs text-muted">모든 데이터는 이 컴퓨터의 <code>{sys.data?.data_dir ?? "backend/data"}</code> 폴더에만 저장됩니다. 외부 네트워크: {v.external_network_enabled ? <b className="text-warn">허용 (조사 기능)</b> : "차단"}</p>
+        </Card>
+
+        <Card title="답변·평가">
           <Toggle checked={v.auto_evaluate} onChange={(x) => save({ auto_evaluate: x })} label="답변 자기 평가" hint="답변마다 AI를 한 번 더 호출합니다 (느린 PC에서는 끄세요)." />
           <div className="mt-2 grid grid-cols-2 gap-3">
             <Field label="참고할 기억 수"><input type="number" min={0} max={20} className={inputCls} defaultValue={v.memory_context_limit} onBlur={(e) => save({ memory_context_limit: Math.max(0, Math.min(20, +e.target.value | 0)) })} /></Field>
@@ -123,6 +140,7 @@ export default function SettingsPage() {
         </Card>
       </div>
 
+      <SystemCard data={sys.data} error={sys.error} onRefresh={sys.reload} />
       <BackupCard />
       <DataCard />
       <LogsCard />
@@ -247,7 +265,7 @@ function DataCard() {
     }
   }
   return (
-    <Card title="데이터 관리 · 개인정보" className="mt-4">
+    <Card title="데이터 관리" className="mt-4">
       <p className="mb-3 text-sm text-muted">모든 데이터는 이 컴퓨터의 SQLite 파일에 저장됩니다. 클라우드 AI와 외부 네트워크는 기본적으로 꺼져 있습니다. 대량 삭제는 확인 문구 입력과 자동 백업 후에만 실행됩니다.</p>
       {msg && <div className="mb-3"><Alert tone={msg.tone}>{msg.text}</Alert></div>}
       <div className="flex flex-wrap gap-2">{SCOPES.map(([k, l]) => <Button key={k} size="sm" variant="danger" onClick={() => wipe(k, l)}>{l} 전체 삭제</Button>)}</div>
@@ -263,6 +281,116 @@ function LogsCard() {
         <ul className="max-h-72 space-y-1 overflow-y-auto font-mono text-[11px] scroll-thin">
           {data.map((l) => <li key={l.id} className={l.level === "error" ? "text-bad" : l.level === "warn" ? "text-warn" : "text-muted"}>{fmtDate(l.created_at)} [{l.category}] {l.message}</li>)}
         </ul>
+      )}
+    </Card>
+  );
+}
+
+function ModelDownloads({ selected, onInstalled, onUse }: { selected: string; onInstalled: () => void; onUse: (m: string) => void }) {
+  const [info, setInfo] = useState<ModelsInfo | null>(null);
+  const [name, setName] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const running = info?.jobs.some((j) => j.status === "running");
+
+  useEffect(() => {
+    let alive = true;
+    const load = () => api<ModelsInfo>("/ai/models").then((d) => alive && setInfo(d)).catch(() => {});
+    load();
+    const t = setInterval(load, running ? 1500 : 15000);
+    return () => { alive = false; clearInterval(t); };
+  }, [running]);
+
+  // a newly installed model changes what the AI status reports
+  const installedCount = info?.installed.length;
+  useEffect(() => {
+    if (installedCount !== undefined) onInstalled();
+  }, [installedCount, onInstalled]);
+
+  async function pull(model: string) {
+    setErr(null);
+    if (!confirm(`'${model}' 모델을 인터넷(ollama.com)에서 내려받습니다. 수 GB일 수 있고 시간이 걸립니다. 계속할까요?`)) return;
+    try {
+      await api("/ai/models/pull", { method: "POST", json: { model, confirm: true } });
+      setInfo(await api<ModelsInfo>("/ai/models"));
+    } catch (e) {
+      setErr(errText(e));
+    }
+  }
+
+  if (!info) return null;
+  const installed = new Set(info.installed.flatMap((m) => [m, m.replace(/:latest$/, "")]));
+  return (
+    <div className="rounded-lg border border-line bg-panel-2 p-3">
+      <button className="flex w-full items-center gap-2 text-left text-sm" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <Icon name="download" className="h-4 w-4 text-accent" />
+        <span className="flex-1">모델 받기 <span className="text-xs text-muted">(터미널 없이)</span></span>
+        <span className="text-xs text-muted">{open ? "접기" : "열기"}</span>
+      </button>
+      {info.jobs.filter((j) => j.status !== "completed" || open).map((j) => (
+        <div key={j.model} className="mt-2 text-xs">
+          <div className="flex items-center gap-2"><span className="font-mono">{j.model}</span><StatusText job={j} /></div>
+          {j.status === "running" && <div className="mt-1 h-1.5 overflow-hidden rounded bg-line"><div className="h-full bg-accent transition-all" style={{ width: `${j.total ? Math.round((j.completed / j.total) * 100) : 3}%` }} /></div>}
+          {j.error && <div className="mt-1 text-bad">{j.error}</div>}
+        </div>
+      ))}
+      {open && (
+        <div className="mt-3 space-y-2">
+          {!info.ollama_ok && <Alert tone="warn">Ollama가 실행 중이어야 모델을 받을 수 있습니다.</Alert>}
+          <ul className="space-y-1.5">
+            {info.suggested.map((m) => (
+              <li key={m.name} className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="font-mono text-sm">{m.name}</span>
+                <span className="text-muted">{m.size} · {m.note}</span>
+                <span className="ml-auto flex gap-1.5">
+                  {installed.has(m.name)
+                    ? (selected === m.name ? <Badge tone="ok">사용 중</Badge> : <Button size="sm" onClick={() => onUse(m.name)}>사용</Button>)
+                    : <Button size="sm" disabled={!info.ollama_ok || running} onClick={() => pull(m.name)}>받기</Button>}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="flex gap-2">
+            <input className={inputCls} placeholder="다른 모델 이름 (예: gemma3:1b)" value={name} onChange={(e) => setName(e.target.value)} />
+            <Button disabled={!name.trim() || !info.ollama_ok || running} onClick={() => pull(name.trim())}>받기</Button>
+          </div>
+          <p className="text-[11px] text-muted">모델 목록: ollama.com/library · 받은 모델은 위의 &quot;로컬 모델&quot;에서 고를 수 있습니다.</p>
+          {err && <Alert>{err}</Alert>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatusText({ job }: { job: PullJob }) {
+  if (job.status === "running") return <span className="text-accent">{job.detail}{job.total ? ` · ${fmtBytes(job.completed)} / ${fmtBytes(job.total)}` : ""}</span>;
+  if (job.status === "completed") return <Badge tone="ok">설치됨</Badge>;
+  return <Badge tone="bad">실패</Badge>;
+}
+
+function SystemCard({ data, error, onRefresh }: { data: SystemInfo | null; error: string | null; onRefresh: () => void }) {
+  const up = data?.uptime_seconds ?? 0;
+  const rows: [string, React.ReactNode][] = data ? [
+    ["SELF AI 버전", data.version],
+    ["로컬 AI (Ollama)", data.ai.local.available ? <Badge tone="ok">연결됨 · {data.ai.local.model}</Badge> : <Badge tone="bad">{data.ai.local.reachable ? "모델 없음" : "연결 안 됨"}</Badge>],
+    ["설치된 모델", data.ai.local.models.length ? data.ai.local.models.join(", ") : "–"],
+    ["클라우드 AI", data.ai.cloud.usable ? <Badge tone="warn">사용 가능</Badge> : <Badge>비활성</Badge>],
+    ["현재 답변 AI", data.ai.active ? `${data.ai.active.provider === "cloud" ? "클라우드" : "로컬"} · ${data.ai.active.model}` : <span className="text-bad">없음</span>],
+    ["웹 검색", data.search.connected ? <Badge tone="ok">{data.search.provider}</Badge> : <Badge tone="warn">연결 필요</Badge>],
+    ["외부 네트워크", data.external_network_enabled ? <Badge tone="warn">허용</Badge> : <Badge>차단</Badge>],
+    ["접근 토큰", data.access_token_required ? <Badge tone="ok">사용</Badge> : <Badge>미사용</Badge>],
+    ["데이터베이스", `${data.database} · ${fmtBytes(data.database_size)} · ${data.data_dir}`],
+    ["저장된 데이터", `기억 ${data.counts.memories} · 지식 ${data.counts.knowledge} · 대화 ${data.counts.conversations} · 메시지 ${data.counts.messages}`],
+    ["백업", data.backups ? `${data.backups}개 · 마지막 ${fmtDate(data.last_backup)}` : <span className="text-warn">백업 없음</span>],
+    ["서버", `Python ${data.python} · 가동 ${up < 3600 ? `${Math.floor(up / 60)}분` : `${Math.floor(up / 3600)}시간 ${Math.floor((up % 3600) / 60)}분`}`],
+  ] : [];
+  return (
+    <Card title="시스템 상태" className="mt-4" actions={<Button size="sm" variant="ghost" onClick={onRefresh}><Icon name="refresh" className="h-3.5 w-3.5" /> 새로고침</Button>}>
+      {error && <Alert>{error}</Alert>}
+      {!data ? <div className="text-sm text-muted">불러오는 중…</div> : (
+        <dl className="grid gap-x-6 gap-y-2 text-sm md:grid-cols-2">
+          {rows.map(([k, val]) => <div key={k} className="flex min-w-0 items-center justify-between gap-3"><dt className="shrink-0 text-muted">{k}</dt><dd className="min-w-0 truncate text-right">{val}</dd></div>)}
+        </dl>
       )}
     </Card>
   );

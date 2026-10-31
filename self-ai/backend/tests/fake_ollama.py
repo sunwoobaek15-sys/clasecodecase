@@ -9,11 +9,21 @@ Run standalone:  python -m tests.fake_ollama --port 11500
 from __future__ import annotations
 
 import json
+import os
 import re
+import time
 
 import httpx
 
 MODEL = "fake-model:latest"
+THINK_MODEL = "fake-think:latest"  # always wraps its answer in <think>…</think> like qwen3 on old Ollama
+_installed = {MODEL, THINK_MODEL}
+DELAY = float(os.environ.get("FAKE_OLLAMA_DELAY", "0"))  # seconds between streamed pieces (UI tests)
+
+
+def reset() -> None:
+    _installed.clear()
+    _installed.update({MODEL, THINK_MODEL})
 
 
 def _reply(body: dict) -> str:
@@ -50,14 +60,56 @@ def _reply(body: dict) -> str:
     return f"[TEST DOUBLE] '{last[:60]}'에 대한 고정 응답입니다.{suffix}"
 
 
+def _known(name: str) -> str | None:
+    for m in _installed:
+        if name in (m, m.split(":")[0]):
+            return m
+    return None
+
+
+def _pieces(text: str, size: int = 4):
+    return [text[i:i + size] for i in range(0, len(text), size)]
+
+
+def _chat_lines(model: str, text: str):
+    for p in _pieces(text):
+        if DELAY:
+            time.sleep(DELAY)
+        yield json.dumps({"model": model, "message": {"role": "assistant", "content": p}, "done": False},
+                         ensure_ascii=False) + "\n"
+    yield json.dumps({"model": model, "message": {"role": "assistant", "content": ""}, "done": True,
+                      "prompt_eval_count": 10, "eval_count": 20}) + "\n"
+
+
+def _pull_lines(name: str):
+    yield json.dumps({"status": "pulling manifest"}) + "\n"
+    if not name.startswith("fake-"):
+        yield json.dumps({"error": "pull model manifest: file does not exist"}) + "\n"
+        return
+    for done in (0, 50, 100):
+        yield json.dumps({"status": "pulling abc123", "digest": "sha256:abc123", "total": 100, "completed": done}) + "\n"
+    _installed.add(name if ":" in name else f"{name}:latest")
+    yield json.dumps({"status": "success"}) + "\n"
+
+
 def handler(request: httpx.Request) -> httpx.Response:
     if request.url.path == "/api/tags":
-        return httpx.Response(200, json={"models": [{"name": MODEL}]})
+        return httpx.Response(200, json={"models": [{"name": m} for m in sorted(_installed)]})
+    if request.url.path == "/api/pull":
+        body = json.loads(request.content)
+        return httpx.Response(200, content=b"".join(x.encode() for x in _pull_lines(body.get("model") or body["name"])))
     if request.url.path == "/api/chat":
         body = json.loads(request.content)
-        if body.get("model") not in (MODEL, MODEL.split(":")[0]):
-            return httpx.Response(404, json={"error": "model not found"})
-        return httpx.Response(200, json={"model": body["model"], "message": {"role": "assistant", "content": _reply(body)},
+        model = _known(body.get("model", ""))
+        if not model:
+            return httpx.Response(404, json={"error": f"model '{body.get('model')}' not found"})
+        text = _reply(body)
+        if model == THINK_MODEL:
+            text = "<think>사용자의 질문을 분석하는 중… (이 부분은 숨겨져야 함)</think>\n\n" + text
+        if body.get("stream", True):
+            return httpx.Response(200, content=b"".join(x.encode() for x in _chat_lines(body["model"], text)),
+                                  headers={"content-type": "application/x-ndjson"})
+        return httpx.Response(200, json={"model": body["model"], "message": {"role": "assistant", "content": text},
                                          "done": True, "prompt_eval_count": 10, "eval_count": 20})
     return httpx.Response(404, json={"error": "not found"})
 
@@ -80,8 +132,20 @@ if __name__ == "__main__":
 
     @app.api_route("/api/{path:path}", methods=["GET", "POST"])
     async def any_route(request: Request, path: str):
-        req = httpx.Request(request.method, f"http://x/api/{path}", content=await request.body())
-        r = handler(req)
+        from fastapi.responses import StreamingResponse
+        raw = await request.body()
+        if path == "chat":
+            body = json.loads(raw)
+            model = _known(body.get("model", ""))
+            if model and body.get("stream", True):
+                text = _reply(body)
+                if model == THINK_MODEL:
+                    text = "<think>생각 중… (숨겨져야 함)</think>\n\n" + text
+                return StreamingResponse(_chat_lines(body["model"], text), media_type="application/x-ndjson")
+        if path == "pull":
+            body = json.loads(raw)
+            return StreamingResponse(_pull_lines(body.get("model") or body["name"]), media_type="application/x-ndjson")
+        r = handler(httpx.Request(request.method, f"http://x/api/{path}", content=raw))
         return JSONResponse(r.json(), status_code=r.status_code)
 
     uvicorn.run(app, host="127.0.0.1", port=args.port)

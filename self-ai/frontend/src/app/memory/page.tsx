@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@/components/icons";
 import { Alert, Badge, Button, Card, Empty, Field, Modal, Page, Spinner, fmtDate, inputCls } from "@/components/ui";
@@ -12,6 +13,18 @@ const KINDS: [string, string][] = [
   ["conversation", "대화 기록"], ["knowledge", "학습한 지식"], ["decision", "중요한 결정"],
 ];
 const kindLabel = (k: string) => KINDS.find((x) => x[0] === k)?.[1] ?? k;
+
+function sourceLabel(src: string): React.ReactNode {
+  let m = /^chat:(\d+)\/\d+$/.exec(src);
+  if (m) return <>대화 #{m[1]}에서 추출</>;
+  m = /^conversation:(\d+)$/.exec(src);
+  if (m) return <>대화 #{m[1]} 요약</>;
+  m = /^learning:(\d+)$/.exec(src);
+  if (m) return <Link className="underline" href="/learning">학습 기록 #{m[1]}</Link>;
+  if (src === "manual") return "직접 입력";
+  if (src === "chat:unsaved") return "저장되지 않은 대화";
+  return src;
+}
 
 export default function MemoryPage() {
   const [q, setQ] = useState("");
@@ -82,7 +95,7 @@ export default function MemoryPage() {
                       {m.score != null && <Badge>관련도 {m.score.toFixed(2)}</Badge>}
                     </div>
                     <p className="whitespace-pre-wrap break-words text-sm">{m.content}</p>
-                    <div className="mt-1.5 text-[11px] text-muted">출처 {m.source} · 생성 {fmtDate(m.created_at)} · 수정 {fmtDate(m.updated_at)}{m.last_used_at ? ` · 최근 사용 ${fmtDate(m.last_used_at)}` : ""}</div>
+                    <div className="mt-1.5 text-[11px] text-muted">출처: {sourceLabel(m.source)} · 생성 {fmtDate(m.created_at)} · 수정 {fmtDate(m.updated_at)}{m.last_used_at ? ` · 최근 사용 ${fmtDate(m.last_used_at)}` : ""}</div>
                   </div>
                   <div className="flex shrink-0 gap-1">
                     <button aria-label="수정" onClick={() => setEdit(m)} className="rounded p-1.5 text-muted hover:text-text"><Icon name="edit" className="h-4 w-4" /></button>

@@ -5,12 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
 import { Markdown } from "@/components/Markdown";
 import { Alert, Badge, Button, Modal, ScoreBar, Spinner, Toggle, fmtDate, inputCls } from "@/components/ui";
-import { api, errText } from "@/lib/api";
+import { api, errText, streamApi } from "@/lib/api";
 import type { AIStatus, ChatMessage, Evaluation, Feedback, MessageContext } from "@/lib/types";
 import { useApi } from "@/lib/useApi";
 
 type ConvSummary = { id: number; title: string; message_count: number; updated_at: string };
-type ChatOut = {
+type ChatDone = {
   answer: string; provider: string; model: string; latency_ms: number; context: MessageContext; saved: boolean;
   conversation_id: number | null; user_message_id: number | null; assistant_message_id: number | null; evaluation_pending: boolean;
 };
@@ -26,6 +26,7 @@ export default function ChatPage() {
   const [showList, setShowList] = useState(false);
   const [q, setQ] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const open = useCallback(async (id: number) => {
     setErr(null);
@@ -66,31 +67,54 @@ export default function ChatPage() {
     if (!text || sending) return;
     setErr(null);
     setSending(true);
-    setMsgs((m) => [...m, { id: null, role: "user", content: text }]);
     setInput("");
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    // placeholder pair, filled as the answer streams in
+    setMsgs((m) => [...m, { id: null, role: "user", content: text }, { id: null, role: "assistant", content: "", streaming: true }]);
+    const patchLast = (fn: (a: ChatMessage) => ChatMessage) => setMsgs((m) => [...m.slice(0, -1), fn(m[m.length - 1])]);
     try {
-      const r = await api<ChatOut>("/chat", { method: "POST", json: { message: text, conversation_id: cid } });
-      setMsgs((m) => [
-        ...m.slice(0, -1),
-        { id: r.user_message_id, role: "user", content: text },
-        { id: r.assistant_message_id, role: "assistant", content: r.answer, provider: r.provider, model: r.model, latency_ms: r.latency_ms, context: r.context },
-      ]);
-      if (r.conversation_id) setCid(r.conversation_id);
+      let finished = false;
+      await streamApi("/chat/stream", { message: text, conversation_id: cid }, (ev) => {
+        if (ev.type === "start") patchLast((a) => ({ ...a, context: ev.context as MessageContext }));
+        else if (ev.type === "delta") patchLast((a) => ({ ...a, content: a.content + String(ev.text) }));
+        else if (ev.type === "error") throw new Error(String(ev.message));
+        else if (ev.type === "done") {
+          finished = true;
+          const r = ev as unknown as ChatDone;
+          setMsgs((m) => [
+            ...m.slice(0, -2),
+            { id: r.user_message_id, role: "user", content: text, unsaved: !r.saved },
+            { id: r.assistant_message_id, role: "assistant", content: r.answer, provider: r.provider, model: r.model, latency_ms: r.latency_ms, context: r.context, unsaved: !r.saved },
+          ]);
+          if (r.conversation_id) setCid(r.conversation_id);
+        }
+      }, ctrl.signal);
+      if (!finished) throw new Error("응답이 중간에 끊겼습니다. 다시 시도하세요.");
       convs.reload();
     } catch (e) {
-      setMsgs((m) => m.slice(0, -1));
-      setInput(text);
-      setErr(errText(e));
-      ai.reload();
+      if (ctrl.signal.aborted) {
+        // stopped by the user: keep what arrived, but it was not saved on the server
+        setMsgs((m) => m.map((x, i) => (i >= m.length - 2 ? { ...x, streaming: false, unsaved: true } : x)));
+      } else {
+        setMsgs((m) => m.slice(0, -2));
+        setInput(text);
+        setErr(errText(e));
+        ai.reload();
+      }
     } finally {
+      abortRef.current = null;
       setSending(false);
     }
   }
 
   async function remove(id: number) {
-    if (!confirm("이 대화를 삭제할까요? 되돌릴 수 없습니다.")) return;
+    if (!confirm("이 대화를 삭제할까요? 되돌릴 수 없습니다.\n(이 대화의 '대화 기록' 요약 기억도 함께 삭제됩니다)")) return;
     try {
-      await api(`/conversations/${id}`, { method: "DELETE" });
+      const info = await api<{ extracted_memories: number }>(`/conversations/${id}`);
+      const alsoFacts = info.extracted_memories > 0 &&
+        confirm(`이 대화에서 저장된 기억 ${info.extracted_memories}개(이름, 선호 등)도 삭제할까요?\n[취소]를 누르면 기억은 남겨 둡니다.`);
+      await api(`/conversations/${id}?delete_memories=${alsoFacts}`, { method: "DELETE" });
       if (id === cid) {
         setCid(null);
         setMsgs([]);
@@ -151,9 +175,9 @@ export default function ChatPage() {
               </div>
             )}
             {msgs.map((m, i) => m.role === "user"
-              ? <div key={i} className="fade-in flex justify-end"><div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-accent px-4 py-2.5 text-sm text-white">{m.content}</div></div>
+              ? <div key={i} className="fade-in flex justify-end"><div className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-accent px-4 py-2.5 text-sm text-white ${m.unsaved ? "opacity-60" : ""}`}>{m.content}</div></div>
               : <AssistantMessage key={i} m={m} onUpdate={(u) => setMsgs((cur) => cur.map((x) => (x.id === m.id ? { ...x, ...u } : x)))} />)}
-            {sending && <div className="dots flex gap-1 px-2 text-2xl leading-none text-muted" aria-label="답변 생성 중"><span>•</span><span>•</span><span>•</span></div>}
+
             {err && <Alert>{err}</Alert>}
             <div ref={endRef} />
           </div>
@@ -165,7 +189,9 @@ export default function ChatPage() {
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
               placeholder="메시지 입력 · Enter 전송" aria-label="메시지"
               className={`${inputCls} max-h-40 min-h-[42px] resize-none`} />
-            <Button variant="primary" onClick={send} loading={sending} disabled={!input.trim()} aria-label="전송" className="h-[42px]"><Icon name="send" className="h-4 w-4" /></Button>
+            {sending
+              ? <Button onClick={() => abortRef.current?.abort()} aria-label="답변 중지" className="h-[42px]"><span className="block h-3 w-3 rounded-[2px] bg-current" /></Button>
+              : <Button variant="primary" onClick={send} disabled={!input.trim()} aria-label="전송" className="h-[42px]"><Icon name="send" className="h-4 w-4" /></Button>}
           </div>
         </div>
       </div>
@@ -191,8 +217,15 @@ function AssistantMessage({ m, onUpdate }: { m: ChatMessage; onUpdate: (u: Parti
 
   return (
     <div className="fade-in">
-      <div className="rounded-2xl rounded-bl-md border border-line bg-panel px-4 py-3"><Markdown text={m.content} /></div>
+      <div className={`rounded-2xl rounded-bl-md border border-line bg-panel px-4 py-3 ${m.unsaved ? "opacity-70" : ""}`}>
+        {m.streaming && !m.content
+          ? <div className="dots flex gap-1 text-2xl leading-none text-muted" aria-label="답변 생성 중"><span>•</span><span>•</span><span>•</span></div>
+          : <Markdown text={m.content} />}
+        {m.streaming && m.content && <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse bg-accent align-middle" aria-hidden="true" />}
+      </div>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 px-1 text-[11px] text-muted">
+        {m.streaming && <span className="text-accent">답변 생성 중…</span>}
+        {m.unsaved && <Badge tone="warn" title="중지했거나 '대화 기록 저장'이 꺼져 있어 저장되지 않았습니다">저장 안 됨</Badge>}
         {m.model && <span>{m.provider === "cloud" ? "☁ " : ""}{m.model}{m.latency_ms != null ? ` · ${(m.latency_ms / 1000).toFixed(1)}s` : ""}</span>}
         {g && (g.no_context ? <Badge tone="warn" title="관련 기억·지식 없이 모델 자체 지식으로 답했습니다">근거 자료 없음</Badge>
           : <button onClick={() => setShowCtx(!showCtx)}><Badge tone="accent">기억 {g.memories_given} · 지식 {g.knowledge_given} 참고{g.citations.length ? ` · 인용 ${g.citations.join(",")}` : ""}</Badge></button>)}
@@ -201,7 +234,7 @@ function AssistantMessage({ m, onUpdate }: { m: ChatMessage; onUpdate: (u: Parti
         {ev ? (ev.status === "completed"
           ? <Badge tone={ev.overall! >= 4 ? "ok" : ev.overall! >= 3 ? "warn" : "bad"} title={ev.comments ?? ""}>자기 평가 {ev.overall?.toFixed(1)}/5</Badge>
           : <Badge tone="bad" title={ev.error ?? ""}>평가 실패</Badge>)
-          : m.id ? <span className="inline-flex items-center gap-1"><Spinner className="h-3 w-3" /> 평가 중</span> : null}
+          : m.id && !m.streaming ? <span className="inline-flex items-center gap-1"><Spinner className="h-3 w-3" /> 평가 중</span> : null}
         {m.id && (
           <span className="ml-auto flex items-center gap-1">
             <button aria-label="좋은 답변" onClick={() => rate(5)} className={`rounded p-1 hover:text-ok ${m.feedback?.rating === 5 ? "text-ok" : ""}`}><Icon name="thumbUp" className="h-4 w-4" /></button>

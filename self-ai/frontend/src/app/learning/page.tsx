@@ -60,8 +60,8 @@ export default function LearningPage() {
                 <Field label="내용" hint={`${text.length.toLocaleString()}자 · 최소 20자`}><textarea className={`${inputCls} h-48`} value={text} onChange={(e) => setText(e.target.value)} placeholder="학습할 자료를 붙여 넣으세요" /></Field>
               </>
             ) : (
-              <Field label="파일" hint="txt, md, csv, json, html, pdf · 최대 5MB · 파일은 실행되지 않고 텍스트만 읽습니다">
-                <input ref={fileRef} type="file" accept=".txt,.md,.markdown,.csv,.json,.html,.htm,.pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              <Field label="파일" hint="txt, md, csv, json, html, pdf, docx(Word) · 최대 5MB · 파일은 실행되지 않고 텍스트만 읽습니다">
+                <input ref={fileRef} type="file" accept=".txt,.md,.markdown,.csv,.json,.html,.htm,.pdf,.docx" onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                   className="block w-full text-sm text-muted file:mr-3 file:rounded-lg file:border file:border-line file:bg-panel-2 file:px-3 file:py-2 file:text-sm file:text-text" />
               </Field>
             )}

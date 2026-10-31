@@ -202,7 +202,10 @@ def test_dashboard_counts_are_real(client):
     client.post("/api/memories", json={"kind": "project", "content": "대시보드 테스트"})
     client.post("/api/learning/text", json={"text": "대시보드 통계는 실제 데이터베이스 개수를 보여준다. 가짜 숫자는 없다."})
     d = client.get("/api/dashboard").json()
-    assert d["counts"]["memories"] == 1 and d["counts"]["knowledge"] == 1 and d["counts"]["learning_records"] == 1
+    # 1 manual memory + 1 "학습한 지식" memory created by the learning run
+    assert d["counts"]["memories"] == 2 and d["counts"]["knowledge"] == 1 and d["counts"]["learning_records"] == 1
+    kinds = sorted(m["kind"] for m in client.get("/api/memories").json())
+    assert kinds == ["knowledge", "project"]
     assert d["recent_learning"] and d["recent_activity"]
     assert d["ai"]["ready"] is True
 

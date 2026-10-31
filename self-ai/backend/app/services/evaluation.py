@@ -6,6 +6,8 @@ changes the model itself.
 """
 from __future__ import annotations
 
+import re
+
 from sqlalchemy.orm import Session
 
 from ..ai.jsonutil import parse_json
@@ -38,12 +40,45 @@ JSON만 출력: {{"accuracy": n, "logic": n, "evidence": n, "relevance": n, "mis
 {answer}"""
 
 
+ALIASES = {
+    "accuracy": ("accuracy", "정확성", "정확도"),
+    "logic": ("logic", "logicality", "논리성", "논리"),
+    "evidence": ("evidence", "근거", "근거 충분성", "근거충분성"),
+    "relevance": ("relevance", "관련성", "질문과의 관련성"),
+}
+
+
 def _score(v) -> float | None:
+    """Accepts 4, "4", "4/5", "4점", {"score": 4}; 10- or 100-point scales are rescaled to 1..5."""
+    if isinstance(v, dict):
+        v = v.get("score", v.get("value", v.get("점수")))
+    if isinstance(v, bool) or v is None:
+        return None
+    if isinstance(v, str):
+        m = re.search(r"\d+(?:\.\d+)?", v)
+        if not m:
+            return None
+        if re.search(r"/\s*10\b", v):
+            return max(1.0, min(5.0, float(m.group()) / 2))
+        v = m.group()
     try:
         f = float(v)
     except (TypeError, ValueError):
         return None
+    if 5 < f <= 10:
+        f /= 2
+    elif 10 < f <= 100:
+        f /= 20
     return max(1.0, min(5.0, f))
+
+
+def _pick(data: dict, dim: str):
+    pools = [data] + [v for k, v in data.items() if isinstance(v, dict) and k.lower() in ("scores", "score", "점수", "평가")]
+    for pool in pools:
+        for key in ALIASES[dim]:
+            if key in pool:
+                return pool[key]
+    return None
 
 
 def evaluate(db: Session, message_id: int) -> EvaluationRecord:
@@ -66,7 +101,7 @@ def evaluate(db: Session, message_id: int) -> EvaluationRecord:
         data = parse_json(res.content)
         if not isinstance(data, dict):
             raise AIError("평가 결과를 해석할 수 없습니다 (JSON 아님).", "bad_output")
-        scores = {d: _score(data.get(d)) for d in DIMENSIONS}
+        scores = {d: _score(_pick(data, d)) for d in DIMENSIONS}
         if all(v is None for v in scores.values()):
             raise AIError("평가 점수가 없습니다.", "bad_output")
         for d, v in scores.items():

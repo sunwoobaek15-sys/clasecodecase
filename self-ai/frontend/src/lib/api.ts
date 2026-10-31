@@ -85,3 +85,36 @@ export async function download(path: string, filename: string) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** POST and read an NDJSON event stream. Calls onEvent for every line. */
+export async function streamApi(path: string, json: unknown, onEvent: (ev: Record<string, unknown>) => void, signal?: AbortSignal) {
+  const headers = new Headers({ "content-type": "application/json" });
+  const token = getToken();
+  if (token) headers.set("x-access-token", token);
+  let res: Response;
+  try {
+    res = await fetch(`/api${path}`, { method: "POST", headers, body: JSON.stringify(json), signal, cache: "no-store" });
+  } catch (e) {
+    if (signal?.aborted) throw e;
+    throw new ApiError(0, messageFrom(0, null), null);
+  }
+  if (!res.ok || !res.body) {
+    const data = await res.json().catch(() => null);
+    throw new ApiError(res.status, messageFrom(res.status, data), data);
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i: number;
+    while ((i = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (line) onEvent(JSON.parse(line));
+    }
+  }
+  if (buf.trim()) onEvent(JSON.parse(buf));
+}

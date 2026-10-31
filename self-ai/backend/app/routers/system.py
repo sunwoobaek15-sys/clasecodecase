@@ -13,7 +13,7 @@ from ..config import get_settings
 from ..db import get_db
 from ..models import (AutonomyTask, Conversation, EvaluationRecord, Knowledge, LearningRecord, Memory, Message,
                       ResearchTask, SystemLog, UserFeedback)
-from ..services import backup, search, settings_store
+from ..services import backup, models_pull, search, settings_store
 from ..services.logs import log
 
 router = APIRouter(prefix="/api", tags=["system"])
@@ -22,12 +22,61 @@ STARTED = time.time()
 
 @router.get("/health")
 def health():
-    return {"ok": True, "version": "1.0.0"}
+    return {"ok": True, "version": "1.1.0"}
 
 
 @router.get("/ai/status")
 def ai_status(db: Session = Depends(get_db)):
     return AIRouter(db).status()
+
+
+class PullIn(BaseModel):
+    model: str = Field(min_length=1, max_length=100)
+    confirm: bool = False  # external download: the user must confirm
+
+
+@router.get("/ai/models")
+def ai_models(db: Session = Depends(get_db)):
+    st = AIRouter(db).status()
+    return {"installed": st["local"]["models"], "selected": st["local"]["model"], "ollama_ok": st["local"]["reachable"],
+            "suggested": models_pull.SUGGESTED, "jobs": models_pull.jobs()}
+
+
+@router.post("/ai/models/pull")
+def ai_models_pull(body: PullIn):
+    if not body.confirm:
+        raise HTTPException(428, {"code": "confirmation_required",
+                                  "message": "모델 받기는 인터넷에서 큰 파일을 내려받습니다. 확인이 필요합니다."})
+    try:
+        return models_pull.start(body.model.strip())
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from e
+
+
+@router.get("/system")
+def system_status(db: Session = Depends(get_db)):
+    from ..config import BACKEND_DIR
+    env = get_settings()
+    data = env.data_path
+    try:
+        data_label = str(data.relative_to(BACKEND_DIR.parent))
+    except ValueError:
+        data_label = data.name
+    try:
+        backups = backup.list_all()
+    except ValueError:
+        backups = []
+    return {
+        **_system(settings_store.get_all(db)),
+        "version": "1.1.0",
+        "data_dir": data_label,
+        "backups": len(backups),
+        "last_backup": backups[0]["created_at"] if backups else None,
+        "ai": AIRouter(db).status(),
+        "counts": {"memories": db.query(Memory).count(), "knowledge": db.query(Knowledge).count(),
+                   "conversations": db.query(Conversation).count(), "messages": db.query(Message).count(),
+                   "logs": db.query(SystemLog).count()},
+    }
 
 
 @router.get("/dashboard")
@@ -222,6 +271,9 @@ def delete_data(body: DeleteDataIn, db: Session = Depends(get_db)):
     except ValueError:
         safety = None
     counts = {}
+    if body.scope == "conversations":
+        counts["conversation_memories"] = db.query(Memory).filter(Memory.source.like("conversation:%")).delete(
+            synchronize_session=False)
     for model in DATA_SCOPES[body.scope]:
         rows = db.query(model).all()
         for r in rows:

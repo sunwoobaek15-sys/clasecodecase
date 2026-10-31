@@ -51,6 +51,9 @@ class Settings(BaseSettings):
             url = self.DATABASE_URL
             if url.startswith("sqlite:///./"):
                 url = "sqlite:///" + str(BACKEND_DIR / url[len("sqlite:///./"):])
+            if url.startswith("sqlite:///") and ":memory:" not in url:
+                # SQLite creates the file but not its folder (first run on a fresh install)
+                Path(url[len("sqlite:///"):]).parent.mkdir(parents=True, exist_ok=True)
             return url
         return f"sqlite:///{self.data_path / 'self_ai.db'}"
 
