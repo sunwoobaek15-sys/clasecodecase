@@ -9,7 +9,7 @@ import { api, errText } from "@/lib/api";
 import type { Knowledge } from "@/lib/types";
 import { useApi } from "@/lib/useApi";
 
-const SRC: Record<string, string> = { text: "직접 입력", file: "파일", research: "조사", chat: "대화", correction: "사용자 수정" };
+const SRC: Record<string, string> = { text: "직접 입력", file: "파일", research: "조사", chat: "대화", correction: "사용자 수정", starter: "기본 자료" };
 
 export default function KnowledgePage() {
   const [q, setQ] = useState("");

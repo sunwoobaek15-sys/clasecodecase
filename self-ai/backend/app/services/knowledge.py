@@ -17,7 +17,7 @@ from . import text as T
 DUPLICATE = 0.85
 RELATED = 0.25
 
-BASE_CONFIDENCE = {"text": 0.6, "file": 0.6, "chat": 0.5, "research": 0.5, "correction": 0.9}
+BASE_CONFIDENCE = {"text": 0.6, "file": 0.6, "chat": 0.5, "research": 0.5, "correction": 0.9, "starter": 0.5}
 
 
 def compare(db: Session, content: str, exclude_ids: set[int] | None = None) -> dict:

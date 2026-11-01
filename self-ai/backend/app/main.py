@@ -43,7 +43,7 @@ async def lifespan(_: FastAPI):
 def create_app() -> FastAPI:
     env = get_settings()
     init_engine()
-    app = FastAPI(title="SELF AI", version="1.1.0", lifespan=lifespan)
+    app = FastAPI(title="SELF AI", version="1.2.0", lifespan=lifespan)
     app.add_middleware(CORSMiddleware, allow_origins=[o.strip() for o in env.CORS_ORIGINS.split(",") if o.strip()],
                        allow_methods=["*"], allow_headers=["*"])
 

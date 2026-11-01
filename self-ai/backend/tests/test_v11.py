@@ -365,3 +365,48 @@ def test_malformed_ollama_output_handled(client, monkeypatch):
     assert ev[-1]["type"] == "done" and ev[-1]["answer"] == "정상 답변"
     r = client.post("/api/chat", json={"message": "JSON이 아닌 응답"})
     assert r.status_code == 503 and "해석할 수 없습니다" in r.json()["detail"]["message"]
+
+
+# ---------------- starter knowledge packs ----------------
+
+def _wait_records(client, n, timeout=20):
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        recs = client.get("/api/learning/records").json()
+        if len(recs) >= n and all(r["status"] in ("completed", "failed") for r in recs):
+            return recs
+        time.sleep(0.1)
+    raise AssertionError("starter pack import did not finish")
+
+
+def test_starter_packs_listed_and_imported(client):
+    packs = {p["id"]: p for p in client.get("/api/learning/packs").json()}
+    assert {"selfai-guide", "ai-basics", "dev-basics"} <= set(packs)
+    guide = packs["selfai-guide"]
+    assert guide["sections"] >= 6 and guide["imported"] == 0
+    r = client.post("/api/learning/packs/selfai-guide/import").json()
+    assert r == {"queued": guide["sections"], "already_imported": 0}
+    recs = _wait_records(client, guide["sections"])
+    assert all(x["status"] == "completed" and x["source_type"] == "starter" for x in recs)
+    assert all(x["source_name"].startswith("기본 자료: SELF AI 사용 가이드 / ") for x in recs)
+    after = {p["id"]: p for p in client.get("/api/learning/packs").json()}
+    assert after["selfai-guide"]["imported"] == guide["sections"] and after["ai-basics"]["imported"] == 0
+    # the AI can now find it: unverified knowledge, labelled as a built-in source
+    hits = client.get("/api/knowledge", params={"q": "SELF AI 데이터는 어디에 저장되나 backend/data"}).json()
+    assert hits and hits[0]["verification"] == "unverified" and hits[0]["source_type"] == "starter"
+    assert hits[0]["confidence"] <= 0.6
+    d = client.post("/api/chat", json={"message": "SELF AI는 내 데이터를 어디에 저장해?"}).json()
+    assert d["context"]["knowledge"] and d["context"]["knowledge"][0]["source"].startswith("기본 자료")
+
+
+def test_starter_pack_import_is_idempotent(client):
+    first = client.post("/api/learning/packs/dev-basics/import").json()
+    _wait_records(client, first["queued"])
+    again = client.post("/api/learning/packs/dev-basics/import").json()
+    assert again["queued"] == 0 and again["already_imported"] == first["queued"]
+    assert len(client.get("/api/learning/records").json()) == first["queued"]
+
+
+def test_starter_pack_unknown_id_and_traversal(client):
+    assert client.post("/api/learning/packs/nope/import").status_code == 404
+    assert client.post("/api/learning/packs/..%2F..%2Fetc/import").status_code == 404

@@ -22,7 +22,7 @@ STARTED = time.time()
 
 @router.get("/health")
 def health():
-    return {"ok": True, "version": "1.1.0"}
+    return {"ok": True, "version": "1.2.0"}
 
 
 @router.get("/ai/status")
@@ -68,7 +68,7 @@ def system_status(db: Session = Depends(get_db)):
         backups = []
     return {
         **_system(settings_store.get_all(db)),
-        "version": "1.1.0",
+        "version": "1.2.0",
         "data_dir": data_label,
         "backups": len(backups),
         "last_backup": backups[0]["created_at"] if backups else None,

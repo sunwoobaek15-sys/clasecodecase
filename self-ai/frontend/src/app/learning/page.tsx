@@ -8,6 +8,53 @@ import { api, errText } from "@/lib/api";
 import type { LearningRecord } from "@/lib/types";
 import { useApi } from "@/lib/useApi";
 
+type Pack = { id: string; title: string; description: string; sections: number; imported: number; titles: string[] };
+
+function StarterPacks({ onStarted }: { onStarted: () => void }) {
+  const { data, error, reload } = useApi<Pack[]>("/learning/packs", 5000);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function load(p: Pack) {
+    setBusy(p.id);
+    setErr(null);
+    try {
+      await api(`/learning/packs/${p.id}/import`, { method: "POST" });
+      onStarted();
+      reload();
+    } catch (e) {
+      setErr(errText(e));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <Card title="기본 지식 팩" className="mt-4">
+      <p className="mb-3 text-sm text-muted">SELF AI와 함께 들어 있는 입문 자료입니다. 불러오면 일반 학습과 같은 과정(요약·중복 제거·비교)을 거쳐 지식에 저장됩니다. 직접 쓴 자료가 아니므로 <b>미검증</b>으로 표시되니, 중요한 내용은 Knowledge에서 확인한 뒤 &quot;사용자 확인&quot;으로 바꾸세요. 이미 불러온 부분은 다시 만들지 않습니다.</p>
+      {(error || err) && <Alert>{err || error}</Alert>}
+      <div className="grid gap-3 md:grid-cols-3">
+        {data?.map((p) => {
+          const done = p.imported >= p.sections;
+          return (
+            <div key={p.id} className="flex min-w-0 flex-col gap-2 rounded-lg border border-line p-3">
+              <div className="text-sm font-medium">{p.title}</div>
+              <div className="text-xs text-muted">{p.description}</div>
+              <div className="text-[11px] text-muted">{p.titles.join(" · ")}</div>
+              <div className="mt-auto flex items-center gap-2 pt-1">
+                <Badge tone={done ? "ok" : p.imported ? "accent" : "muted"}>{p.imported}/{p.sections}</Badge>
+                <Button size="sm" className="ml-auto" variant={done ? "default" : "primary"} loading={busy === p.id} disabled={done} onClick={() => load(p)}>
+                  {done ? "불러옴" : p.imported ? "나머지 불러오기" : "불러오기"}
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
 export default function LearningPage() {
   const recs = useApi<LearningRecord[]>("/learning/records", 4000);
   const [tab, setTab] = useState<"text" | "file">("text");
@@ -87,7 +134,7 @@ export default function LearningPage() {
                     </div>
                     <div className="mt-1 text-xs text-muted">
                       {r.status === "completed" ? `조각 ${r.chunks_total} · 새 지식 ${r.added} · 중복 ${r.duplicates} · 관련 ${r.related}` : r.error ?? "처리 중…"}
-                      {" · "}{r.source_type === "file" ? "파일" : "텍스트"} · {fmtDate(r.created_at)}
+                      {" · "}{r.source_type === "file" ? "파일" : r.source_type === "starter" ? "기본 자료" : "텍스트"} · {fmtDate(r.created_at)}
                     </div>
                   </button>
                 </li>
@@ -96,6 +143,7 @@ export default function LearningPage() {
           )}
         </Card>
       </div>
+      <StarterPacks onStarted={recs.reload} />
       {detail != null && <Detail id={detail} onClose={() => setDetail(null)} onDeleted={() => { setDetail(null); recs.reload(); }} />}
     </Page>
   );

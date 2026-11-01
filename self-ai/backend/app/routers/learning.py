@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from .. import serialize as S
 from ..db import SessionLocal, get_db
 from ..models import Knowledge, LearningRecord, Memory
-from ..services import files, learning
+from ..services import files, learning, starter_packs
 from ..services import text as T
 
 router = APIRouter(prefix="/api/learning", tags=["learning"])
@@ -50,6 +50,23 @@ async def learn_file(bg: BackgroundTasks, file: UploadFile = File(...), category
     db.commit()
     bg.add_task(_run_bg, rec.id, text)
     return S.learning(rec)
+
+
+@router.get("/packs")
+def packs(db: Session = Depends(get_db)):
+    return starter_packs.status(db)
+
+
+@router.post("/packs/{pack_id}/import")
+def import_pack(pack_id: str, bg: BackgroundTasks, db: Session = Depends(get_db)):
+    """Learn the sections of a built-in pack that are not in the database yet (safe to repeat)."""
+    try:
+        ids = starter_packs.queue(db, pack_id)
+    except LookupError as e:
+        raise HTTPException(404, str(e)) from e
+    if ids:
+        bg.add_task(starter_packs.run_queued, pack_id, ids)
+    return {"queued": len(ids), "already_imported": len(starter_packs.load_all()[pack_id].sections) - len(ids)}
 
 
 @router.get("/records")
