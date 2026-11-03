@@ -89,6 +89,8 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .card .c-type{font-size:.75em;color:#6b5a48;margin-top:.2em;font-weight:700;letter-spacing:.05em;}
 .card .c-desc{font-size:.88em;line-height:1.25;text-align:center;padding:.1em .45em 0;font-weight:600;word-break:keep-all;overflow:hidden;flex:1;display:flex;align-items:center;}
 .card .c-desc span{display:block;width:100%;}
+.card .c-desc.long{font-size:.76em;line-height:1.18;}
+.card .c-desc.xlong{font-size:.68em;line-height:1.14;letter-spacing:-.02em;}
 .card .c-desc em{font-style:normal;color:#a3281a;font-weight:900;}
 .card .c-desc b.kw{color:#7a3a10;}
 .card.lg{font-size:17px;}
@@ -307,6 +309,28 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 #app.fast .ftext{animation-duration:.55s;} #app.fast .turn-banner{animation-duration:.55s;}
 #app.fast .shake,#app.fast .lunge,#app.fast .act{animation-duration:.22s;} #app.fast .b-hand .card.drawin{animation-duration:.2s;}
 
+/* ---------- 4단계: 막별 색 · 봉쇄 칸 · 대봉인진 · 엔딩 ---------- */
+#app.act2{background:linear-gradient(180deg,#141a24 0%,#232a3a 55%,#1e1c26 100%);}
+#app.act3{background:linear-gradient(180deg,#1a0f18 0%,#2a1626 55%,#1a1020 100%);}
+.map-scroll.act2{background-color:#dcd8c8;}
+.map-scroll.act3{background-color:#e0c8b8;}
+.slot.locked{border-style:solid;border-color:#c8323a;background:repeating-linear-gradient(45deg,rgba(200,50,58,.18) 0 6px,transparent 6px 12px);justify-content:center;color:#ff8a7a;font-weight:900;font-size:12px;}
+.seal-array{position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:5;padding:3px 14px;border-radius:14px;background:rgba(40,8,8,.9);border:2px solid #c8323a;
+  color:#ffd9a0;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 0 16px rgba(200,50,58,.7);animation:intentBob 1.2s infinite ease-in-out;}
+.seal-array b{font-size:20px;color:#ff6a4a;margin-left:4px;}
+.b-enemies{position:relative;}
+.unit.enemy.minion .u-art{width:min(70px,18vw,10vh);height:min(70px,18vw,10vh);}
+.unit.enemy.minion .u-name{color:#d8b0ff;}
+.st.str{background:#8a6a2a;} .st.echo{background:#9a7a2a;} .st.justice{background:#b8401a;} .st.armor{background:#5a5c60;}
+.dialogue{width:100%;display:flex;flex-direction:column;gap:12px;}
+.dlg-line{display:flex;gap:10px;align-items:flex-start;animation:fadeIn .4s;}
+.dlg-line.me{flex-direction:row-reverse;}
+.dlg-face{width:56px;height:56px;flex:none;border-radius:50%;overflow:hidden;border:2px solid var(--lamp2);background:radial-gradient(circle,#2a2440,#141020);}
+.dlg-face svg{width:100%;height:100%;}
+.dlg-text{background:rgba(242,232,208,.94);color:var(--ink);padding:9px 12px;border-radius:10px;font-size:14px;line-height:1.55;word-break:keep-all;border:2px solid var(--ink);}
+.dlg-line.me .dlg-text{background:rgba(255,214,160,.95);}
+.dlg-name{font-size:11px;font-weight:800;color:#ffd9a0;margin-bottom:2px;}
+
 /* ---------- FX ---------- */
 #fx{position:absolute;inset:0;pointer-events:none;z-index:80;overflow:hidden;}
 .ftext{position:absolute;font-size:24px;font-weight:900;color:#ff5a4a;text-shadow:-2px -2px 0 #1b1512,2px -2px 0 #1b1512,-2px 2px 0 #1b1512,2px 2px 0 #1b1512;
@@ -370,7 +394,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 <script>
 'use strict';
 /* =====================================================================
-   백귀야행 (百鬼夜行) — 3단계: 1막 전체 (지도 · 보상 · 장터 · 주막 · 사건 · 보물 · 정예 · 보스)
+   백귀야행 (百鬼夜行) — 4단계: 1~3막 완주 (2·3막 · 최종 보스 천명 · 카드 90 · 보물 30 · 사건 15)
    구조: 데이터(CARDS·ENEMIES·RELICS·EVENTS·LEADERS) / 공용 실행기 executeEffects()
          / 턴 단계 훅 전투 엔진 / 상태 머신 / 시드 난수 / localStorage(런·메타 분리)
    ===================================================================== */
@@ -378,7 +402,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 /* ---------------------------------------------------------------
    0. 기본 수치 (런 단위로 유지될 값은 변수로 분리)
 ---------------------------------------------------------------- */
-const VERSION = 3;
+const VERSION = 4;
 const PLAYER_MAX_HP = 75;      // 대장 최대 생명력 (런 동안 유지 예정)
 const ENERGY_PER_TURN = 3;     // 턴마다 충전되는 혼력
 const DRAW_PER_TURN = 5;       // 턴마다 뽑는 카드 수
@@ -386,7 +410,17 @@ const MAX_HAND = 10;           // 손패 최대 장수
 const SPIRIT_SLOTS = 3;        // 요괴 필드 최대 칸 수
 const DEFAULT_SPIRIT_TARGET = 0.3;  // 적이 공격할 때 요괴를 노릴 기본 확률 (적 데이터 spiritTarget으로 개별 조정)
 const STARTING_GOLD = 99;      // 런 시작 엽전
-const ACT1_FLOORS = 15;        // 1막 층수 (15층 = 보스)
+const ACT1_FLOORS = 15;        // 막마다 층수 (15층 = 보스)
+const ACT_COUNT = 3;           // 전체 막 수
+const BOSS_HEAL = 0.25;        // 막 보스 처치 시 최대 생명력 대비 회복
+/* 막별 적 보정 (밸런스 조정용). hp·dmg: 일반·정예 배율, bossHp·bossDmg: 보스 배율 */
+/* 아래 값은 시뮬레이션 봇(초보형·숙련형 각 200판)으로 맞춘 결과다.
+   목표: 처음 하는 사람 1막 보스 도달 약 50%, 숙련자 3막 클리어 30~40% */
+const ACT_SCALE = {
+  1:{hp:1.00, dmg:0.95, bossHp:0.75, bossDmg:0.75},
+  2:{hp:0.80, dmg:0.75, bossHp:0.65, bossDmg:0.65},
+  3:{hp:0.65, dmg:0.60, bossHp:0.55, bossDmg:0.55},
+};
 const MAP_COLS = 6;            // 지도 칸 수
 const RARE_CHANCE = {battle:0.10, elite:0.30, boss:0.50};   // 카드 보상의 희귀 확률
 const PRICE = {common:50, rare:120, relicMin:150, relicMax:250, remove:75, removeStep:25};
@@ -432,6 +466,7 @@ function randomSeedString(){
 }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function sleep(ms){
+  if(G.sim) return Promise.resolve();   // 시뮬레이션(밸런스 측정) 모드: 연출 대기 없음
   const sp = (G.meta && G.meta.settings && G.meta.settings.fast) ? 0.5 : 1;
   return new Promise(r => setTimeout(r, ms * sp));
 }
@@ -440,8 +475,8 @@ const $ = s => document.querySelector(s);
 /* ---------------------------------------------------------------
    2. 저장소 — 모든 localStorage 접근은 try/catch
 ---------------------------------------------------------------- */
-const SAVE_RUN = 'baekgwi_run_v3';
-const SAVE_META = 'baekgwi_meta_v3';
+const SAVE_RUN = 'baekgwi_run_v4';
+const SAVE_META = 'baekgwi_meta_v4';
 function storeGet(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
 function storeSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
 function storeDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
@@ -468,9 +503,9 @@ const STATUS_INFO = {
   burn:{name:'불씨', cls:'burn', color:'#e2552b', icon:'flame',
     desc:'자기 차례가 시작될 때 스택만큼 피해(방어도·결계 무시)를 받고, 스택이 1 줄어든다.'},
   ward:{name:'결계', cls:'ward', color:'#5fb8c8', icon:'hex', enemyOnly:true,
-    desc:'적 전용. 스택만큼 다음 공격의 피해를 통째로 무효로 한다. 막을 때마다 1 줄어든다. 불씨 피해는 막지 못한다.'},
+    desc:'적 전용. 스택만큼 다음 공격의 피해를 통째로 무효로 한다. 막을 때마다 1 줄어든다. 다시 치면 더해지지 않고 그 수치로 새로 친다. 불씨 피해는 막지 못한다.'},
   seal:{name:'봉인', cls:'seal', color:'#e8c94a', icon:'talisman', enemyOnly:true,
-    desc:'적 전용. 플레이어 손패의 카드 1장에 노란 부적이 붙는다. 그 카드는 이번 전투 동안 사용할 수 없다.'},
+    desc:'적 전용. 플레이어 손패의 카드 1장에 노란 부적이 붙는다. 그 카드는 이번 전투 동안 사용할 수 없다. 봉인을 건 적이 쓰러지면 그 적이 건 봉인은 풀린다.'},
   charm:{name:'홀림', cls:'charm', color:'#b45fa8', icon:'swirl',
     desc:'공격 피해가 25% 줄고, 50% 확률로 공격 대상이 무작위가 된다(같은 편 포함). 턴마다 1 감소.'},
   wet:{name:'젖음', cls:'wet', color:'#3f7fd0', icon:'drop',
@@ -481,6 +516,14 @@ const STATUS_INFO = {
     desc:'적 전용. 다음에 소환되는 내 요괴의 체력이 절반이 된다.'},
   revive:{name:'부활', cls:'revive', color:'#c8622a', icon:'hourglass', enemyOnly:true,
     desc:'쓰러진 짝을 되살리기까지 남은 턴. 0이 되면 짝이 최대 체력의 절반으로 되살아난다. 그 전에 이 적을 쓰러뜨리면 된다.'},
+  str:{name:'요기', cls:'str', color:'#b8893a', icon:'fang',
+    desc:'공격 피해가 수치만큼 늘어난다.'},
+  echo:{name:'되울림', cls:'echo', color:'#b8893a', icon:'wave',
+    desc:'다음에 쓰는 카드의 효과가 한 번 더 발동한다. 쓸 때마다 1 줄어든다.'},
+  justice:{name:'정의의 불', cls:'justice', color:'#e2552b', icon:'flame', enemyOnly:true,
+    desc:'해태 석상 전용. 불 계열 피해를 받을 때마다 1 쌓이고, 쌓인 수치만큼 공격한 쪽에 반격 피해를 준다.'},
+  armor:{name:'철갑', cls:'armor', color:'#8a8c90', icon:'shield', enemyOnly:true,
+    desc:'받는 모든 피해가 수치만큼 줄어든다. 불씨·결계 무시 효과로도 무시할 수 없다.'},
   dread:{name:'위축', cls:'dread', color:'#6a5a7a', icon:'down',
     desc:'이번 행동의 공격 피해가 타격마다 수치만큼 줄어든다. 행동이 끝나면 사라진다.'},
 };
@@ -499,6 +542,14 @@ const KEYWORDS = {
   '혼력':'카드를 쓰는 데 드는 힘. 매 턴 ' + ENERGY_PER_TURN + ' 충전된다.',
   '엽전':'요괴 세계의 돈. 장터에서 카드·보물을 사거나 카드를 없애는 데 쓴다.',
   '부활':STATUS_INFO.revive.desc,
+  '요기':STATUS_INFO.str.desc,
+  '되울림':STATUS_INFO.echo.desc,
+  '정의의 불':STATUS_INFO.justice.desc,
+  '철갑':STATUS_INFO.armor.desc,
+  '소멸':'사용하면 이번 전투 동안 덱에서 빠진다.',
+  '제물':'가장 체력이 낮은 내 요괴를 쓰러뜨리고, 그 요괴의 남은 체력만큼 원한을 얻는다.',
+  '부적 조각':'저주 카드. 사용할 수 없고, 턴이 끝날 때 손에 남아 있으면 피해 2. 장터나 사건에서 없앨 수 있다.',
+  '대봉인진':'봉요사 수장 천명의 마지막 술법. 카운트다운이 0이 되면 행렬이 봉인되어 패배한다.',
 };
 
 /* ---------------------------------------------------------------
@@ -554,8 +605,8 @@ const CARDS = {
   /* 물 */
   mulgwison:{name:'물귀신 손', family:'water', type:'attack', cost:1, rarity:'common', target:'enemy', art:'waterhand',
     effects:[{type:'damage', value:4},{type:'wet', value:2},{type:'pullFront'}], up:{effects:[{type:'damage', value:6},{type:'wet', value:3},{type:'pullFront'}]}},
-  c_imugi:{name:'이무기', family:'water', type:'spirit', cost:3, rarity:'rare', target:'none', art:'imugi',
-    effects:[{type:'summon', spirit:'imugi'}], up:{cost:2}},
+  c_imugi:{name:'이무기', family:'water', type:'spirit', cost:2, rarity:'rare', target:'none', art:'imugi',
+    effects:[{type:'summon', spirit:'imugi'}], up:{cost:1}},
   c_mulgwisin:{name:'물귀신', family:'water', type:'spirit', cost:2, rarity:'common', target:'none', art:'mulgwisin',
     effects:[{type:'summon', spirit:'mulgwisin'}], up:{cost:1}},
   /* 소리 */
@@ -565,7 +616,148 @@ const CARDS = {
     effects:[{type:'summon', spirit:'eoduksini'}], up:{cost:1}},
   jangsanbeom:{name:'장산범 울음', family:'sound', type:'skill', cost:1, rarity:'rare', target:'enemy', art:'jangsanbeom',
     effects:[{type:'mimicIntent'}], up:{cost:0}},
+  /* ===== 4단계 추가 카드 ===== */
+  /* 공용 */
+  bongin:{name:'봉인 찢기', family:'neutral', type:'attack', cost:2, rarity:'common', target:'enemy', art:'scroll',
+    effects:[{type:'damage', value:12}], up:{effects:[{type:'damage', value:16}]}},
+  halkwi:{name:'할퀴기', family:'neutral', type:'attack', cost:0, rarity:'common', target:'enemy', art:'claw',
+    effects:[{type:'damage', value:4}], up:{effects:[{type:'damage', value:6}]}},
+  yogiheup:{name:'요기 흡수', family:'neutral', type:'attack', cost:1, rarity:'rare', target:'enemy', art:'drain',
+    effects:[{type:'damage', value:6},{type:'heal', value:3}], up:{effects:[{type:'damage', value:8},{type:'heal', value:4}]}},
+  cheolbyeok:{name:'철벽 둔갑', family:'neutral', type:'guard', cost:2, rarity:'common', target:'none', art:'ironwall',
+    effects:[{type:'block', value:12}], up:{effects:[{type:'block', value:16}]}},
+  hamseong:{name:'요괴의 함성', family:'neutral', type:'skill', cost:1, rarity:'common', target:'none', art:'roar',
+    effects:[{type:'strength', value:2, target:'allSpirits'}], up:{effects:[{type:'strength', value:3, target:'allSpirits'}]}},
+  haengryeol:{name:'백귀행렬', family:'neutral', type:'skill', cost:2, rarity:'rare', target:'none', art:'procession',
+    effects:[{type:'summonRandom'}], up:{cost:1}},
+  deungbul:{name:'등불 행진', family:'neutral', type:'skill', cost:0, rarity:'common', target:'none', art:'lantern', exhaust:true,
+    effects:[{type:'draw', value:2}], up:{effects:[{type:'draw', value:3}]}},
+  /* 불 */
+  c_hwaseo:{name:'화서', family:'fire', type:'spirit', cost:1, rarity:'common', target:'none', art:'hwaseo',
+    effects:[{type:'summon', spirit:'hwaseo'}], up:{cost:0}},
+  c_bulgasari:{name:'불가사리', family:'fire', type:'spirit', cost:2, rarity:'common', target:'none', art:'bulgasari',
+    effects:[{type:'summon', spirit:'bulgasari'}], up:{cost:1}},
+  c_dueoksini:{name:'두억시니 대장', family:'fire', type:'spirit', cost:3, rarity:'rare', target:'none', art:'dueoksini', great:true,
+    effects:[{type:'summon', spirit:'dueoksini'}], up:{cost:2}},
+  buldeongi:{name:'불덩이', family:'fire', type:'attack', cost:2, rarity:'common', target:'enemy', art:'fireball',
+    effects:[{type:'damage', value:8},{type:'burn', value:2}], up:{effects:[{type:'damage', value:11},{type:'burn', value:3}]}},
+  eophwa:{name:'업화', family:'fire', type:'attack', cost:2, rarity:'rare', target:'enemy', art:'eophwa',
+    effects:[{type:'burnBurst', mult:3}], up:{effects:[{type:'burnBurst', mult:4}]}},
+  bulchum:{name:'불춤 둔갑', family:'fire', type:'guard', cost:1, rarity:'common', target:'none', art:'firewind',
+    effects:[{type:'block', value:6},{type:'burn', value:1, target:'allEnemies'}], up:{effects:[{type:'block', value:9},{type:'burn', value:1, target:'allEnemies'}]}},
+  janchi:{name:'도깨비 잔치', family:'fire', type:'skill', cost:1, rarity:'common', target:'none', art:'feast',
+    effects:[{type:'drawPerStatus', status:'burn'}], up:{cost:0}},
+  /* 홀림 */
+  c_dungapyeou:{name:'둔갑여우', family:'charm', type:'spirit', cost:1, rarity:'common', target:'none', art:'dungapyeou',
+    effects:[{type:'summon', spirit:'dungapyeou'}], up:{cost:0}},
+  c_nabi:{name:'홀림나비', family:'charm', type:'spirit', cost:1, rarity:'common', target:'none', art:'nabi',
+    effects:[{type:'summon', spirit:'nabi'}], up:{cost:0}},
+  c_gumiho:{name:'천년 구미호', family:'charm', type:'spirit', cost:3, rarity:'rare', target:'none', art:'maegu', great:true,
+    effects:[{type:'summon', spirit:'gumiho'}], up:{cost:2}},
+  yeoubaljop:{name:'여우 발톱', family:'charm', type:'attack', cost:1, rarity:'common', target:'enemy', art:'foxclaw',
+    effects:[{type:'damage', value:4, bonusIf:'charm', bonus:4}], up:{effects:[{type:'damage', value:6, bonusIf:'charm', bonus:5}]}},
+  ganppaemeok:{name:'간 빼먹기', family:'charm', type:'attack', cost:2, rarity:'rare', target:'enemy', art:'bead',
+    effects:[{type:'damage', value:10, bonusIf:'charm', bonus:6},{type:'heal', value:3}], up:{effects:[{type:'damage', value:13, bonusIf:'charm', bonus:8},{type:'heal', value:4}]}},
+  kkoritchigi:{name:'꼬리 치기', family:'charm', type:'attack', cost:1, rarity:'common', target:'enemy', art:'tails',
+    effects:[{type:'damage', value:3, hits:2},{type:'charm', value:1}], up:{effects:[{type:'damage', value:4, hits:2},{type:'charm', value:1}]}},
+  hwanyeong:{name:'환영', family:'charm', type:'guard', cost:1, rarity:'common', target:'none', art:'illusion',
+    effects:[{type:'block', value:6},{type:'charm', value:1, target:'allEnemies'}], up:{effects:[{type:'block', value:9},{type:'charm', value:1, target:'allEnemies'}]}},
+  yeoudungap:{name:'여우 둔갑', family:'charm', type:'guard', cost:1, rarity:'common', target:'none', art:'mask',
+    effects:[{type:'block', value:5},{type:'draw', value:1}], up:{effects:[{type:'block', value:8},{type:'draw', value:1}]}},
+  holimnorae:{name:'홀림 노래', family:'charm', type:'skill', cost:2, rarity:'common', target:'none', art:'lips',
+    effects:[{type:'charm', value:2, target:'allEnemies'}], up:{cost:1}},
+  neokppaegi:{name:'넋 빼기', family:'charm', type:'skill', cost:1, rarity:'rare', target:'enemy', art:'soul',
+    effects:[{type:'multiplyStatus', status:'charm', mult:2},{type:'draw', value:1}], up:{cost:0}},
+  yeoubi:{name:'여우비', family:'charm', type:'skill', cost:0, rarity:'common', target:'none', art:'foxrain',
+    effects:[{type:'charm', value:1, target:'randomEnemy'},{type:'draw', value:1}], up:{effects:[{type:'charm', value:2, target:'randomEnemy'},{type:'draw', value:1}]}},
+  hyeonhok:{name:'현혹', family:'charm', type:'skill', cost:1, rarity:'common', target:'enemy', art:'hypno',
+    effects:[{type:'charm', value:2},{type:'dread', value:3}], up:{effects:[{type:'charm', value:3},{type:'dread', value:4}]}},
+  kkodeugi:{name:'꼬드기기', family:'charm', type:'skill', cost:1, rarity:'common', target:'enemy', art:'wink',
+    effects:[{type:'stripBlock'},{type:'charm', value:1}], up:{cost:0}},
+  /* 원한 */
+  c_dalgyal:{name:'달걀귀신', family:'grudge', type:'spirit', cost:1, rarity:'common', target:'none', art:'dalgyal',
+    effects:[{type:'summon', spirit:'dalgyal'}], up:{cost:0}},
+  c_mongdal:{name:'몽달귀신', family:'grudge', type:'spirit', cost:1, rarity:'common', target:'none', art:'mongdal',
+    effects:[{type:'summon', spirit:'mongdal'}], up:{cost:0}},
+  c_janghwa:{name:'장화홍련', family:'grudge', type:'spirit', cost:3, rarity:'rare', target:'none', art:'janghwa', great:true,
+    effects:[{type:'summon', spirit:'janghwa'}], up:{cost:2}},
+  wongwison:{name:'원귀의 손', family:'grudge', type:'attack', cost:1, rarity:'common', target:'enemy', art:'ghosthand',
+    effects:[{type:'damage', value:9},{type:'selfDamage', value:2}], up:{effects:[{type:'damage', value:12},{type:'selfDamage', value:2}]}},
+  hanpuri:{name:'한풀이', family:'grudge', type:'attack', cost:1, rarity:'common', target:'enemy', art:'neokjeon',
+    effects:[{type:'damage', value:4, scale:{status:'grudge', mult:1}}], up:{effects:[{type:'damage', value:7, scale:{status:'grudge', mult:1}}]}},
+  goksonal:{name:'곡하는 낫', family:'grudge', type:'attack', cost:2, rarity:'common', target:'none', art:'sickle',
+    effects:[{type:'damage', value:7, target:'allEnemies'},{type:'gainGrudge', value:1}], up:{effects:[{type:'damage', value:10, target:'allEnemies'},{type:'gainGrudge', value:1}]}},
+  pinunmul:{name:'피눈물', family:'grudge', type:'attack', cost:0, rarity:'common', target:'enemy', art:'bloodtear',
+    effects:[{type:'damage', value:4},{type:'selfDamage', value:1},{type:'gainGrudge', value:1}], up:{effects:[{type:'damage', value:6},{type:'selfDamage', value:1},{type:'gainGrudge', value:1}]}},
+  suui:{name:'수의 둔갑', family:'grudge', type:'guard', cost:1, rarity:'common', target:'none', art:'shroud',
+    effects:[{type:'block', value:6},{type:'gainGrudge', value:1}], up:{effects:[{type:'block', value:9},{type:'gainGrudge', value:1}]}},
+  hanbyeok:{name:'원한의 벽', family:'grudge', type:'guard', cost:2, rarity:'rare', target:'none', art:'gravewall',
+    effects:[{type:'block', value:6, scale:{status:'grudge', mult:1}}], up:{effects:[{type:'block', value:10, scale:{status:'grudge', mult:1}}]}},
+  inhyeong:{name:'저주 인형', family:'grudge', type:'skill', cost:1, rarity:'common', target:'enemy', art:'strawdoll',
+    effects:[{type:'dread', value:3},{type:'gainGrudge', value:2}], up:{effects:[{type:'dread', value:4},{type:'gainGrudge', value:3}]}},
+  jesa:{name:'제사', family:'grudge', type:'skill', cost:1, rarity:'rare', target:'none', art:'jesa',
+    effects:[{type:'sacrifice'},{type:'energy', value:1},{type:'draw', value:1}], up:{effects:[{type:'sacrifice'},{type:'energy', value:2},{type:'draw', value:1}]}},
+  neokduri:{name:'넋두리', family:'grudge', type:'skill', cost:1, rarity:'common', target:'none', art:'wail',
+    effects:[{type:'gainGrudge', value:3},{type:'draw', value:1}], up:{effects:[{type:'gainGrudge', value:4},{type:'draw', value:1}]}},
+  sangyeo:{name:'상여 행렬', family:'grudge', type:'skill', cost:2, rarity:'rare', target:'none', art:'sangyeo',
+    effects:[{type:'gainGrudgePerSpirit', value:3},{type:'block', value:5, target:'allSpirits'}], up:{cost:1}},
+  /* 물 */
+  c_geobuk:{name:'용궁거북', family:'water', type:'spirit', cost:2, rarity:'common', target:'none', art:'geobuk',
+    effects:[{type:'summon', spirit:'geobuk'}], up:{cost:1}},
+  c_gangcheol:{name:'강철이', family:'water', type:'spirit', cost:3, rarity:'rare', target:'none', art:'gangcheol', great:true,
+    effects:[{type:'summon', spirit:'gangcheol'}], up:{cost:2}},
+  c_mulyeou:{name:'물여우', family:'water', type:'spirit', cost:1, rarity:'common', target:'none', art:'mulyeou',
+    effects:[{type:'summon', spirit:'mulyeou'}], up:{cost:0}},
+  haeil:{name:'해일', family:'water', type:'attack', cost:2, rarity:'common', target:'none', art:'wave',
+    effects:[{type:'damage', value:6, target:'allEnemies'},{type:'wet', value:1, target:'allEnemies'}], up:{effects:[{type:'damage', value:8, target:'allEnemies'},{type:'wet', value:1, target:'allEnemies'}]}},
+  mulbyeorak:{name:'물벼락', family:'water', type:'attack', cost:1, rarity:'common', target:'enemy', art:'splash',
+    effects:[{type:'damage', value:6, bonusIf:'wet', bonus:4}], up:{effects:[{type:'damage', value:8, bonusIf:'wet', bonus:5}]}},
+  soyongdori:{name:'소용돌이', family:'water', type:'attack', cost:2, rarity:'rare', target:'enemy', art:'whirl',
+    effects:[{type:'pullFront'},{type:'damage', value:5, hits:2},{type:'wet', value:2}], up:{effects:[{type:'pullFront'},{type:'damage', value:7, hits:2},{type:'wet', value:2}]}},
+  mulsal:{name:'물살 가르기', family:'water', type:'attack', cost:1, rarity:'common', target:'enemy', art:'oar',
+    effects:[{type:'damage', value:5},{type:'block', value:3}], up:{effects:[{type:'damage', value:7},{type:'block', value:4}]}},
+  mulangae:{name:'물안개', family:'water', type:'guard', cost:1, rarity:'common', target:'none', art:'mist',
+    effects:[{type:'block', value:6},{type:'draw', value:1}], up:{effects:[{type:'block', value:9},{type:'draw', value:1}]}},
+  padodungap:{name:'파도 둔갑', family:'water', type:'guard', cost:1, rarity:'common', target:'enemy', art:'shell',
+    effects:[{type:'block', value:7},{type:'wet', value:1}], up:{effects:[{type:'block', value:10},{type:'wet', value:2}]}},
+  ongdalsaem:{name:'옹달샘', family:'water', type:'skill', cost:1, rarity:'common', target:'none', art:'spring',
+    effects:[{type:'healSpirits', value:5},{type:'block', value:4}], up:{effects:[{type:'healSpirits', value:8},{type:'block', value:6}]}},
+  jangmabi:{name:'장맛비', family:'water', type:'skill', cost:1, rarity:'common', target:'none', art:'rain',
+    effects:[{type:'wet', value:2, target:'allEnemies'}], up:{effects:[{type:'wet', value:3, target:'allEnemies'}]}},
+  sseolmul:{name:'썰물', family:'water', type:'skill', cost:0, rarity:'common', target:'none', art:'tide',
+    effects:[{type:'halveWetBlock'},{type:'draw', value:1}], up:{effects:[{type:'halveWetBlock'},{type:'draw', value:2}]}},
+  yongwang:{name:'용왕의 부름', family:'water', type:'skill', cost:2, rarity:'rare', target:'none', art:'yongwang',
+    effects:[{type:'healSpirits', value:6},{type:'block', value:6, target:'allSpirits'},{type:'block', value:6}], up:{cost:1}},
+  /* 소리 */
+  c_bukdokkaebi:{name:'북도깨비', family:'sound', type:'spirit', cost:1, rarity:'common', target:'none', art:'bukdokkaebi',
+    effects:[{type:'summon', spirit:'bukdokkaebi'}], up:{cost:0}},
+  c_bangul:{name:'방울 도깨비', family:'sound', type:'spirit', cost:1, rarity:'common', target:'none', art:'bangul',
+    effects:[{type:'summon', spirit:'bangul'}], up:{cost:0}},
+  c_sanbeom:{name:'장산범 어미', family:'sound', type:'spirit', cost:3, rarity:'rare', target:'none', art:'sanbeom', great:true,
+    effects:[{type:'summon', spirit:'sanbeom'}], up:{cost:2}},
+  talchum:{name:'광대 탈춤', family:'sound', type:'attack', cost:1, rarity:'common', target:'enemy', art:'talmask',
+    effects:[{type:'damage', value:3, hits:2}], up:{effects:[{type:'damage', value:3, hits:3}]}},
+  jingsori:{name:'징 소리', family:'sound', type:'attack', cost:2, rarity:'common', target:'none', art:'gong',
+    effects:[{type:'damage', value:5, target:'allEnemies'},{type:'dread', value:2, target:'allEnemies'}], up:{effects:[{type:'damage', value:7, target:'allEnemies'},{type:'dread', value:2, target:'allEnemies'}]}},
+  kkwaeng:{name:'꽹과리', family:'sound', type:'attack', cost:0, rarity:'common', target:'enemy', art:'kkwaeng',
+    effects:[{type:'damage', value:2, hits:2}], up:{effects:[{type:'damage', value:3, hits:2}]}},
+  sorijangmak:{name:'소리 장막', family:'sound', type:'guard', cost:1, rarity:'common', target:'none', art:'curtain',
+    effects:[{type:'block', value:4},{type:'block', value:4, target:'allSpirits'}], up:{effects:[{type:'block', value:6},{type:'block', value:6, target:'allSpirits'}]}},
+  chuimsae:{name:'추임새', family:'sound', type:'guard', cost:1, rarity:'common', target:'none', art:'chuimsae',
+    effects:[{type:'block', value:5},{type:'strength', value:1, target:'allSpirits'}], up:{effects:[{type:'block', value:8},{type:'strength', value:1, target:'allSpirits'}]}},
+  buksori:{name:'북소리', family:'sound', type:'skill', cost:1, rarity:'common', target:'none', art:'drum',
+    effects:[{type:'spiritActAll'}], up:{cost:0}},
+  pirisori:{name:'피리 소리', family:'sound', type:'skill', cost:1, rarity:'common', target:'none', art:'flute',
+    effects:[{type:'draw', value:2}], up:{effects:[{type:'draw', value:3}]}},
+  doeullim:{name:'되울림', family:'sound', type:'skill', cost:1, rarity:'rare', target:'none', art:'reverb',
+    effects:[{type:'echo', value:1}], up:{cost:0}},
+  daegeum:{name:'대금 가락', family:'sound', type:'skill', cost:0, rarity:'common', target:'none', art:'daegeum', exhaust:true,
+    effects:[{type:'energy', value:1},{type:'draw', value:1}], up:{exhaust:false}},
+  jangdan:{name:'장단 맞추기', family:'sound', type:'skill', cost:1, rarity:'common', target:'none', art:'jangdan',
+    effects:[{type:'drawPerSpirit'}], up:{cost:0}},
   /* 저주 — 사용 불가 */
+  bujeokjogak:{name:'부적 조각', family:'neutral', type:'curse', cost:-1, rarity:'special', target:'none', art:'charmshard', unplayable:true, endTurnDamage:2,
+    effects:[], text:'사용할 수 없다. 턴이 끝날 때 손에 있으면 <b class="kw">부적 조각</b> 피해 2.'},
   bujeong:{name:'부정(不淨)', family:'neutral', type:'curse', cost:-1, rarity:'special', target:'none', art:'smudge', unplayable:true,
     effects:[], text:'사용할 수 없다.'},
 };
@@ -634,6 +826,75 @@ const ENEMIES = {
       ward:{name:'여장군 결계', intent:'defend', effects:[{type:'ward', value:3}]},
       seal:{name:'봉인 부적 두 장', intent:'seal', effects:[{type:'sealCard', value:2}]}},
     ai:{type:'cycle', seq:['ward','seal']}},
+  /* ===== 2막 — 한양 도성 ===== */
+  pojol:{name:'포졸', hp:40, spiritTarget:0.3, art:{kind:'human', robe:'#3d4f7a', hat:'jeonrip', item:'club'},
+    moves:{
+      club:{name:'육모방망이', intent:'attack', effects:[{type:'damage', value:9}]},
+      guard:{name:'방패 들기', intent:'defend', effects:[{type:'block', value:8}]}},
+    ai:{type:'cycle', seq:['club','guard','club']}},
+  gungsu:{name:'부적 궁수', hp:30, spiritTarget:0.3, art:{kind:'human', robe:'#5a4a3a', hat:'band', item:'bow', belt:'#e8c94a'},
+    moves:{
+      volley:{name:'부적 화살 세 발', intent:'attack', effects:[{type:'damage', value:5, hits:3}]},
+      seal:{name:'봉인 화살', intent:'seal', effects:[{type:'sealCard', value:1}]}},
+    ai:{type:'cycle', seq:['volley','seal']}},
+  gyeonseupdosa:{name:'견습 도사', hp:35, spiritTarget:0.3, art:{kind:'human', robe:'#4a6a5a', hat:'gat', item:'fan', belt:'#e8c94a'},
+    moves:{
+      bolt:{name:'뇌전부', intent:'attack', effects:[{type:'damage', value:8}]},
+      ward:{name:'결계부', intent:'defend', effects:[{type:'ward', value:2}]},
+      purify:{name:'정화부', intent:'seal', effects:[{type:'purify', value:1}]}},
+    ai:{type:'cycle', seq:['bolt','ward','purify']}},
+  sunra:{name:'순라꾼', hp:45, spiritTarget:1, art:{kind:'human', robe:'#2a3550', hat:'jeonrip', item:'lantern'},
+    moves:{
+      spear:{name:'요괴 몰이 창', intent:'attack', targetSpirit:true, effects:[{type:'damage', value:11}]}},
+    ai:{type:'cycle', seq:['spear']}},
+  toemaseungryeo:{name:'퇴마 승려', elite:true, hp:110, startStatus:{ward:3}, spiritTarget:0.3,
+    art:{kind:'human', robe:'#7a5a2a', hat:'monk', item:'beads', belt:'#c8323a', aura:'#e8c94a'},
+    moves:{
+      seal:{name:'독경 봉인', intent:'seal', effects:[{type:'sealCard', value:1}]},
+      smite:{name:'금강저 내려치기', intent:'attack', effects:[{type:'damage', value:18},{type:'sealCard', value:1}]}},
+    ai:{type:'cycle', seq:['seal','seal','smite']}},
+  haetae:{name:'해태 석상', boss:true, hp:200, justice:true, spiritTarget:0.3, art:{kind:'haetae'},
+    moves:{
+      claw:{name:'정의의 발톱', intent:'attack', effects:[{type:'damage', value:13}]},
+      guard:{name:'돌 비늘', intent:'defend', effects:[{type:'block', value:16}]},
+      pounce:{name:'덮치기', intent:'attack', effects:[{type:'damage', value:7, hits:2}]}},
+    ai:{type:'cycle', seq:['claw','guard','pounce']},
+    phases:[{below:100, name:'해태의 노여움', effects:[{type:'lockSlot'},{type:'strength', value:4}], seq:['pounce','claw','claw','guard']}]},
+  /* ===== 3막 — 봉요사 본진 ===== */
+  gyeolgyesa:{name:'결계사', hp:50, spiritTarget:0.3, art:{kind:'human', robe:'#2a2a4a', hat:'gat', item:'staff', belt:'#7fbfb2'},
+    moves:{
+      wardAll:{name:'결계진', intent:'defend', effects:[{type:'ward', value:2, target:'allAllies'}]},
+      strike:{name:'법력탄', intent:'attack', effects:[{type:'damage', value:10}]}},
+    ai:{type:'cycle', seq:['wardAll','strike']}},
+  sinjang:{name:'신장 인형', hp:70, startStatus:{armor:3}, spiritTarget:0.3, art:{kind:'sinjang'},
+    moves:{
+      smash:{name:'신장의 철퇴', intent:'attack', effects:[{type:'damage', value:16}]},
+      charge:{name:'기를 모은다', intent:'defend', effects:[{type:'block', value:10}]}},
+    ai:{type:'cycle', seq:['charge','smash']}},
+  seogi:{name:'봉인 서기', hp:40, spiritTarget:0.3, art:{kind:'human', robe:'#3a3a2a', hat:'samo', item:'brush', belt:'#c8323a'},
+    moves:{
+      curse:{name:'부적 조각 붙이기', intent:'special', effects:[{type:'addCurse', id:'bujeokjogak', value:1}]},
+      seal:{name:'봉인 문서', intent:'seal', effects:[{type:'sealCard', value:2}]}},
+    ai:{type:'cycle', seq:['curse','seal']}},
+  pangwan:{name:'봉요사 판관', elite:true, hp:160, spiritTarget:0.3, art:{kind:'human', robe:'#6a2a2a', hat:'samo', item:'sword', belt:'#e8c94a', aura:'#c8323a'},
+    moves:{
+      verdict:{name:'유죄 판결', intent:'special', effects:[{type:'addCurse', id:'bujeokjogak', value:2}]},
+      strike:{name:'형벌 쌍검', intent:'attack', effects:[{type:'damage', value:14, hits:2}]}},
+    ai:{type:'cycle', seq:['verdict','strike','strike']}},
+  cheonmyeong:{name:'천명', title:'봉요사 수장', boss:true, final:true, hp:300, spiritTarget:0.25,
+    art:{kind:'human', robe:'#1a1a2a', hat:'crown', item:'staff', belt:'#e8c94a', aura:'#7fbfb2', boss3:true},
+    moves:{
+      p1:{name:'봉인 칙령', intent:'attack', effects:[{type:'sealCard', value:2},{type:'damage', value:15}]},
+      p2:{name:'요괴 빼앗기 · 쌍수 타격', intent:'attack', effects:[{type:'stealSpirit'},{type:'damage', value:12, hits:2}]},
+      p3:{name:'천벌', intent:'attack', effects:[{type:'damage', value:20}]}},
+    ai:{type:'cycle', seq:['p1']},
+    phases:[
+      {below:200, name:'요괴 빼앗기', effects:[{type:'stealSpirit'}], seq:['p2']},
+      {below:100, name:'대봉인진 발동', effects:[{type:'startSealArray', value:5}], seq:['p3']}]},
+  /* 천명이 빼앗아 간 내 요괴 (적 편 소환수) */
+  thrall:{name:'빼앗긴 요괴', hp:10, minion:true, spiritTarget:0, art:{kind:'thrall'},
+    moves:{lash:{name:'옛 주인을 할퀸다', intent:'attack', effects:[{type:'damage', value:6}]}},
+    ai:{type:'cycle', seq:['lash']}},
 };
 const REVIVE_TURNS = 3;
 const TEST_ENEMY_POOL = ['jangjeong','sanyanggae','mudang','dongja'];
@@ -646,6 +907,25 @@ const ENCOUNTERS = {
     elite:[['baksu']],
     boss:[['cheonha','jiha']],
   },
+  2:{
+    easy:[['pojol'],['gungsu','gungsu'],['gyeonseupdosa','pojol']],
+    normal:[['pojol','gungsu'],['sunra','gyeonseupdosa'],['pojol','pojol'],['gungsu','sunra'],
+            ['gyeonseupdosa','gungsu','pojol'],['sunra','pojol']],
+    elite:[['toemaseungryeo']],
+    boss:[['haetae']],
+  },
+  3:{
+    easy:[['gyeolgyesa'],['sinjang']],
+    normal:[['gyeolgyesa','sinjang'],['seogi','gyeolgyesa'],['gyeolgyesa','gyeolgyesa'],['sinjang','seogi'],['gyeolgyesa','sinjang','gyeolgyesa'],['sinjang']],
+    elite:[['pangwan']],
+    boss:[['cheonmyeong']],
+  },
+};
+/* 막 정보 */
+const ACTS = {
+  1:{name:'산골 고갯길', story:'백 년 만에 열린 백귀야행의 밤.\n봉요사가 박아 둔 봉인 말뚝이\n산골 고개마다 번뜩인다.\n\n등불을 들어라. 행렬이 출발한다.'},
+  2:{name:'한양 도성', story:'도성의 사대문이 굳게 닫혔다.\n순라꾼의 등롱이 골목을 훑는다.\n\n하지만 오늘 밤만큼은\n도성의 밤도 요괴의 것이다.'},
+  3:{name:'봉요사 본진', story:'하늘을 덮은 대봉인진이 서서히 조여 온다.\n동이 트기 전에 깨뜨리지 못하면\n이 땅의 요괴는 영영 사라진다.\n\n마지막 고개다.'},
 };
 
 /* 요괴 (필드에 상주) — action: spiritPhase에 실행되는 효과 배열
@@ -665,6 +945,37 @@ const SPIRITS = {
     action:[{type:'damage', value:4, bonusIf:'wet', bonus:4}]},
   eoduksini:{name:'어둑시니', family:'sound', hp:10, art:'eoduksini',
     action:[{type:'growHp', value:3},{type:'damageFromHp', div:3}]},
+  /* 4단계 추가 */
+  hwaseo:{name:'화서', family:'fire', hp:5, art:'hwaseo',
+    action:[{type:'burn', value:2, target:'randomEnemy'}]},
+  bulgasari:{name:'불가사리', family:'fire', hp:14, art:'bulgasari',
+    action:[{type:'stripBlock'},{type:'damage', value:4}]},
+  dueoksini:{name:'두억시니 대장', family:'fire', hp:22, art:'dueoksini', great:true,
+    action:[{type:'damage', value:4, target:'allEnemies'},{type:'burn', value:2, target:'allEnemies'}]},
+  dungapyeou:{name:'둔갑여우', family:'charm', hp:6, art:'dungapyeou',
+    action:[{type:'damage', value:2},{type:'charm', value:1}]},
+  nabi:{name:'홀림나비', family:'charm', hp:5, art:'nabi',
+    action:[{type:'block', value:3, target:'player'},{type:'charm', value:1, target:'randomEnemy'}]},
+  gumiho:{name:'천년 구미호', family:'charm', hp:18, art:'maegu', great:true,
+    action:[{type:'charm', value:2, target:'allEnemies'},{type:'damage', value:3, target:'allEnemies'}]},
+  dalgyal:{name:'달걀귀신', family:'grudge', hp:9, art:'dalgyal',
+    action:[{type:'damage', value:4},{type:'gainGrudge', value:1}]},
+  mongdal:{name:'몽달귀신', family:'grudge', hp:5, art:'mongdal',
+    action:[{type:'damage', value:3}], death:[{type:'damage', value:8, target:'allEnemies'}]},
+  janghwa:{name:'장화홍련', family:'grudge', hp:20, art:'janghwa', great:true,
+    action:[{type:'gainGrudge', value:2},{type:'damage', value:5, target:'allEnemies'}]},
+  geobuk:{name:'용궁거북', family:'water', hp:14, art:'geobuk',
+    action:[{type:'block', value:5, target:'player'}]},
+  gangcheol:{name:'강철이', family:'water', hp:22, art:'gangcheol', great:true, targetRule:'wetFirst',
+    action:[{type:'wet', value:1, target:'allEnemies'},{type:'damage', value:7, bonusIf:'wet', bonus:4}]},
+  mulyeou:{name:'물여우', family:'water', hp:6, art:'mulyeou',
+    action:[{type:'damage', value:3},{type:'wet', value:1}]},
+  bukdokkaebi:{name:'북도깨비', family:'sound', hp:8, art:'bukdokkaebi',
+    action:[{type:'strength', value:1, target:'allSpirits'}]},
+  bangul:{name:'방울 도깨비', family:'sound', hp:6, art:'bangul',
+    action:[{type:'draw', value:1}]},
+  sanbeom:{name:'장산범 어미', family:'sound', hp:20, art:'sanbeom', great:true,
+    action:[{type:'damage', value:6},{type:'echo', value:1}]},
 };
 
 /* 시너지 — kind:'family'(같은 계열 2마리 이상) / 'combo'(서로 다른 계열이 함께)
@@ -711,28 +1022,150 @@ const RELICS = {
     mods:{maxEnergy:1, rewardChoices:-1}},
   daebongin:{name:'깨진 대봉인 조각', tier:'boss', art:'r_shard', desc:'봉인된 카드도 사용할 수 있다. 단 비용 +1.',
     mods:{sealedPlayable:1}},
+  /* ===== 4단계 추가 — 일반 10 ===== */
+  cheongsa:{name:'청사초롱', tier:'common', art:'r_lantern', desc:'전투 시작 시 카드 1장을 더 뽑는다.',
+    triggers:[{on:'battleStart', effects:[{type:'draw', value:1}]}]},
+  hobaljop:{name:'호랑이 발톱', tier:'common', art:'r_claw', desc:'전투 시작 시 요기 1.',
+    triggers:[{on:'battleStart', effects:[{type:'strength', value:1, target:'player'}]}]},
+  silttarae:{name:'삼신할미 실타래', tier:'common', art:'r_thread', desc:'전투에서 이기면 생명력 5 회복.',
+    triggers:[{on:'battleWin', effects:[{type:'heal', value:5}]}]},
+  haetaebangul:{name:'해태 방울', tier:'common', art:'r_bell', desc:'요괴를 소환할 때마다 방어 3.',
+    triggers:[{on:'summon', effects:[{type:'block', value:3, target:'player'}]}]},
+  jangdok:{name:'장독대 정화수', tier:'common', art:'r_jar', desc:'매 턴 시작 시 내 요괴 체력 2 회복.',
+    triggers:[{on:'turnStart', effects:[{type:'healSpirits', value:2}]}]},
+  binyeo:{name:'무명 비녀', tier:'common', art:'r_pin', desc:'적을 쓰러뜨릴 때마다 혼력 1.',
+    triggers:[{on:'enemyDeath', effects:[{type:'energy', value:1}]}]},
+  buche:{name:'붉은 부채', tier:'common', art:'r_fan', desc:'요괴 행동 단계마다 모든 적에게 불씨 1.',
+    triggers:[{on:'spiritPhase', effects:[{type:'burn', value:1, target:'allEnemies'}]}]},
+  okpiri:{name:'옥피리', tier:'common', art:'r_flute', desc:'턴 시작 시 요괴가 3마리 이상이면 카드 1장 뽑기.',
+    triggers:[{on:'turnStart', minSpirits:3, effects:[{type:'draw', value:1}]}]},
+  geoul:{name:'깨진 거울', tier:'common', art:'r_mirror', desc:'3턴마다 턴 시작 시 혼력 1.',
+    triggers:[{on:'turnStart', everyN:3, effects:[{type:'energy', value:1}]}]},
+  jangseungjogak:{name:'장승 조각', tier:'common', art:'r_totem', desc:'획득 시 최대 생명력 +10.',
+    onPickup:[{type:'gainMaxHp', value:10}]},
+  /* ===== 희귀 7 ===== */
+  bangmangi:{name:'도깨비 방망이', tier:'rare', art:'r_club', desc:'전투 시작 시 꼬마 도깨비를 소환한다.',
+    triggers:[{on:'battleStart', effects:[{type:'summon', spirit:'kkoma'}]}]},
+  horibyeong:{name:'용궁 호리병', tier:'rare', art:'r_gourd', desc:'전투 시작 시 모든 적에게 젖음 2.',
+    triggers:[{on:'battleStart', effects:[{type:'wet', value:2, target:'allEnemies'}]}]},
+  hahoetal:{name:'하회탈', tier:'rare', art:'r_hahoe', desc:'전투 시작 시 모든 적에게 홀림 1.',
+    triggers:[{on:'battleStart', effects:[{type:'charm', value:1, target:'allEnemies'}]}]},
+  ppyeopiri:{name:'원귀의 뼈피리', tier:'rare', art:'r_bone', desc:'내 요괴가 쓰러질 때마다 원한 3.',
+    triggers:[{on:'spiritDeath', effects:[{type:'gainGrudge', value:3}]}]},
+  sinmyeongbuk:{name:'신명 북', tier:'rare', art:'r_sbuk', desc:'매 턴 처음 쓰는 카드가 한 번 더 발동한다(되울림 1).',
+    triggers:[{on:'turnStart', effects:[{type:'echo', value:1, cap:1}]}]},
+  sut:{name:'꺼지지 않는 숯', tier:'rare', art:'r_ember', desc:'적에게 불씨를 걸 때마다 1 더 건다.',
+    mods:{burnBonus:1}},
+  but:{name:'화원의 붓', tier:'rare', art:'r_brush', desc:'카드 보상 선택지 +1장.',
+    mods:{rewardChoices:1}},
+  /* ===== 보스 3 ===== */
+  daeyogoeppul:{name:'대요괴의 뿔', tier:'boss', art:'r_horn', desc:'요괴 칸 +1 (최대 4칸).',
+    mods:{slots:1}},
+  baekgwigi:{name:'백귀 깃발', tier:'boss', art:'r_flag', desc:'매 턴 시작 시 내 요괴 모두 요기 +1.',
+    triggers:[{on:'turnStart', effects:[{type:'strength', value:1, target:'allSpirits'}]}]},
+  sangungajuk:{name:'산군 호랑이 가죽', tier:'boss', art:'r_tiger', desc:'전투 시작 시 방어 14, 요기 1. 대신 주막에서 쉴 수 없다.',
+    mods:{noRest:1}, triggers:[{on:'battleStart', effects:[{type:'block', value:14, target:'player'},{type:'strength', value:1, target:'player'}]}]},
 };
 /* 사건: 그림(EVENT_ART) + 상황 글 + 선택지. req:{gold, hp}는 선택 조건 */
+/* 사건: 그림(EVENT_ART) + 상황 글 + 선택지. acts: 나오는 막. req:{gold, hp}는 선택 조건 */
 const EVENTS = {
-  gamble:{title:'주막 노름판', art:'ev_gamble',
+  gamble:{title:'주막 노름판', art:'ev_gamble', acts:[1,2],
     text:'주막 뒷마당에 멍석이 깔리고 윷판이 벌어졌다.\n"요괴 양반도 한판 하시겠소? 도·개면 판돈은 내 것, 걸·윷이면 본전, 모가 나오면 두 배로 쳐 드리지!"',
     choices:[
       {label:'10냥을 건다', desc:'윷을 던진다 · 도·개 = 잃음 / 걸·윷 = 본전 / 모 = 2배', req:{gold:10}, effects:[{type:'yut', bet:10}]},
       {label:'30냥을 건다', desc:'윷을 던진다 · 도·개 = 잃음 / 걸·윷 = 본전 / 모 = 2배', req:{gold:30}, effects:[{type:'yut', bet:30}]},
       {label:'구경만 한다', desc:'아무 일도 없다', effects:[], result:'"에이, 겁쟁이 도깨비로구먼!" 야유를 뒤로하고 자리를 떴다.'}]},
-  shrine:{title:'버려진 사당', art:'ev_shrine',
+  shrine:{title:'버려진 사당', art:'ev_shrine', acts:[1,2,3],
     text:'풀숲에 무너져 가는 사당이 있다. 봉요사가 붙여 둔 부적은 비에 젖어 반쯤 떨어졌다.\n제단 위 놋그릇이 아직도 무언가를 기다리듯 비어 있다.',
     choices:[
       {label:'생명력 10을 바친다', desc:'생명력 10 잃음 · 무작위 희귀 보물', req:{hp:11}, effects:[{type:'loseHp', value:10},{type:'addRelic', tier:'rare'}],
         result:'피 한 방울이 놋그릇에 떨어지자, 제단 아래에서 오래된 물건이 굴러 나왔다.'},
       {label:'그냥 떠난다', desc:'아무 일도 없다', effects:[], result:'뒤에서 바람 소리가 한숨처럼 들렸다.'}]},
-  lostchild:{title:'길 잃은 아이', art:'ev_child',
+  lostchild:{title:'길 잃은 아이', art:'ev_child', acts:[1,2],
     text:'밤길 한가운데 아이 하나가 울고 있다.\n"엄마… 집에 가고 싶어…"\n요괴 행렬을 보고도 무서워하지 않는다. 너무 지쳐서일까.',
     choices:[
       {label:'마을 어귀까지 데려다준다', desc:'덱에서 카드 1장 제거', effects:[{type:'removeCard'}],
         result:'아이는 마을 불빛을 보자 달려갔다. 무거운 짐 하나를 내려놓은 듯 행렬이 가벼워졌다.'},
       {label:'못 본 척 지나친다', desc:'원한 계열 카드 1장 획득', effects:[{type:'addCard', family:'grudge'}],
         result:'등 뒤로 울음소리가 오래 따라왔다. 그 서러움이 행렬에 스며들었다.'}]},
+  jar:{title:'봉인된 항아리', art:'ev_jar', acts:[1,2,3],
+    text:'봉인 부적이 반쯤 떨어진 항아리가 덜컹거린다.\n안에서 무언가가 "꺼내 줘…" 하고 속삭인다.',
+    choices:[
+      {label:'부적을 마저 뜯는다', desc:'무작위 요괴 카드 1장 · 저주 「부적 조각」 1장', effects:[{type:'addCard', cardType:'spirit'},{type:'addCurse', id:'bujeokjogak', value:1}],
+        result:'풀려난 요괴가 행렬에 합류했다. 그런데 찢어진 부적 조각 하나가 소매에 들러붙었다.'},
+      {label:'그냥 둔다', desc:'아무 일도 없다', effects:[], result:'"매정한 놈…" 하는 소리가 등 뒤로 멀어졌다.'}]},
+  gut:{title:'무당의 굿판', art:'ev_gut', acts:[1,2,3],
+    text:'징과 꽹과리 소리가 요란하다. 무당이 작두 위에서 춤을 추다 행렬을 보고 씩 웃는다.\n"넋을 바꿔 드릴까? 복채만 내시게."',
+    choices:[
+      {label:'엽전 40냥을 낸다', desc:'카드 1장을 다른 계열의 무작위 카드로 바꾼다', req:{gold:40}, effects:[{type:'gold', value:-40},{type:'transformCard'}],
+        result:'무당이 카드 위에 소금을 뿌리고 방울을 흔들자, 그림이 스르르 바뀌었다.'},
+      {label:'굿 구경만 한다', desc:'생명력 5 회복', effects:[{type:'healRun', value:5}], result:'신명 나는 장단에 어깨가 들썩였다. 기운이 조금 돌아왔다.'}]},
+  well:{title:'우물 속 목소리', art:'ev_well', acts:[1,2,3],
+    text:'오래된 우물 속에서 젖은 머리채가 올라온다.\n"심심해… 뭐라도 하나 던져 줘…"',
+    choices:[
+      {label:'쓸모없는 기억을 던져 준다', desc:'덱에서 카드 1장 제거', effects:[{type:'removeCard'}],
+        result:'물귀신이 그것을 꼬옥 끌어안고 가라앉았다. 행렬이 한결 가벼워졌다.'},
+      {label:'우물물을 한 모금 마신다', desc:'최대 생명력 +5', effects:[{type:'gainMaxHp', value:5}], result:'차갑고 깊은 물맛. 몸속까지 맑아진다.'},
+      {label:'못 본 척한다', desc:'아무 일도 없다', effects:[], result:'뒤에서 "흥" 하는 물소리가 났다.'}]},
+  wish:{title:'장승 앞 소원', art:'ev_wish', acts:[1,2],
+    text:'마을 어귀의 늙은 장승이 눈을 끔뻑인다.\n"오늘 밤은 요괴도 소원 하나쯤은 빌어도 되지."',
+    choices:[
+      {label:'"오래오래 살게 해 주시오"', desc:'최대 생명력 +6 · 생명력 6 회복', effects:[{type:'gainMaxHp', value:6},{type:'healRun', value:6}], result:'장승이 껄껄 웃자 등줄기에 따뜻한 기운이 흘렀다.'},
+      {label:'"부자 되게 해 주시오"', desc:'엽전 70 · 저주 「부정」 1장', effects:[{type:'gold', value:70},{type:'addCurse', id:'bujeong', value:1}], result:'엽전이 쏟아졌다. 장승의 눈빛이 조금 서늘해졌다.'},
+      {label:'"더 강해지게 해 주시오"', desc:'카드 1장 강화', effects:[{type:'upgradeCard'}], result:'"욕심 없는 놈이로군." 장승이 손끝에 힘을 실어 주었다.'}]},
+  seonbi:{title:'과거 보러 가는 선비', art:'ev_seonbi', acts:[2],
+    text:'봇짐을 멘 선비가 길을 잃고 헤맨다.\n"한양 가는 길이 이쪽이 맞소? 과거 시험이 내일인데…"',
+    choices:[
+      {label:'길을 가르쳐 준다', desc:'엽전 30 (사례금)', effects:[{type:'gold', value:30}], result:'선비가 고맙다며 노잣돈을 나눠 주었다. "급제하면 요괴 편을 들어 주리다!"'},
+      {label:'붓 한 자루를 빌린다', desc:'희귀 카드 1장 · 생명력 6 잃음', effects:[{type:'addCard', rarity:'rare'},{type:'loseHp', value:6}], result:'선비의 붓으로 그린 부적은 이상하게 힘이 셌다. 대신 밤새 글씨 연습을 하느라 몸이 축났다.'},
+      {label:'놀래 준다', desc:'50%: 엽전 50 / 50%: 생명력 8 잃음', effects:[{type:'chance', p:0.5,
+        success:[{type:'gold', value:50}], fail:[{type:'loseHp', value:8}],
+        successText:'선비가 봇짐을 내던지고 달아났다. 안에 엽전 꾸러미가 있었다.', failText:'선비가 휘두른 벼루에 정통으로 맞았다. 공부하는 사람은 팔힘이 세다.'}]}]},
+  ssireum:{title:'도깨비 씨름판', art:'ev_ssireum', acts:[1,2,3],
+    text:'달빛 아래 도깨비들이 씨름판을 벌였다.\n"오늘 밤 장사는 누구냐! 덤벼라!"\n판돈으로 쌓인 엽전이 번쩍인다.',
+    choices:[
+      {label:'샅바를 잡는다', desc:'50%: 엽전 70 / 50%: 생명력 8 잃음', effects:[{type:'chance', p:0.5,
+        success:[{type:'gold', value:70}], fail:[{type:'loseHp', value:8}],
+        successText:'번쩍 들어 메쳤다! 도깨비들이 환호하며 판돈을 넘겼다.', failText:'왼발 걸기에 걸려 모래판에 처박혔다. 도깨비들이 배꼽을 잡는다.'}]},
+      {label:'훈수만 두고 수업료를 낸다', desc:'엽전 25 · 카드 1장 강화', req:{gold:25}, effects:[{type:'gold', value:-25},{type:'upgradeCard'}], result:'씨름 기술을 어깨너머로 배웠다.'},
+      {label:'구경만 한다', desc:'아무 일도 없다', effects:[], result:'한바탕 웃고 다시 길을 나섰다.'}]},
+  wedding:{title:'달밤 혼례 행렬', art:'ev_wedding', acts:[2,3],
+    text:'달빛 아래 가마 하나가 지나간다. 청사초롱을 든 하인들 뒤로 신랑이 말을 타고 간다.\n요괴 행렬과 혼례 행렬이 좁은 길에서 마주쳤다.',
+    choices:[
+      {label:'길을 비켜 주고 축하한다', desc:'생명력 15 회복', effects:[{type:'healRun', value:15}], result:'신부가 가마 문을 살짝 열고 떡 한 조각을 건넸다. 달고 따뜻했다.'},
+      {label:'초롱불을 하나 얻는다', desc:'홀림 계열 카드 1장', effects:[{type:'addCard', family:'charm'}], result:'초롱 속 불빛이 여우 꼬리처럼 일렁였다.'},
+      {label:'가마를 턴다', desc:'엽전 80 · 저주 「부정」 1장', effects:[{type:'gold', value:80},{type:'addCurse', id:'bujeong', value:1}], result:'혼수 엽전을 챙겼다. 잔칫날 부정 탄 기분이 영 찜찜하다.'}]},
+  drunk:{title:'술 취한 나그네', art:'ev_drunk', acts:[1,2],
+    text:'길가에 술 취한 나그네가 대자로 누워 노래를 부른다.\n"어이, 거기 키 큰 양반! 한잔 받으시게!"',
+    choices:[
+      {label:'왕방울 눈을 부릅떠 놀래 준다', desc:'엽전 35', effects:[{type:'gold', value:35}], result:'나그네는 "으아아 도깨비다!" 하고 달아나며 엽전을 흘렸다.'},
+      {label:'술 한잔 같이 한다', desc:'생명력 12 회복', effects:[{type:'healRun', value:12}], result:'막걸리 맛은 백 년 전과 똑같았다. 기운이 돈다.'},
+      {label:'길동무 요괴를 붙여 보낸다', desc:'무작위 요괴 카드 1장', effects:[{type:'addCard', cardType:'spirit'}], result:'나그네 그림자 속에 숨어 있던 작은 요괴가 행렬에 합류했다.'}]},
+  fortune:{title:'장터 점쟁이', art:'ev_fortune', acts:[2,3],
+    text:'파장한 장터에 점쟁이 하나가 아직 자리를 지키고 있다.\n"허허, 요괴 손님이라. 복채만 내시면 앞날을 봐 드리지."',
+    choices:[
+      {label:'복채 40냥을 낸다', desc:'카드 2장 무작위 강화', req:{gold:40}, effects:[{type:'gold', value:-40},{type:'upgradeRandom', value:2}], result:'"대길이오!" 점괘대로 손끝에 힘이 붙었다.'},
+      {label:'복채 90냥을 낸다', desc:'보물 1개', req:{gold:90}, effects:[{type:'gold', value:-90},{type:'addRelic', tier:'common'}], result:'점쟁이가 소매에서 낡은 물건 하나를 꺼내 쥐여 주었다.'},
+      {label:'점 따위 안 믿는다', desc:'아무 일도 없다', effects:[], result:'"그 말도 점괘에 나와 있었소." 점쟁이가 웃었다.'}]},
+  sansin:{title:'산신령의 시험', art:'ev_sansin', acts:[1,2,3],
+    text:'호랑이를 탄 노인이 엽전 꾸러미 두 개를 내민다.\n"이 금 꾸러미가 네 것이냐, 이 은 꾸러미가 네 것이냐?"\n…요괴는 원래 엽전을 떨어뜨린 적이 없다.',
+    choices:[
+      {label:'"둘 다 제 것이 아닙니다."', desc:'최대 생명력 +6 · 생명력 6 회복', effects:[{type:'gainMaxHp', value:6},{type:'healRun', value:6}], result:'"요괴 중에도 정직한 놈이 있구나!" 산신령이 껄껄 웃으며 기운을 불어넣었다.'},
+      {label:'"금 꾸러미가 제 것입니다!"', desc:'엽전 100 · 저주 「부정」 1장', effects:[{type:'gold', value:100},{type:'addCurse', id:'bujeong', value:1}], result:'산신령의 눈이 가늘어졌다. 엽전은 받았지만 무언가 찜찜한 것이 붙었다.'}]},
+  checkpoint:{title:'봉요사 검문소', art:'ev_checkpoint', acts:[2,3],
+    text:'골목 끝에 봉요사의 검문소가 있다.\n졸고 있는 포졸 하나, 그리고 압수한 요괴 부적이 든 상자.',
+    choices:[
+      {label:'사람으로 둔갑해 지나간다', desc:'50%: 엽전 40 / 50%: 생명력 12 잃음', effects:[{type:'chance', p:0.5,
+        success:[{type:'gold', value:40}], fail:[{type:'loseHp', value:12}],
+        successText:'"수고하시오." 포졸이 꾸벅 인사까지 했다. 지나가며 통행세 상자도 챙겼다.', failText:'꼬리가 삐져나왔다. 포졸의 육모방망이가 날아왔다.'}]},
+      {label:'압수 상자를 턴다', desc:'엽전 30(뇌물) · 카드 1장', req:{gold:30}, effects:[{type:'gold', value:-30},{type:'addCard'}], result:'포졸은 엽전을 받고 다시 잠든 척했다. 상자 속에서 쓸 만한 것을 찾았다.'},
+      {label:'멀리 돌아간다', desc:'아무 일도 없다', effects:[], result:'괜히 엮일 필요는 없지.'}]},
+  seonang:{title:'버려진 서낭당', art:'ev_seonang', acts:[1,2,3],
+    text:'고갯마루에 돌무더기와 오색 천이 걸린 서낭당이 있다.\n봉요사가 다녀갔는지 금줄이 끊겨 있다.\n돌 틈에 누군가 놓고 간 엽전 꾸러미가 보인다.',
+    choices:[
+      {label:'돌을 하나 얹고 빈다', desc:'생명력 6 잃음 · 일반 보물', req:{hp:7}, effects:[{type:'loseHp', value:6},{type:'addRelic', tier:'common'}], result:'서낭신이 혀를 차더니, 그래도 요괴 주제에 예의는 바르다며 무언가를 던져 주었다.'},
+      {label:'엽전 꾸러미를 슬쩍한다', desc:'엽전 50 · 저주 「부정」 1장', effects:[{type:'gold', value:50},{type:'addCurse', id:'bujeong', value:1}], result:'주머니는 묵직해졌는데, 등 뒤가 자꾸 서늘하다.'},
+      {label:'조용히 지나간다', desc:'아무 일도 없다', effects:[], result:'행렬은 조용히 고개를 넘었다.'}]},
 };
 const LEADERS = {
   bangmangi:{name:'방망이', title:'도깨비 대장', family:'fire', hp:PLAYER_MAX_HP, art:'L_bangmangi', relics:[],
@@ -908,6 +1341,441 @@ const ART = {
     <path d="M38 66 Q50 74 62 66" fill="none" stroke="#b8893a" stroke-width="2.5"/>`,
   waterhand:()=>ART.ghosthand() + `<path d="M0 84 q12 -8 25 0 t25 0 t25 0 t25 0 L100 100 L0 100Z" fill="#2f5d9e" ${SK}/><path d="M4 92 q10 -6 20 0 t20 0 t20 0 t20 0" fill="none" stroke="#9fc3ee" stroke-width="2.5"/>`,
   unseal:()=>ART.scroll() + `<path d="M14 18 L86 82" stroke="#f2e8d0" stroke-width="5" stroke-linecap="round" opacity=".9"/>`,
+  /* 4단계 — 카드 · 요괴 · 보물 */
+  hwaseo:()=>`
+    <path d="M24 66 C10 60 8 42 16 28 C18 38 24 40 23 32 C30 38 32 50 28 60Z" fill="#ffb24a" ${SK}/>
+    <path d="M20 58 C16 52 16 44 19 38" fill="none" stroke="#e2552b" stroke-width="3"/>
+    <ellipse cx="50" cy="66" rx="26" ry="16" fill="#c9562b" ${SK}/>
+    <path d="M32 62 q6 -7 12 0 q6 -7 12 0" fill="none" stroke="#ffd27a" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="73" cy="57" r="12" fill="#d8693a" ${SK}/>
+    <circle cx="68" cy="44" r="6" fill="#e9a07a" ${SK}/>
+    <circle cx="77" cy="55" r="2.6" fill="${INK}"/><circle cx="85.5" cy="61" r="2.2" fill="${INK}"/>
+    <path d="M38 80 l-3 9 M60 80 l3 9" fill="none" ${SK}/>`,
+  bulgasari:()=>`
+    <path d="M30 42 l3 -13 l7 10 l5 -15 l7 13 l6 -13 l6 13 l6 -9 l4 12" fill="#b0572e" ${SK}/>
+    <path d="M12 80 C12 52 28 38 52 38 C76 38 90 52 90 70 L90 80Z" fill="#7a3f2a" ${SK}/>
+    <path d="M24 64 q8 6 16 0 q8 6 16 0 q8 6 14 0" fill="none" stroke="#e2552b" stroke-width="3"/>
+    <circle cx="74" cy="55" r="7" fill="#ffd25e" ${SK}/><circle cx="75" cy="55" r="3" fill="${INK}"/>
+    <path d="M78 71 l3 5 l3 -5 l3 5" fill="#fff" ${SK2}/>
+    <rect x="20" y="78" width="13" height="13" rx="2" fill="#5e2f20" ${SK}/><rect x="64" y="78" width="13" height="13" rx="2" fill="#5e2f20" ${SK}/>`,
+  dungapyeou:()=>`
+    <path d="M50 8 Q68 12 61 32 Q44 28 50 8Z" fill="#6a9a3a" ${SK}/><path d="M52 13 L58 29" stroke="${INK}" stroke-width="1.5"/>
+    <path d="M20 22 L38 40 L62 40 L80 22 L75 55 Q66 75 50 86 Q34 75 25 55Z" fill="#f2dfc6" ${SK}/>
+    <path d="M26 30 L35 40 L27 45Z M74 30 L65 40 L73 45Z" fill="#b45fa8"/>
+    <path d="M33 57 q7 -6 13 0 M54 57 q7 -6 13 0" fill="none" ${SK}/>
+    <path d="M36 49 l-8 -4 M64 49 l8 -4" stroke="#c8323a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M45 72 L50 77 L55 72Z" fill="${INK}"/>
+    <path d="M84 72 q9 -6 4 -15 q-7 -4 -11 3" fill="none" stroke="#b45fa8" stroke-width="3" stroke-linecap="round"/>
+    <path d="M14 76 q-7 -5 -3 -12 q6 -3 9 2" fill="none" stroke="#b45fa8" stroke-width="3" stroke-linecap="round"/>`,
+  maegu:()=>{
+    let t = '';
+    for(let i = 0; i < 9; i++){ const a = -84 + i * 21; t += `<ellipse cx="50" cy="36" rx="7" ry="26" transform="rotate(${a} 50 68)" fill="${i % 2 ? '#e8c6e2' : '#f6e6f2'}" ${SK2}/>`; }
+    return t + `
+    <path d="M33 94 Q31 66 50 60 Q69 66 67 94Z" fill="#f6eadf" ${SK}/>
+    <path d="M35 46 L39 29 L46 39 L54 39 L61 29 L65 46 Q63 60 50 64 Q37 60 35 46Z" fill="#f6eadf" ${SK}/>
+    <path d="M41 48 q4 -3 7 0 M52 48 q4 -3 7 0" fill="none" ${SK2}/>
+    <path d="M50 40 l0 4" stroke="#c8323a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M47 56 L50 59 L53 56Z" fill="${INK}"/>`;
+  },
+  nabi:()=>`
+    <path d="M50 50 C30 18 6 24 13 46 C17 58 36 58 50 50Z" fill="#c779bb" ${SK}/>
+    <path d="M50 50 C70 18 94 24 87 46 C83 58 64 58 50 50Z" fill="#c779bb" ${SK}/>
+    <path d="M50 52 C36 60 25 80 37 83 C46 84 50 68 50 52Z" fill="#8f4688" ${SK}/>
+    <path d="M50 52 C64 60 75 80 63 83 C54 84 50 68 50 52Z" fill="#8f4688" ${SK}/>
+    <circle cx="29" cy="42" r="6" fill="#f2e8d0" ${SK2}/><circle cx="29" cy="42" r="2.5" fill="${INK}"/>
+    <circle cx="71" cy="42" r="6" fill="#f2e8d0" ${SK2}/><circle cx="71" cy="42" r="2.5" fill="${INK}"/>
+    <path d="M50 36 L50 78" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>
+    <path d="M50 38 Q44 24 37 19 M50 38 Q56 24 63 19" fill="none" ${SK2}/>
+    <circle cx="20" cy="74" r="2" fill="#f0a0e8"/><circle cx="82" cy="70" r="2.5" fill="#f0a0e8"/><circle cx="86" cy="80" r="1.6" fill="#f0a0e8"/>`,
+  dalgyal:()=>`
+    <path d="M27 93 Q30 64 50 62 Q70 64 73 93 Q61 86 50 93 Q39 86 27 93Z" fill="#cfe9e3" ${SK}/>
+    <path d="M27 38 Q22 72 30 86 L37 60Z M73 38 Q78 72 70 86 L63 60Z" fill="${INK}"/>
+    <ellipse cx="50" cy="40" rx="20" ry="25" fill="#f4faf8" ${SK}/>
+    <path d="M30 34 Q32 13 50 13 Q68 13 70 34 Q60 22 50 24 Q40 22 30 34Z" fill="${INK}"/>
+    <ellipse cx="44" cy="44" rx="6" ry="3" fill="#7fbfb2" opacity=".35"/>
+    <path d="M18 60 q-6 -10 2 -18 M82 60 q6 -10 -2 -18" fill="none" stroke="#7fbfb2" stroke-width="2.5" stroke-linecap="round"/>`,
+  mongdal:()=>`
+    <path d="M26 92 L34 58 Q50 52 66 58 L74 92Z" fill="#e3efe9" ${SK}/>
+    <path d="M30 92 q4 6 8 0 q4 6 8 0 q4 6 8 0 q4 6 8 0 q4 6 8 0" fill="none" stroke="#7fbfb2" stroke-width="2.5"/>
+    <path d="M50 58 L50 90" stroke="#a8cfc6" stroke-width="2"/>
+    <circle cx="50" cy="40" r="15" fill="#d9ece6" ${SK}/>
+    <path d="M34 38 Q35 20 50 22 Q65 20 66 38 L62 30 L58 37 L54 28 L50 37 L46 28 L42 37 L38 30Z" fill="${INK}"/>
+    <path d="M35 33 Q50 28 65 33" stroke="#7fbfb2" stroke-width="3" fill="none"/>
+    <path d="M42 43 q3 2 6 0 M52 43 q3 2 6 0" fill="none" ${SK2}/>
+    <path d="M45 51 q5 -3 10 0" fill="none" ${SK2}/>
+    <path d="M44 46 l-1 6" stroke="#7fbfb2" stroke-width="2"/>`,
+  geobuk:()=>`
+    <ellipse cx="20" cy="72" rx="8" ry="5" fill="#7fae8a" ${SK2}/><ellipse cx="74" cy="76" rx="8" ry="5" fill="#7fae8a" ${SK2}/>
+    <ellipse cx="30" cy="78" rx="8" ry="5" fill="#7fae8a" ${SK2}/>
+    <path d="M84 56 Q96 50 92 62" fill="#7fae8a" ${SK}/>
+    <circle cx="84" cy="56" r="9" fill="#7fae8a" ${SK}/><circle cx="87" cy="54" r="2" fill="${INK}"/>
+    <path d="M16 66 Q20 34 50 34 Q80 34 82 66Z" fill="#2f5d9e" ${SK}/>
+    <path d="M38 46 L49 40 L60 46 L60 58 L49 63 L38 58Z" fill="#5a8ccc" ${SK2}/>
+    <path d="M38 46 L27 50 L24 64 M60 46 L71 50 L76 64 M49 40 L49 34 M38 58 L32 66 M60 58 L66 66" fill="none" ${SK2}/>
+    <path d="M14 66 L84 66" stroke="#e8c94a" stroke-width="4"/>
+    <path d="M30 26 q4 -6 8 0 M60 24 q4 -6 8 0" fill="none" stroke="#9fc3ee" stroke-width="2.5"/>`,
+  bukdokkaebi:()=>`
+    <path d="M26 94 L32 60 Q50 54 68 60 L74 94Z" fill="#3e6a4a" ${SK}/>
+    <path d="M36 70 l6 6 l-6 6 M64 70 l-6 6 l6 6" fill="none" stroke="#e8c94a" stroke-width="2.5"/>
+    <circle cx="50" cy="40" r="16" fill="#c9553a" ${SK}/>
+    <path d="M45 26 L50 8 L55 26Z" fill="#f2e8d0" ${SK2}/>
+    <path d="M34 34 l-6 -6 M66 34 l6 -6" ${SK}/>
+    <circle cx="43" cy="38" r="4.5" fill="#fff" ${SK2}/><circle cx="57" cy="38" r="4.5" fill="#fff" ${SK2}/>
+    <circle cx="44" cy="38.5" r="1.8" fill="${INK}"/><circle cx="56" cy="38.5" r="1.8" fill="${INK}"/>
+    <path d="M41 47 Q50 54 59 47Z" fill="#fff" ${SK2}/>
+    <path d="M22 70 L46 78 L54 78 L78 70 L78 92 L54 84 L46 84 L22 92Z" fill="#b8893a" ${SK}/>
+    <ellipse cx="22" cy="81" rx="5" ry="11" fill="#e6d3a6" ${SK2}/><ellipse cx="78" cy="81" rx="5" ry="11" fill="#e6d3a6" ${SK2}/>
+    <path d="M84 60 L92 50" ${SK}/>`,
+  claw:()=>`
+    ${[22,42,62].map(x=>`<path d="M${x} 16 Q${x+22} 48 ${x+8} 86" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round"/><path d="M${x} 16 Q${x+22} 48 ${x+8} 86" fill="none" stroke="#c8323a" stroke-width="5" stroke-linecap="round"/>`).join('')}`,
+  mask:()=>`
+    <path d="M8 74 q10 -10 20 0 t20 0 t20 0 t20 0" fill="none" stroke="#8a7a68" stroke-width="3"/>
+    <path d="M20 28 Q50 16 80 28 Q82 62 50 84 Q18 62 20 28Z" fill="#f6f0e2" ${SK}/>
+    <path d="M28 44 q9 -7 16 0 q-7 5 -16 0Z M56 44 q9 -7 16 0 q-7 5 -16 0Z" fill="${INK}"/>
+    <path d="M50 22 L50 38 M34 58 q16 10 32 0" fill="none" stroke="#c8323a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M22 30 L14 14 L34 24 M78 30 L86 14 L66 24" fill="#f6f0e2" ${SK}/>`,
+  drain:()=>`
+    <path d="M50 50 m-4 0 a4 4 0 1 1 8 0 a9 9 0 1 1 -18 0 a14 14 0 1 1 28 0 a19 19 0 1 1 -38 0 a24 24 0 1 1 48 0" fill="none" stroke="#6a5a8a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M50 36 C58 46 60 52 56 58 C53 62 47 62 44 58 C40 52 42 46 50 36Z" fill="#c8323a" ${SK2}/>`,
+  roar:()=>`
+    <path d="M14 22 L26 30 M86 22 L74 30 M8 50 L22 50 M92 50 L78 50 M14 78 L26 70 M86 78 L74 70" stroke="#b8893a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M28 36 Q50 26 72 36 Q68 72 50 78 Q32 72 28 36Z" fill="#7a2a2a" ${SK}/>
+    <path d="M32 38 l4 9 l4 -8 l4 9 l4 -9 l4 9 l4 -9 l4 9 l4 -9 l4 8" fill="#fff" stroke="${INK}" stroke-width="1.5"/>
+    <path d="M38 66 l4 -7 l4 6 l4 -7 l4 7 l4 -6 l4 7" fill="#fff" stroke="${INK}" stroke-width="1.5"/>`,
+  procession:()=>`
+    <path d="M0 80 Q50 66 100 80 L100 100 L0 100Z" fill="#2a2a3a"/>
+    ${[[16,64,'#e2552b'],[38,60,'#b45fa8'],[60,58,'#7fbfb2'],[82,60,'#2f5d9e']].map(([x,y,c])=>`
+      <path d="M${x-7} ${y+16} Q${x-8} ${y} ${x} ${y-4} Q${x+8} ${y} ${x+7} ${y+16}Z" fill="${INK}"/>
+      <circle cx="${x}" cy="${y-6}" r="6" fill="${INK}"/>
+      <path d="M${x+6} ${y-6} L${x+12} ${y-18}" stroke="${INK}" stroke-width="2"/>
+      <circle cx="${x+12}" cy="${y-14}" r="4.5" fill="${c}" ${SK2}/>`).join('')}
+    <circle cx="80" cy="20" r="10" fill="#f6e9c6"/>`,
+  lantern:()=>`
+    <circle cx="50" cy="54" r="34" fill="#ffb24a" opacity=".25"/>
+    <path d="M50 6 L50 20" ${SK}/>
+    <path d="M38 22 L62 22 L68 34 L68 68 L62 80 L38 80 L32 68 L32 34Z" fill="#e8572a" ${SK}/>
+    <rect x="34" y="22" width="32" height="9" fill="#2f5d9e" ${SK2}/><rect x="34" y="71" width="32" height="9" fill="#2f5d9e" ${SK2}/>
+    <path d="M50 31 L50 71 M41 34 L41 68 M59 34 L59 68" stroke="#b83a18" stroke-width="2"/>
+    <path d="M50 80 L50 92 M46 92 L54 92" ${SK}/>`,
+  fireball:()=>`
+    <path d="M78 22 C64 14 30 22 24 48 C18 74 44 88 62 76 C78 66 76 50 66 44 C82 44 92 32 78 22Z" fill="#e2552b" ${SK}/>
+    <circle cx="44" cy="60" r="13" fill="#ffc15e"/>
+    <path d="M82 52 l8 2 M78 66 l8 6 M88 38 l8 -2" stroke="#ffb24a" stroke-width="3" stroke-linecap="round"/>`,
+  firewind:()=>`
+    <path d="M10 40 Q40 20 70 36 Q90 46 80 60 Q70 70 58 60" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round"/>
+    <path d="M10 40 Q40 20 70 36 Q90 46 80 60 Q70 70 58 60" fill="none" stroke="#e2552b" stroke-width="6" stroke-linecap="round"/>
+    <path d="M14 66 Q40 52 62 68 Q76 78 66 88" fill="none" stroke="${INK}" stroke-width="9" stroke-linecap="round"/>
+    <path d="M14 66 Q40 52 62 68 Q76 78 66 88" fill="none" stroke="#ffb24a" stroke-width="5" stroke-linecap="round"/>
+    <path d="M24 20 q6 -8 12 0 M84 22 q4 -6 8 0" fill="none" stroke="#e2552b" stroke-width="3"/>`,
+  eophwa:()=>`
+    <path d="M14 92 C6 66 22 54 24 34 C34 46 34 56 40 58 C38 40 44 22 56 8 C58 30 70 36 72 54 C76 46 80 42 82 32 C94 50 96 72 86 92Z" fill="#a8221a" ${SK}/>
+    <path d="M28 92 C24 76 32 68 36 58 C42 68 46 70 50 70 C50 58 54 46 60 38 C64 54 74 62 72 92Z" fill="#e2552b"/>
+    <path d="M40 92 C40 82 46 78 50 74 C54 80 60 84 58 92Z" fill="#ffc15e"/>`,
+  foxclaw:()=>`
+    ${[26,46,66].map(x=>`<path d="M${x} 14 Q${x+20} 46 ${x+6} 84" fill="none" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><path d="M${x} 14 Q${x+20} 46 ${x+6} 84" fill="none" stroke="#b45fa8" stroke-width="4.5" stroke-linecap="round"/>`).join('')}
+    <circle cx="20" cy="74" r="10" fill="#f6e6ff" ${SK}/><circle cx="17" cy="71" r="3" fill="#fff"/>`,
+  illusion:()=>`
+    ${[[26,.35],[50,.65],[74,1]].map(([x,o])=>`<g opacity="${o}"><path d="M${x-14} 86 Q${x-14} 54 ${x} 50 Q${x+14} 54 ${x+14} 86Z" fill="#b45fa8" ${SK}/>
+      <path d="M${x-10} 48 L${x-8} 30 L${x-2} 40 L${x+2} 40 L${x+8} 30 L${x+10} 48 Q${x+8} 58 ${x} 60 Q${x-8} 58 ${x-10} 48Z" fill="#f2dfc6" ${SK}/></g>`).join('')}`,
+  bead:()=>`
+    <circle cx="50" cy="50" r="38" fill="#b45fa8" opacity=".25"/>
+    <circle cx="50" cy="50" r="26" fill="#f6e6ff" ${SK}/>
+    <circle cx="50" cy="50" r="17" fill="none" stroke="#b45fa8" stroke-width="3"/>
+    <circle cx="42" cy="42" r="6" fill="#fff"/>
+    <path d="M82 18 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3Z M18 72 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2Z" fill="#ffe2f6" ${SK2}/>`,
+  strawdoll:()=>`
+    <circle cx="50" cy="24" r="12" fill="#d8b46a" ${SK}/>
+    <path d="M38 36 L62 36 L60 62 L66 90 L54 90 L50 70 L46 90 L34 90 L40 62Z" fill="#d8b46a" ${SK}/>
+    <path d="M38 40 L16 52 M62 40 L84 52" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><path d="M38 40 L16 52 M62 40 L84 52" stroke="#d8b46a" stroke-width="5" stroke-linecap="round"/>
+    <path d="M40 46 L60 46 M42 56 L58 56 M44 30 L56 30" stroke="#9a7a3a" stroke-width="2"/>
+    <rect x="44" y="40" width="12" height="14" fill="#f2e8d0" ${SK2}/>
+    <path d="M76 26 L54 48" stroke="#7fbfb2" stroke-width="4" stroke-linecap="round"/><circle cx="76" cy="26" r="4" fill="#4f9f92" ${SK2}/>`,
+  neokjeon:()=>`
+    <path d="M50 8 L50 26" ${SK}/>
+    <path d="M30 26 L70 26 L64 54 L72 92 L28 92 L36 54Z" fill="#f6f6f0" ${SK}/>
+    <path d="M36 40 L64 40 M38 54 L62 54 M34 70 L66 70" stroke="#7fbfb2" stroke-width="3"/>
+    <path d="M12 40 q10 10 0 22 q-8 10 2 20 M88 40 q-10 10 0 22 q8 10 -2 20" fill="none" stroke="#7fbfb2" stroke-width="3" stroke-linecap="round"/>`,
+  jesa:()=>`
+    <path d="M10 70 L90 70 L84 78 L16 78Z" fill="#6a3a22" ${SK}/>
+    <path d="M22 78 L22 92 M78 78 L78 92" ${SK}/>
+    <path d="M36 70 Q36 54 50 54 Q64 54 64 70Z" fill="#f2e8d0" ${SK}/>
+    <path d="M40 54 Q50 44 60 54" fill="#e2552b" ${SK2}/>
+    <rect x="16" y="44" width="7" height="26" fill="#f6f0e2" ${SK2}/><rect x="77" y="44" width="7" height="26" fill="#f6f0e2" ${SK2}/>
+    <path d="M19.5 44 C16 38 20 32 19.5 28 C23 34 24 40 19.5 44Z M80.5 44 C77 38 81 32 80.5 28 C84 34 85 40 80.5 44Z" fill="#ffb24a" ${SK2}/>
+    <path d="M44 30 q6 -10 12 0 q-6 -16 0 -22" fill="none" stroke="#a8a8a8" stroke-width="2"/>`,
+  mist:()=>`
+    <path d="M10 40 q10 -14 22 -4 q8 -14 22 -4 q12 -10 22 2 q14 0 12 12 L10 46Z" fill="#cfe0f4" ${SK}/>
+    <path d="M18 66 q10 -12 22 -4 q10 -12 22 -2 q12 -6 20 6 L18 70Z" fill="#9fc3ee" ${SK}/>
+    <path d="M6 84 Q30 76 50 84 T94 84" fill="none" stroke="#2f5d9e" stroke-width="3"/>`,
+  wave:()=>`
+    <path d="M4 90 C10 50 40 20 70 26 C88 30 94 46 84 56 C76 64 64 58 66 48 C56 50 50 66 56 80 L96 80 L96 96 L4 96Z" fill="#2f5d9e" ${SK}/>
+    <path d="M20 80 C24 60 40 44 58 40" fill="none" stroke="#9fc3ee" stroke-width="3"/>
+    <path d="M70 26 q6 -10 14 -6 M82 34 q8 -6 12 2" fill="none" stroke="#f2e8d0" stroke-width="3" stroke-linecap="round"/>`,
+  spring:()=>`
+    <ellipse cx="50" cy="78" rx="38" ry="10" fill="none" stroke="#2f5d9e" stroke-width="3"/>
+    <ellipse cx="50" cy="78" rx="24" ry="6" fill="none" stroke="#5a8ccc" stroke-width="3"/>
+    <path d="M50 12 C62 32 70 44 68 56 C66 66 58 70 50 70 C42 70 34 66 32 56 C30 44 38 32 50 12Z" fill="#5a8ccc" ${SK}/>
+    <path d="M42 44 q-4 8 0 14" fill="none" stroke="#f2e8d0" stroke-width="3" stroke-linecap="round"/>`,
+  drum:()=>`
+    <path d="M14 30 L44 46 L56 46 L86 30 L86 74 L56 58 L44 58 L14 74Z" fill="#b8893a" ${SK}/>
+    <ellipse cx="14" cy="52" rx="7" ry="22" fill="#e6d3a6" ${SK}/><ellipse cx="86" cy="52" rx="7" ry="22" fill="#e6d3a6" ${SK}/>
+    <path d="M14 30 L86 74 M14 74 L86 30" stroke="#c8323a" stroke-width="2"/>
+    <path d="M40 14 q10 -6 20 0 M34 88 q16 8 32 0" fill="none" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>`,
+  flute:()=>`
+    <path d="M14 82 L86 18" stroke="${INK}" stroke-width="12" stroke-linecap="round"/>
+    <path d="M14 82 L86 18" stroke="#c9a46a" stroke-width="7" stroke-linecap="round"/>
+    ${[30,40,50,60].map((x,i)=>`<circle cx="${x+2}" cy="${82-(x-14)*0.89+2}" r="1.8" fill="${INK}"/>`).join('')}
+    <path d="M66 70 L66 54 L76 50 L76 66" fill="none" ${SK2}/><circle cx="63" cy="70" r="4" fill="${INK}"/><circle cx="73" cy="66" r="4" fill="${INK}"/>
+    <path d="M24 30 L24 18 Q30 16 32 22" fill="none" ${SK2}/><circle cx="21" cy="30" r="3.5" fill="${INK}"/>`,
+  talmask:()=>`
+    <path d="M14 66 Q4 80 12 94 M86 66 Q96 80 88 94" fill="none" stroke="#c8323a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M18 66 Q8 80 20 92" fill="none" stroke="#2f5d9e" stroke-width="4" stroke-linecap="round"/>
+    <path d="M24 30 Q50 10 76 30 Q84 60 70 78 Q50 92 30 78 Q16 60 24 30Z" fill="#f0dcb4" ${SK}/>
+    <path d="M32 44 q7 -8 14 0 M54 44 q7 -8 14 0" fill="none" ${SK}/>
+    <path d="M34 64 Q50 78 66 64" fill="none" ${SK}/>
+    <circle cx="36" cy="56" r="4" fill="#e88a7a"/><circle cx="64" cy="56" r="4" fill="#e88a7a"/>
+    <path d="M36 32 q14 -6 28 0" fill="none" stroke="${INK}" stroke-width="2"/>`,
+  r_lantern:()=>ART.lantern(),
+  r_claw:()=>`${[30,48,66].map(x=>`<path d="M${x} 80 Q${x-6} 40 ${x+8} 14 Q${x+6} 46 ${x+10} 80Z" fill="#f2e8d0" ${SK}/>`).join('')}<path d="M22 82 L84 82" stroke="#b8893a" stroke-width="6" stroke-linecap="round"/>`,
+  r_thread:()=>`<rect x="28" y="18" width="44" height="10" rx="3" fill="#8a5a32" ${SK}/><rect x="28" y="72" width="44" height="10" rx="3" fill="#8a5a32" ${SK}/><rect x="34" y="28" width="32" height="44" fill="#c8323a" ${SK}/><path d="M34 36 L66 40 M34 48 L66 52 M34 60 L66 64" stroke="#e8706a" stroke-width="2"/><path d="M66 50 Q86 60 80 88" fill="none" stroke="#c8323a" stroke-width="3"/>`,
+  r_bell:()=>`<path d="M50 10 L50 22" ${SK}/><path d="M28 70 Q26 30 50 22 Q74 30 72 70 L80 78 L20 78Z" fill="#d9a93f" ${SK}/><circle cx="50" cy="84" r="7" fill="#d9a93f" ${SK}/><path d="M36 56 L64 56" stroke="#8a6a1a" stroke-width="3"/>`,
+  r_jar:()=>`<path d="M30 30 Q16 60 34 88 L66 88 Q84 60 70 30Z" fill="#6a3a22" ${SK}/><ellipse cx="50" cy="30" rx="20" ry="6" fill="#2f5d9e" ${SK}/><path d="M50 4 C56 12 58 18 50 22 C42 18 44 12 50 4Z" fill="#9fc3ee" ${SK2}/><path d="M28 60 L72 60" stroke="#8a5a3a" stroke-width="2"/>`,
+  r_pin:()=>`<path d="M20 86 L76 22" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><path d="M20 86 L76 22" stroke="#e8e0c8" stroke-width="5" stroke-linecap="round"/><circle cx="76" cy="22" r="11" fill="#7fbfb2" ${SK}/><circle cx="76" cy="22" r="4" fill="#c8323a"/>`,
+  r_fan:()=>`<path d="M50 86 L10 40 Q50 0 90 40Z" fill="#c8323a" ${SK}/>${[-36,-18,0,18,36].map(a=>`<path d="M50 86 L50 20" transform="rotate(${a} 50 86)" stroke="#8a1a1a" stroke-width="2"/>`).join('')}<circle cx="50" cy="86" r="5" fill="#e8c94a" ${SK2}/>`,
+  r_flute:()=>`<path d="M14 86 L86 14" stroke="${INK}" stroke-width="14" stroke-linecap="round"/><path d="M14 86 L86 14" stroke="#6fbf8f" stroke-width="9" stroke-linecap="round"/>${[30,42,54,66].map(x=>`<circle cx="${x}" cy="${100-x}" r="2.4" fill="${INK}"/>`).join('')}`,
+  r_mirror:()=>`<circle cx="50" cy="44" r="32" fill="#c9a46a" ${SK}/><circle cx="50" cy="44" r="24" fill="#e8f0f4" ${SK2}/><path d="M38 28 L50 46 L44 60 M50 46 L66 40" fill="none" stroke="${INK}" stroke-width="2"/><path d="M50 76 L50 94" stroke="#c8323a" stroke-width="5"/>`,
+  r_totem:()=>`<path d="M34 94 L36 22 Q50 8 64 22 L66 94Z" fill="#8a5a32" ${SK}/><circle cx="43" cy="34" r="5" fill="#fff" ${SK2}/><circle cx="57" cy="34" r="5" fill="#fff" ${SK2}/><path d="M40 50 Q50 58 60 50" fill="none" ${SK}/><path d="M44 52 l2 4 l2 -4 M52 52 l2 4 l2 -4" stroke="${INK}" stroke-width="1.5" fill="#fff"/><path d="M40 70 L60 70 M40 80 L60 80" stroke="#c8323a" stroke-width="3"/>`,
+  r_club:()=>`<path d="M24 86 L70 22" stroke="${INK}" stroke-width="20" stroke-linecap="round"/><path d="M24 86 L70 22" stroke="#8a5a32" stroke-width="14" stroke-linecap="round"/>${[[56,40],[66,28],[48,52]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5" fill="#e8c94a" ${SK2}/>`).join('')}`,
+  r_horn:()=>`<path d="M30 90 Q26 50 56 26 Q72 14 80 8 Q72 30 66 52 Q58 78 54 90Z" fill="#f2e8d0" ${SK}/><path d="M34 74 L56 72 M38 58 L62 56 M48 42 L68 38" stroke="#b8893a" stroke-width="2.5"/>`,
+  r_flag:()=>`<path d="M22 94 L22 8" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M24 12 L84 18 L70 34 L86 52 L24 50Z" fill="#c8323a" ${SK}/><text x="50" y="42" font-size="22" font-weight="900" text-anchor="middle" fill="#f2e8d0" font-family="serif">鬼</text>`,
+  /* ===== 4단계 — 새 카드 그림 ===== */
+  ironwall:()=>`
+    <path d="M14 88 L14 30 L30 18 L50 26 L70 18 L86 30 L86 88Z" fill="#8a8c90" ${SK}/>
+    <path d="M14 48 L86 48 M14 68 L86 68 M38 30 L38 48 M62 30 L62 48 M26 48 L26 68 M50 48 L50 68 M74 48 L74 68 M38 68 L38 88 M62 68 L62 88" stroke="#5a5c60" stroke-width="2.5"/>
+    <ellipse cx="42" cy="58" rx="5" ry="4" fill="#fff" ${SK2}/><ellipse cx="58" cy="58" rx="5" ry="4" fill="#fff" ${SK2}/>
+    <circle cx="43" cy="59" r="2" fill="${INK}"/><circle cx="57" cy="59" r="2" fill="${INK}"/>`,
+  dueoksini:()=>`
+    <circle cx="50" cy="52" r="44" fill="#e2552b" opacity=".2"/>
+    <path d="M20 96 L26 62 Q50 52 74 62 L80 96Z" fill="#7a2a1a" ${SK}/>
+    <path d="M30 78 L70 78" stroke="#e8c94a" stroke-width="3"/>
+    <circle cx="50" cy="40" r="22" fill="#a8301e" ${SK}/>
+    <path d="M30 28 L22 8 L38 22 M70 28 L78 8 L62 22" fill="#f2e8d0" ${SK}/>
+    <path d="M28 30 L24 20 L34 26 L36 14 L44 24 L50 10 L56 24 L64 14 L66 26 L76 20 L72 30" fill="#e2552b" ${SK2}/>
+    <circle cx="41" cy="38" r="6" fill="#ffd25e" ${SK2}/><circle cx="59" cy="38" r="6" fill="#ffd25e" ${SK2}/>
+    <circle cx="41" cy="38" r="2.5" fill="${INK}"/><circle cx="59" cy="38" r="2.5" fill="${INK}"/>
+    <path d="M36 50 Q50 62 64 50Z" fill="#fff" ${SK2}/><path d="M40 51 l2 5 l2 -4 M56 51 l2 4 l2 -5" stroke="${INK}" stroke-width="1.2" fill="none"/>
+    <path d="M84 74 C80 64 86 58 88 50 C92 58 96 64 90 74Z M12 74 C8 64 14 58 16 50 C20 58 24 64 18 74Z" fill="#ffb24a" ${SK2}/>`,
+  feast:()=>`
+    <path d="M8 74 L92 74 L86 84 L14 84Z" fill="#6a3a22" ${SK}/>
+    <path d="M24 74 Q24 58 36 58 Q48 58 48 74Z" fill="#f2e8d0" ${SK2}/><path d="M28 60 Q36 50 44 60" fill="#e2552b" ${SK2}/>
+    <path d="M56 74 L58 56 L76 56 L78 74Z" fill="#c9a46a" ${SK2}/><path d="M60 56 Q67 46 74 56" fill="none" stroke="#c8c8c8" stroke-width="2"/>
+    ${[[18,30],[50,18],[82,30]].map(([x,y])=>`<path d="M${x} ${y-12} C${x+6} ${y-4} ${x+7} ${y+3} ${x} ${y+8} C${x-7} ${y+3} ${x-6} ${y-4} ${x} ${y-12}Z" fill="#e2552b" ${SK2}/><circle cx="${x}" cy="${y+2}" r="3" fill="#ffc15e"/>`).join('')}`,
+  tails:()=>`
+    ${[-40,-15,10,35].map((a,i)=>`<path d="M50 88 Q${30+i*14} 50 ${20+i*20} 14" fill="none" stroke="${INK}" stroke-width="13" stroke-linecap="round" transform="rotate(${a/4} 50 88)"/><path d="M50 88 Q${30+i*14} 50 ${20+i*20} 14" fill="none" stroke="${i%2?'#f2e2ee':'#e8c6e2'}" stroke-width="8" stroke-linecap="round" transform="rotate(${a/4} 50 88)"/>`).join('')}
+    <path d="M8 46 l10 4 M86 40 l8 -6" stroke="#b45fa8" stroke-width="3" stroke-linecap="round"/>`,
+  lips:()=>`
+    <path d="M14 50 Q32 30 50 42 Q68 30 86 50 Q68 74 50 72 Q32 74 14 50Z" fill="#c8323a" ${SK}/>
+    <path d="M14 50 Q50 58 86 50" fill="none" stroke="${INK}" stroke-width="2.5"/>
+    ${[[78,20],[88,32],[70,12]].map(([x,y])=>`<path d="M${x} ${y} l0 -8 l6 -2" fill="none" stroke="#b45fa8" stroke-width="2.5"/><circle cx="${x-2}" cy="${y}" r="3" fill="#b45fa8"/>`).join('')}`,
+  soul:()=>`
+    <path d="M30 92 L34 60 Q50 54 66 60 L70 92Z" fill="#8a7a9a" opacity=".5" ${SK2}/>
+    <circle cx="50" cy="44" r="12" fill="#c8b8d8" opacity=".6" ${SK2}/>
+    <path d="M50 40 C64 30 70 14 60 8 C54 4 46 8 50 16 C38 12 34 26 44 30" fill="#f2e6ff" ${SK}/>
+    <circle cx="56" cy="16" r="2" fill="${INK}"/><circle cx="62" cy="16" r="2" fill="${INK}"/>
+    <path d="M78 50 q8 -6 4 -14 q-6 -4 -10 2" fill="none" stroke="#b45fa8" stroke-width="3" stroke-linecap="round"/>`,
+  foxrain:()=>`
+    <circle cx="74" cy="22" r="12" fill="#ffd25e" ${SK2}/>
+    <path d="M14 34 q10 -12 22 -4 q10 -10 22 0 l-4 6 L14 38Z" fill="#cfd8e8" ${SK}/>
+    ${[[20,50],[34,60],[48,52],[28,76],[44,80],[60,70],[70,88]].map(([x,y])=>`<path d="M${x} ${y} l-3 8" stroke="#8fc0ff" stroke-width="3" stroke-linecap="round"/>`).join('')}
+    <path d="M60 92 Q62 76 74 72 L80 64 L82 74 Q88 80 84 92Z" fill="#e8a060" ${SK2}/>
+    <path d="M86 90 Q96 80 92 66" fill="none" stroke="#e8a060" stroke-width="6" stroke-linecap="round"/>`,
+  hypno:()=>`
+    <circle cx="50" cy="50" r="38" fill="#2a1a3a" ${SK}/>
+    <path d="M50 50 m-3 0 a3 3 0 1 1 6 0 a8 8 0 1 1 -16 0 a13 13 0 1 1 26 0 a18 18 0 1 1 -36 0 a23 23 0 1 1 46 0 a28 28 0 1 1 -56 0" fill="none" stroke="#f0a0e8" stroke-width="3"/>`,
+  wink:()=>`
+    <path d="M24 30 L34 46 L66 46 L76 30 L72 60 Q64 78 50 86 Q36 78 28 60Z" fill="#f2dfc6" ${SK}/>
+    <path d="M28 36 L35 46 L29 50Z M72 36 L65 46 L71 50Z" fill="#b45fa8"/>
+    <path d="M36 58 q6 -5 12 0" fill="none" ${SK}/><circle cx="60" cy="58" r="4" fill="${INK}"/>
+    <path d="M44 74 Q50 78 56 72" fill="none" ${SK2}/>
+    <path d="M78 66 l10 -4 M80 74 l10 2" stroke="#b45fa8" stroke-width="3" stroke-linecap="round"/>`,
+  janghwa:()=>`
+    ${[[34,'#cfe9e3','#c8323a'],[66,'#e8d0e0','#2f5d9e']].map(([x,robe,ch])=>`
+      <path d="M${x-18} 94 L${x-10} 60 Q${x} 54 ${x+10} 60 L${x+18} 94Z" fill="${robe}" ${SK}/>
+      <path d="M${x-12} 46 Q${x-14} 80 ${x-8} 90 L${x-4} 60Z M${x+12} 46 Q${x+14} 80 ${x+8} 90 L${x+4} 60Z" fill="${INK}"/>
+      <ellipse cx="${x}" cy="44" rx="11" ry="13" fill="#eef6f3" ${SK}/>
+      <path d="M${x-12} 46 Q${x-12} 28 ${x} 28 Q${x+12} 28 ${x+12} 46 Q${x+6} 36 ${x} 36 Q${x-6} 36 ${x-12} 46Z" fill="${INK}"/>
+      <path d="M${x-6} 46 q3 2 5 0 M${x+1} 46 q3 2 5 0" fill="none" ${SK2}/>
+      <path d="M${x-14} 66 L${x+14} 66" stroke="${ch}" stroke-width="3"/>`).join('')}
+    <path d="M50 20 q-6 -10 2 -16 M50 20 q6 -10 -2 -16" fill="none" stroke="#7fbfb2" stroke-width="2"/>`,
+  sickle:()=>`
+    <path d="M30 92 L60 30" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><path d="M30 92 L60 30" stroke="#8a5a32" stroke-width="5" stroke-linecap="round"/>
+    <path d="M58 32 Q70 6 92 18 Q76 16 66 40Z" fill="#d8dce0" ${SK}/>
+    <path d="M10 40 q8 10 0 22 M20 34 q10 14 0 30" fill="none" stroke="#7fbfb2" stroke-width="2.5" stroke-linecap="round"/>`,
+  bloodtear:()=>`
+    <path d="M14 44 Q50 10 86 44 Q50 76 14 44Z" fill="#eef6f3" ${SK}/>
+    <circle cx="50" cy="44" r="13" fill="#4f9f92" ${SK2}/><circle cx="50" cy="44" r="5" fill="${INK}"/>
+    <path d="M44 58 C38 70 40 82 46 86 C52 82 52 70 44 58Z" fill="#c8323a" ${SK2}/>
+    <path d="M58 60 C55 66 56 72 59 74 C62 72 62 66 58 60Z" fill="#c8323a" ${SK2}/>`,
+  shroud:()=>`
+    <path d="M30 14 Q50 6 70 14 L78 90 Q50 98 22 90Z" fill="#f2f2ec" ${SK}/>
+    <path d="M36 30 L64 30 M34 50 L66 50 M32 70 L68 70" stroke="#c9c9bf" stroke-width="2.5"/>
+    <path d="M50 14 L50 90" stroke="#7fbfb2" stroke-width="2.5" stroke-dasharray="4 4"/>
+    <path d="M14 60 q-6 -12 4 -20 M86 56 q6 -12 -4 -20" fill="none" stroke="#7fbfb2" stroke-width="2.5" stroke-linecap="round"/>`,
+  gravewall:()=>`
+    <path d="M10 90 Q10 50 50 44 Q90 50 90 90Z" fill="#5a6a5a" ${SK}/>
+    <path d="M18 90 Q20 62 50 56 Q80 62 82 90" fill="none" stroke="#3a4a3a" stroke-width="2.5"/>
+    <rect x="40" y="16" width="20" height="40" fill="#8a8c90" ${SK}/>
+    <path d="M44 24 L56 24 M50 24 L50 46 M44 36 L56 36" stroke="#3a3a3a" stroke-width="2"/>
+    <path d="M24 30 q-6 -10 2 -18 M76 30 q6 -10 -2 -18" fill="none" stroke="#7fbfb2" stroke-width="2.5"/>`,
+  wail:()=>`
+    <ellipse cx="44" cy="54" rx="22" ry="28" fill="#e3efe9" ${SK}/>
+    <path d="M24 46 Q26 24 44 24 Q62 24 64 46 Q56 34 44 34 Q32 34 24 46Z" fill="${INK}"/>
+    <ellipse cx="44" cy="66" rx="8" ry="11" fill="#2a2a3a" ${SK2}/>
+    <path d="M34 50 l6 2 M54 50 l-6 2" ${SK2}/>
+    <path d="M72 40 q8 6 0 14 M78 32 q14 12 0 30 M84 24 q20 18 0 46" fill="none" stroke="#7fbfb2" stroke-width="2.5" stroke-linecap="round"/>`,
+  sangyeo:()=>`
+    <path d="M0 86 Q50 76 100 86 L100 100 L0 100Z" fill="#2a2a3a"/>
+    <path d="M20 54 L80 54 L74 70 L26 70Z" fill="#f2e8d0" ${SK}/>
+    <path d="M26 54 L30 40 L70 40 L74 54" fill="#c8323a" ${SK2}/><path d="M50 40 L50 30" ${SK}/><circle cx="50" cy="28" r="4" fill="#e8c94a" ${SK2}/>
+    <path d="M10 66 L90 66" stroke="#6a4a2a" stroke-width="5" stroke-linecap="round"/>
+    ${[20,36,64,80].map(x=>`<path d="M${x-5} 86 L${x-3} 70 L${x+3} 70 L${x+5} 86Z" fill="#e3efe9" ${SK2}/><circle cx="${x}" cy="66" r="0"/>`).join('')}
+    <path d="M12 30 l6 -8 l2 6 M86 26 l-6 -6 l-2 6" stroke="#7fbfb2" stroke-width="2"/>`,
+  splash:()=>`
+    <path d="M10 90 Q50 70 90 90Z" fill="#2f5d9e" ${SK}/>
+    <path d="M50 76 C40 60 26 54 18 36 C34 40 42 30 40 16 C50 28 58 28 60 14 C64 30 74 36 84 34 C78 52 62 60 50 76Z" fill="#5a8ccc" ${SK}/>
+    ${[[24,22],[78,20],[14,58],[88,58]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.5" fill="#9fc3ee" ${SK2}/>`).join('')}`,
+  whirl:()=>`
+    <ellipse cx="50" cy="56" rx="42" ry="30" fill="#2f5d9e" ${SK}/>
+    <path d="M50 56 m-4 0 a4 3 0 1 1 8 0 a10 7 0 1 1 -20 0 a16 11 0 1 1 32 0 a22 15 0 1 1 -44 0 a28 19 0 1 1 56 0" fill="none" stroke="#9fc3ee" stroke-width="3"/>`,
+  oar:()=>`
+    <path d="M0 76 q12 -8 25 0 t25 0 t25 0 t25 0 L100 100 L0 100Z" fill="#2f5d9e" ${SK}/>
+    <path d="M18 18 L70 76" stroke="${INK}" stroke-width="8" stroke-linecap="round"/><path d="M18 18 L70 76" stroke="#a8743a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M62 66 L86 92 L74 96 L56 74Z" fill="#a8743a" ${SK}/>
+    <path d="M30 64 q10 -6 20 0" fill="none" stroke="#f2e8d0" stroke-width="3" stroke-linecap="round"/>`,
+  shell:()=>`
+    <path d="M50 14 Q90 30 86 70 Q50 92 14 70 Q10 30 50 14Z" fill="#e8c8b0" ${SK}/>
+    ${[-30,-15,0,15,30].map(a=>`<path d="M50 86 L50 22" transform="rotate(${a} 50 86)" stroke="#a8786a" stroke-width="2"/>`).join('')}
+    <path d="M14 70 Q50 92 86 70" fill="none" stroke="#2f5d9e" stroke-width="4"/>`,
+  rain:()=>`
+    <path d="M10 36 q8 -16 24 -8 q10 -16 28 -6 q14 -10 26 4 q8 4 4 14 L10 42Z" fill="#7a8aa8" ${SK}/>
+    ${[[18,52],[32,60],[46,52],[60,62],[74,54],[24,78],[40,84],[56,80],[72,86],[86,70]].map(([x,y])=>`<path d="M${x} ${y} l-3 9" stroke="#5a8ccc" stroke-width="3.5" stroke-linecap="round"/>`).join('')}`,
+  tide:()=>`
+    <path d="M0 40 Q25 30 50 40 T100 40 L100 100 L0 100Z" fill="#2f5d9e" opacity=".4"/>
+    <path d="M0 62 Q25 52 50 62 T100 62 L100 100 L0 100Z" fill="#2f5d9e" ${SK}/>
+    <path d="M70 28 L84 28 M77 22 L77 36" stroke="#e8c94a" stroke-width="3"/>
+    <path d="M20 22 l0 22 m-6 -8 l6 8 l6 -8" fill="none" stroke="#f2e8d0" stroke-width="3" stroke-linecap="round"/>`,
+  yongwang:()=>`
+    <path d="M24 96 L30 58 Q50 50 70 58 L76 96Z" fill="#2f5d9e" ${SK}/>
+    <circle cx="50" cy="42" r="14" fill="#e8d0b0" ${SK}/>
+    <path d="M36 32 L34 14 L42 22 L50 10 L58 22 L66 14 L64 32Z" fill="#e8c94a" ${SK2}/>
+    <path d="M38 50 Q50 66 62 50" fill="#f6f6f0" ${SK2}/>
+    <path d="M44 42 q2 -2 4 0 M52 42 q2 -2 4 0" fill="none" ${SK2}/>
+    <path d="M14 30 Q6 50 16 70 M86 30 Q94 50 84 70" fill="none" stroke="#7fae8a" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="78" cy="82" r="8" fill="#9fc3ee" ${SK2}/>`,
+  gong:()=>`
+    <path d="M50 10 L50 18" ${SK}/>
+    <circle cx="50" cy="50" r="32" fill="#d9a93f" ${SK}/>
+    <circle cx="50" cy="50" r="22" fill="none" stroke="#8a6a1a" stroke-width="3"/>
+    <circle cx="50" cy="50" r="8" fill="#b8893a" ${SK2}/>
+    <path d="M8 34 q-4 16 0 32 M92 34 q4 16 0 32" fill="none" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M70 88 L88 70" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><circle cx="88" cy="70" r="5" fill="#f2e8d0" ${SK2}/>`,
+  kkwaeng:()=>`
+    <ellipse cx="44" cy="54" rx="30" ry="28" fill="#e8c94a" ${SK}/>
+    <ellipse cx="44" cy="54" rx="20" ry="18" fill="none" stroke="#b8893a" stroke-width="3"/>
+    <path d="M72 30 L92 10" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><circle cx="72" cy="30" r="6" fill="#8a5a32" ${SK2}/>
+    <path d="M80 54 l10 -2 M80 64 l10 4 M76 74 l8 8" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>`,
+  curtain:()=>`
+    <path d="M8 12 L92 12" stroke="#6a4a2a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M12 14 Q20 50 12 90 L46 90 Q38 50 46 14Z" fill="#b8893a" ${SK}/>
+    <path d="M54 14 Q62 50 54 90 L88 90 Q80 50 88 14Z" fill="#b8893a" ${SK}/>
+    <path d="M24 20 Q30 50 24 84 M76 20 Q70 50 76 84" stroke="#8a6a2a" stroke-width="2" fill="none"/>
+    <path d="M48 40 q6 6 0 12 M52 34 q10 12 0 24" fill="none" stroke="#f2e8d0" stroke-width="2.5"/>`,
+  chuimsae:()=>`
+    <circle cx="40" cy="50" r="26" fill="#e8d0b0" ${SK}/>
+    <path d="M18 40 Q20 22 40 22 Q60 22 62 40 Q52 30 40 30 Q28 30 18 40Z" fill="${INK}"/>
+    <path d="M30 46 q4 -4 8 0 M44 46 q4 -4 8 0" fill="none" ${SK2}/>
+    <ellipse cx="40" cy="62" rx="8" ry="6" fill="#7a2a2a" ${SK2}/>
+    <path d="M72 30 q10 -4 16 4 M72 46 l18 0 M72 62 q10 4 16 -4" fill="none" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>
+    <text x="80" y="86" font-size="16" font-weight="900" text-anchor="middle" fill="#c8323a">얼쑤</text>`,
+  reverb:()=>`
+    <circle cx="30" cy="50" r="10" fill="#b8893a" ${SK2}/>
+    ${[18,30,42,54].map((r,i)=>`<path d="M${30+r*0.6} ${50-r*0.8} A${r} ${r} 0 0 1 ${30+r*0.6} ${50+r*0.8}" fill="none" stroke="#b8893a" stroke-width="${4-i*0.6}" opacity="${1-i*0.18}"/>`).join('')}
+    <text x="78" y="30" font-size="14" font-weight="900" fill="#b8893a">×2</text>`,
+  daegeum:()=>`
+    <path d="M8 70 L92 30" stroke="${INK}" stroke-width="11" stroke-linecap="round"/><path d="M8 70 L92 30" stroke="#6a8a4a" stroke-width="6" stroke-linecap="round"/>
+    ${[26,38,50,62,74].map(x=>`<circle cx="${x}" cy="${70-(x-8)*0.476}" r="2" fill="${INK}"/>`).join('')}
+    <path d="M30 26 q4 -10 12 -8 M58 82 q8 2 12 -6" fill="none" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>`,
+  jangdan:()=>`
+    <path d="M12 34 L42 48 L58 48 L88 34 L88 74 L58 60 L42 60 L12 74Z" fill="#c8323a" ${SK}/>
+    <ellipse cx="12" cy="54" rx="7" ry="21" fill="#e6d3a6" ${SK}/><ellipse cx="88" cy="54" rx="7" ry="21" fill="#e6d3a6" ${SK}/>
+    <path d="M12 34 L88 74 M12 74 L88 34" stroke="#e8c94a" stroke-width="2"/>
+    <path d="M30 14 L40 30 M70 14 L60 30" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>
+    <path d="M24 90 q6 -6 12 0 q6 6 12 0 q6 -6 12 0 q6 6 12 0" fill="none" stroke="#b8893a" stroke-width="2.5"/>`,
+  charmshard:()=>`
+    <path d="M24 16 L70 10 L78 48 L60 58 L66 90 L28 84Z" fill="#d8c070" ${SK}/>
+    <path d="M34 26 L60 22 M46 22 L44 52 M34 40 L58 38" stroke="#7a1a1a" stroke-width="3"/>
+    <path d="M60 58 L50 62 L54 72" fill="none" stroke="${INK}" stroke-width="2"/>
+    <path d="M30 64 Q40 58 50 68" fill="none" stroke="#3a3036" stroke-width="3"/>`,
+  /* ===== 4단계 — 새 요괴 그림 ===== */
+  gangcheol:()=>`
+    <path d="M14 70 C10 40 40 30 60 40 C80 50 90 30 84 16" fill="none" stroke="${INK}" stroke-width="20" stroke-linecap="round"/>
+    <path d="M14 70 C10 40 40 30 60 40 C80 50 90 30 84 16" fill="none" stroke="#5a6a7a" stroke-width="14" stroke-linecap="round"/>
+    <path d="M14 70 C10 40 40 30 60 40 C80 50 90 30 84 16" fill="none" stroke="#b8c8d8" stroke-width="3" stroke-dasharray="5 5"/>
+    <path d="M70 18 L90 8 L94 22 L84 30Z" fill="#5a6a7a" ${SK}/>
+    <path d="M78 12 L74 2 M86 10 L88 0" ${SK}/><circle cx="86" cy="16" r="2.6" fill="#ffd25e"/>
+    <path d="M14 70 L8 92 M14 70 L26 90" ${SK}/>
+    ${[[30,86],[50,80],[70,88]].map(([x,y])=>`<path d="M${x} ${y} C${x+4} ${y-6} ${x+8} ${y} ${x+4} ${y+6}Z" fill="#9fc3ee" ${SK2}/>`).join('')}`,
+  mulyeou:()=>`
+    <path d="M0 84 q12 -8 25 0 t25 0 t25 0 t25 0 L100 100 L0 100Z" fill="#2f5d9e" ${SK}/>
+    <path d="M26 82 Q24 56 46 52 L70 52 Q80 40 86 44 L90 56 L80 62 L78 82Z" fill="#7a9aa8" ${SK}/>
+    <path d="M84 44 L86 32 L90 44Z" fill="#7a9aa8" ${SK2}/>
+    <circle cx="84" cy="52" r="2.4" fill="${INK}"/>
+    <path d="M26 66 Q10 60 12 44" fill="none" stroke="#7a9aa8" stroke-width="7" stroke-linecap="round"/>
+    <path d="M90 58 q6 2 8 -2" fill="none" stroke="#c9b48e" stroke-width="2"/>
+    <circle cx="96" cy="50" r="1.5" fill="#c9b48e"/><circle cx="98" cy="58" r="1.2" fill="#c9b48e"/>`,
+  bangul:()=>`
+    <path d="M30 94 L34 64 Q50 58 66 64 L70 94Z" fill="#6a4a8a" ${SK}/>
+    <circle cx="50" cy="46" r="16" fill="#d8803a" ${SK}/>
+    <path d="M45 32 L50 18 L55 32Z" fill="#f2e8d0" ${SK2}/>
+    <circle cx="44" cy="44" r="4" fill="#fff" ${SK2}/><circle cx="56" cy="44" r="4" fill="#fff" ${SK2}/>
+    <circle cx="45" cy="45" r="1.6" fill="${INK}"/><circle cx="55" cy="45" r="1.6" fill="${INK}"/>
+    <path d="M44 53 Q50 58 56 53" fill="none" ${SK2}/>
+    <path d="M70 70 L84 54" ${SK}/>${[[84,50],[90,56],[80,46],[90,46]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.6" fill="#d9a93f" ${SK2}/>`).join('')}
+    <path d="M10 50 q-4 8 0 16 M18 44 q-6 14 0 28" fill="none" stroke="#b8893a" stroke-width="2.5"/>`,
+  sanbeom:()=>`
+    <path d="M6 72 Q2 26 50 10 Q98 26 94 72 Q86 96 50 96 Q14 96 6 72Z" fill="#f6f2ea" ${SK}/>
+    <path d="M18 34 Q14 62 22 88 M30 24 Q24 58 32 92 M82 34 Q86 62 78 88 M70 24 Q76 58 68 92" fill="none" stroke="#c9b48e" stroke-width="2"/>
+    <ellipse cx="50" cy="56" rx="20" ry="18" fill="#e8dcc8" ${SK}/>
+    <circle cx="42" cy="52" r="4.5" fill="#b8893a" ${SK2}/><circle cx="58" cy="52" r="4.5" fill="#b8893a" ${SK2}/>
+    <circle cx="42" cy="52" r="1.8" fill="${INK}"/><circle cx="58" cy="52" r="1.8" fill="${INK}"/>
+    <path d="M36 46 L46 49 M64 46 L54 49" ${SK2}/>
+    <path d="M40 66 Q50 74 60 66" fill="#7a2a2a" ${SK2}/>
+    <path d="M43 67 l1.5 5 l1.5 -4.5 M55 67 l1.5 4.5 l1.5 -5" fill="#fff" stroke="${INK}" stroke-width="1.2"/>
+    <path d="M30 14 L26 4 L36 10 M70 14 L74 4 L64 10" fill="#f6f2ea" ${SK2}/>
+    <path d="M0 48 q-3 10 0 20 M100 48 q3 10 0 20" fill="none" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>`,
+  /* ===== 4단계 — 새 보물 그림 ===== */
+  r_gourd:()=>`<circle cx="50" cy="34" r="16" fill="#c8a050" ${SK}/><ellipse cx="50" cy="68" rx="26" ry="24" fill="#c8a050" ${SK}/>
+    <path d="M46 16 L46 8 L54 8 L54 16" fill="#8a5a32" ${SK2}/><path d="M34 52 Q50 60 66 52" fill="none" stroke="#c8323a" stroke-width="3"/>
+    <path d="M36 74 q8 -6 14 0 t14 0" fill="none" stroke="#2f5d9e" stroke-width="3"/>`,
+  r_hahoe:()=>`<path d="M20 24 Q50 10 80 24 Q86 60 70 80 Q50 94 30 80 Q14 60 20 24Z" fill="#f0dcb4" ${SK}/>
+    <path d="M28 40 q8 -8 16 0 M56 40 q8 -8 16 0" fill="none" ${SK}/><path d="M30 64 Q50 82 70 64" fill="none" ${SK}/>
+    <circle cx="32" cy="54" r="4" fill="#e88a7a"/><circle cx="68" cy="54" r="4" fill="#e88a7a"/>`,
+  r_bone:()=>`<path d="M20 80 L80 20" stroke="${INK}" stroke-width="16" stroke-linecap="round"/><path d="M20 80 L80 20" stroke="#ece6d6" stroke-width="10" stroke-linecap="round"/>
+    ${[[36,64],[48,52],[60,40]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.6" fill="${INK}"/>`).join('')}
+    <circle cx="80" cy="20" r="9" fill="#ece6d6" ${SK2}/><circle cx="20" cy="80" r="9" fill="#ece6d6" ${SK2}/>
+    <path d="M84 50 q8 6 0 14 M88 40 q14 12 0 30" fill="none" stroke="#7fbfb2" stroke-width="2.5"/>`,
+  r_sbuk:()=>`<ellipse cx="50" cy="34" rx="34" ry="12" fill="#e6d3a6" ${SK}/><path d="M16 34 L16 70 Q50 86 84 70 L84 34" fill="#c8323a" ${SK}/>
+    <path d="M16 70 Q50 86 84 70" fill="none" stroke="#e8c94a" stroke-width="3"/><path d="M30 44 L30 74 M50 46 L50 80 M70 44 L70 74" stroke="#7a1a1a" stroke-width="2"/>
+    <path d="M60 14 L84 4" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`,
+  r_ember:()=>`<path d="M16 80 Q20 56 40 54 Q50 40 64 50 Q84 52 84 80Z" fill="#2a2228" ${SK}/>
+    <path d="M30 70 Q40 62 50 70 M54 64 Q64 58 72 68" fill="none" stroke="#e2552b" stroke-width="3"/>
+    <path d="M50 46 C42 34 48 24 50 12 C56 24 62 32 54 46Z" fill="#e2552b" ${SK2}/><circle cx="50" cy="38" r="3" fill="#ffc15e"/>`,
+  r_brush:()=>`<path d="M30 86 L70 18" stroke="${INK}" stroke-width="10" stroke-linecap="round"/><path d="M30 86 L70 18" stroke="#8a5a32" stroke-width="6" stroke-linecap="round"/>
+    <path d="M68 20 L78 4 Q90 10 82 26Z" fill="#2a2228" ${SK2}/><rect x="62" y="20" width="10" height="8" transform="rotate(30 67 24)" fill="#e8c94a" ${SK2}/>
+    <path d="M14 70 q10 -10 22 -4" fill="none" stroke="#2a2228" stroke-width="4" stroke-linecap="round"/>`,
+  r_tiger:()=>`<path d="M14 30 Q50 12 86 30 L80 84 Q50 96 20 84Z" fill="#e8a040" ${SK}/>
+    ${[[30,36],[46,30],[62,32],[74,44],[26,58],[44,52],[60,56],[34,74],[56,76],[70,66]].map(([x,y],i)=>`<path d="M${x} ${y} q4 6 0 12" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round" transform="rotate(${i*17} ${x} ${y})"/>`).join('')}
+    <circle cx="50" cy="20" r="0"/>`,
   /* 3단계 — 보물 · 비전투 화면 */
   r_orb:()=>`<circle cx="50" cy="50" r="40" fill="#b45fa8" opacity=".3"/><circle cx="50" cy="50" r="28" fill="#f6e6ff" ${SK}/><circle cx="50" cy="50" r="18" fill="none" stroke="#b45fa8" stroke-width="4"/><circle cx="42" cy="42" r="6" fill="#fff"/>`,
   r_ribbon:()=>`<path d="M50 14 C30 14 30 40 50 40 C70 40 70 14 50 14Z" fill="#c8323a" ${SK}/><path d="M44 40 L30 88 L42 80 L48 90 L52 42 M56 40 L70 86 L58 80 L54 90" fill="#c8323a" ${SK}/><circle cx="50" cy="38" r="5" fill="#e8c94a" ${SK2}/>`,
@@ -991,33 +1859,105 @@ const ART = {
 /* 사람형 적 그림 생성기 */
 function humanArt(o){
   const robe = o.robe || '#555', skin = o.skin || '#e8cfb0', s = [];
+  if(o.aura) s.push(`<circle cx="50" cy="52" r="46" fill="none" stroke="${o.aura}" stroke-width="2.5" stroke-dasharray="5 6" opacity=".9"/>`);
+  if(o.boss3) s.push(`<circle cx="50" cy="48" r="40" fill="none" stroke="#e8c94a" stroke-width="2"/><path d="M50 8 L50 88 M10 48 L90 48 M22 20 L78 76 M78 20 L22 76" stroke="#e8c94a" stroke-width="1.2" opacity=".6"/>`);
+  // 뒤에 드는 장물
+  if(o.item === 'gun') s.push(`<path d="M16 92 L88 40" stroke="${INK}" stroke-width="7" stroke-linecap="round"/><path d="M16 92 L88 40" stroke="#6a4a2a" stroke-width="3.5" stroke-linecap="round"/><circle cx="84" cy="43" r="2" fill="#ffb24a"/>`);
+  if(o.item === 'glaive') s.push(`<path d="M80 96 L80 14" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M80 96 L80 14" stroke="#7a3a1a" stroke-width="3"/><path d="M80 12 Q96 20 92 40 Q86 30 80 30Z" fill="#d8dce0" ${SK2}/>`);
+  if(o.item === 'staff') s.push(`<path d="M80 96 L80 16" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M80 96 L80 16" stroke="#8a5a32" stroke-width="3"/><circle cx="80" cy="14" r="7" fill="none" stroke="#e8c94a" stroke-width="3"/><circle cx="74" cy="20" r="2.5" fill="#e8c94a"/><circle cx="86" cy="20" r="2.5" fill="#e8c94a"/>`);
+  if(o.item === 'lantern') s.push(`<path d="M78 96 L78 30 L70 22" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><path d="M14 90 L26 20" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><path d="M26 20 L22 8 L32 18Z" fill="#d8dce0" ${SK2}/>`);
+  // 몸통
   s.push(`<path d="M22 98 L32 58 Q50 50 68 58 L78 98Z" fill="${robe}" ${SK}/>`);
   s.push(`<path d="M42 56 L50 70 L58 56" fill="none" stroke="#f2e8d0" stroke-width="3"/>`);
   s.push(`<path d="M28 78 L72 78" stroke="${o.belt || '#c8323a'}" stroke-width="3.5"/>`);
   s.push(`<path d="M32 62 L22 80 M68 62 L76 78" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/><path d="M32 62 L22 80 M68 62 L76 78" fill="none" stroke="${robe}" stroke-width="3.5" stroke-linecap="round"/>`);
   s.push(`<circle cx="22" cy="81" r="4" fill="${skin}" ${SK2}/><circle cx="76" cy="79" r="4" fill="${skin}" ${SK2}/>`);
+  // 머리
   s.push(`<circle cx="50" cy="40" r="13" fill="${skin}" ${SK}/>`);
-  if(o.hat !== 'monk') s.push(`<path d="M37 38 Q38 27 50 27 Q62 27 63 38 Q58 31 50 31 Q42 31 37 38Z" fill="${INK}"/>`);
+  if(o.hat !== 'monk' && o.hat !== 'helmet') s.push(`<path d="M37 38 Q38 27 50 27 Q62 27 63 38 Q58 31 50 31 Q42 31 37 38Z" fill="${INK}"/>`);
   s.push(`<path d="M42 37 L47 39.5 M58 37 L53 39.5" ${SK2}/><circle cx="45" cy="42" r="1.6" fill="${INK}"/><circle cx="55" cy="42" r="1.6" fill="${INK}"/>`);
   s.push(`<path d="M46 48 L54 48" ${SK2}/>`);
+  if(o.boss3 || o.hat === 'samo') s.push(`<path d="M44 50 Q50 62 56 50" fill="#3a3a3a" ${SK2}/>`);
+  // 모자
   switch(o.hat){
-    case 'band': s.push(`<path d="M37 34 L63 34" stroke="#f2e8d0" stroke-width="4"/><circle cx="50" cy="25" r="4.5" fill="${INK}"/><path d="M63 34 L70 38" stroke="#f2e8d0" stroke-width="3"/>`); break;
-    case 'monk': s.push(`<path d="M39 34 Q50 26 61 34" fill="none" stroke="#c9b08a" stroke-width="2"/><circle cx="50" cy="36" r="1.6" fill="#c8323a"/>`); break;
+    case 'gat': s.push(`<ellipse cx="50" cy="30" rx="25" ry="5" fill="${INK}" fill-opacity=".85" ${SK2}/><path d="M41 30 L43 15 Q50 12 57 15 L59 30Z" fill="${INK}"/><path d="M38 32 L40 54 M62 32 L60 54" stroke="${INK}" stroke-width="1.2" stroke-dasharray="2 2"/>`); break;
+    case 'jeonrip': s.push(`<path d="M26 32 Q50 24 74 32 Q50 37 26 32Z" fill="${INK}"/><path d="M40 31 Q42 16 50 16 Q58 16 60 31Z" fill="${INK}"/><path d="M50 16 Q58 8 66 12" fill="none" stroke="#c8323a" stroke-width="4" stroke-linecap="round"/><text x="50" y="29" font-size="8" text-anchor="middle" fill="#e8c94a" font-weight="900">勇</text>`); break;
+    case 'band': s.push(`<path d="M37 34 L63 34" stroke="#f2e8d0" stroke-width="4"/><circle cx="50" cy="25" r="4.5" fill="${INK}"/>`); break;
+    case 'monk': s.push(`<path d="M38 34 Q50 24 62 34" fill="none" stroke="#c9b08a" stroke-width="2"/>`); break;
+    case 'helmet': s.push(`<path d="M35 38 Q35 20 50 20 Q65 20 65 38Z" fill="#5a5f6a" ${SK}/><path d="M50 20 L50 8" ${SK}/><path d="M50 9 Q42 4 38 10" fill="none" stroke="#c8323a" stroke-width="4" stroke-linecap="round"/><path d="M35 38 L31 50 M65 38 L69 50" ${SK}/><path d="M36 34 L64 34" stroke="#e8c94a" stroke-width="2.5"/>`); break;
+    case 'samo': s.push(`<path d="M40 31 L40 21 Q50 15 60 21 L60 31Z" fill="${INK}"/><ellipse cx="33" cy="25" rx="8" ry="3.2" fill="${INK}"/><ellipse cx="67" cy="25" rx="8" ry="3.2" fill="${INK}"/>`); break;
     case 'mudang': s.push(`<path d="M37 31 L41 13 L59 13 L63 31Z" fill="#c8323a" ${SK2}/><path d="M59 14 Q72 4 80 12" fill="none" stroke="#2f5d9e" stroke-width="3"/><path d="M41 22 L59 22" stroke="#e8c94a" stroke-width="2.5"/>`); break;
+    case 'crown': s.push(`<path d="M37 31 L35 10 L43 17 L50 5 L57 17 L65 10 L63 31Z" fill="#2a2a3a" ${SK2}/><circle cx="50" cy="20" r="3" fill="#e8c94a"/><circle cx="42" cy="24" r="2" fill="#7fbfb2"/><circle cx="58" cy="24" r="2" fill="#7fbfb2"/>`); break;
   }
+  // 앞에 드는 장물
   switch(o.item){
-    case 'club': s.push(`<path d="M76 80 L90 48" stroke="${INK}" stroke-width="10" stroke-linecap="round"/><path d="M76 80 L90 48" stroke="#8a6a3a" stroke-width="6" stroke-linecap="round"/>`); break;
-    case 'fan': s.push(`<path d="M76 80 L62 58 Q78 46 94 60Z" fill="#c8323a" ${SK2}/><path d="M76 80 L68 54 M76 80 L80 51 M76 80 L90 56" stroke="#7a1a1a" stroke-width="1.2"/><path d="M22 82 L14 66" ${SK}/>${[[13,63],[17,60],[10,60]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.8" fill="#d9a93f" ${SK2}/>`).join('')}`); break;
-    case 'beads': s.push(`${Array.from({length:12}, (_, i) => { const a = i / 12 * Math.PI * 2; return `<circle cx="${50 + Math.cos(a) * 10}" cy="${66 + Math.sin(a) * 7}" r="2.4" fill="#6a3a22" stroke="${INK}" stroke-width="1"/>`; }).join('')}<path d="M78 80 L88 62" ${SK}/><ellipse cx="89" cy="58" rx="8" ry="6" fill="#a8743a" ${SK2}/>`); break;
-    case 'bell': s.push(`<path d="M76 79 L84 60" ${SK}/>${[[84,58],[89,63],[80,55],[88,54]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.2" fill="#d9a93f" ${SK2}/>`).join('')}<path d="M84 60 Q94 70 90 84" fill="none" stroke="#c8323a" stroke-width="2"/><g transform="rotate(-12 20 74)"><rect x="12" y="62" width="11" height="20" fill="#f2d24a" ${SK2}/><path d="M15 66 L20 66 M17.5 66 L17.5 76" stroke="#c8323a" stroke-width="1.6"/></g>`); break;
+    case 'talisman': s.push(`<g transform="rotate(14 78 72)"><rect x="72" y="60" width="12" height="22" fill="#e8c94a" ${SK2}/><path d="M75 64 L81 64 M78 64 L78 76 M75 70 L81 72" stroke="#c8323a" stroke-width="1.8"/></g>`); break;
+    case 'bell': s.push(`<path d="M76 79 L84 60" ${SK}/>${[[84,58],[89,63],[80,55],[88,54]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.2" fill="#d9a93f" ${SK2}/>`).join('')}<path d="M84 60 Q94 70 90 84" fill="none" stroke="#c8323a" stroke-width="2"/>`); break;
+    case 'rope': s.push(`<circle cx="80" cy="80" r="9" fill="none" stroke="${INK}" stroke-width="6"/><circle cx="80" cy="80" r="9" fill="none" stroke="#c8623a" stroke-width="3"/><path d="M80 89 Q76 96 84 98" fill="none" stroke="#c8623a" stroke-width="3"/>`); break;
+    case 'club': s.push(`<path d="M76 80 L90 52" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><path d="M76 80 L90 52" stroke="#8a5a32" stroke-width="5" stroke-linecap="round"/>`); break;
+    case 'sword': s.push(`<path d="M76 80 L92 40" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M78 74 L92 40" stroke="#d8dce0" stroke-width="3" stroke-linecap="round"/><path d="M72 76 L82 80" ${SK}/>`); break;
+    case 'swords': s.push(`<path d="M76 80 L92 42 M22 82 L8 44" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M78 74 L92 42 M20 76 L8 44" stroke="#d8dce0" stroke-width="3" stroke-linecap="round"/>`); break;
+    case 'fan': s.push(`<path d="M76 80 L64 60 Q78 50 92 62Z" fill="#f2e8d0" ${SK2}/><path d="M76 80 L70 58 M76 80 L80 55 M76 80 L88 58" stroke="#8a7a68" stroke-width="1.2"/>`); break;
+    case 'chain': s.push(`<path d="M76 80 Q86 70 84 56" fill="none" stroke="#8a8c90" stroke-width="3" stroke-dasharray="4 2"/><circle cx="84" cy="50" r="8" fill="#5a5f6a" ${SK2}/><path d="M78 44 l-3 -3 M90 44 l3 -3 M84 42 l0 -4 M76 52 l-4 0 M92 52 l4 0" ${SK2}/>`); break;
+    case 'mirror': s.push(`<circle cx="82" cy="66" r="10" fill="#c9a46a" ${SK2}/><circle cx="82" cy="66" r="6.5" fill="#e8f6f4"/><path d="M76 79 L80 75" ${SK2}/>`); break;
+    case 'beads': s.push(`${Array.from({length:10},(_, i)=>{const a=i/10*Math.PI*2; return `<circle cx="${50+Math.cos(a)*9}" cy="${66+Math.sin(a)*7}" r="2.3" fill="#6a3a22" stroke="${INK}" stroke-width="1"/>`;}).join('')}`); break;
+    case 'lantern': s.push(`<path d="M64 24 L76 24 L78 38 L62 38Z" fill="#e8572a" ${SK2}/><circle cx="70" cy="31" r="10" fill="#ffb24a" opacity=".3"/>`); break;
+    case 'bow': s.push(`<path d="M84 42 Q100 63 84 86" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M84 42 Q100 63 84 86" fill="none" stroke="#8a5a32" stroke-width="3" stroke-linecap="round"/><path d="M84 42 L84 86" stroke="#e8e4d8" stroke-width="1"/><path d="M60 64 L92 64" stroke="${INK}" stroke-width="1.6"/><rect x="58" y="60" width="6" height="9" fill="#e8c94a" ${SK2}/>`); break;
+    case 'brush': s.push(`<path d="M76 80 L88 52" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><path d="M76 80 L88 52" stroke="#8a5a32" stroke-width="2.5" stroke-linecap="round"/><path d="M88 52 L91 42 L95 50Z" fill="#2a2228" ${SK2}/><rect x="10" y="64" width="16" height="22" fill="#f2e8d0" ${SK2}/><path d="M13 70 L23 70 M13 75 L23 75 M13 80 L20 80" stroke="#c8323a" stroke-width="1.4"/>`); break;
   }
   return s.join('');
 }
+
 function art(key){ const f = ART[key]; return svgWrap(f ? f() : ART._unknown()); }
-function enemyArtSvg(id){
+function enemyArtSvg(id, unit){
   const a = ENEMIES[id].art;
   if(a.kind === 'jangseung') return svgWrap(jangseungArt(a.male));
+  if(a.kind === 'haetae') return svgWrap(haetaeArt());
+  if(a.kind === 'sinjang') return svgWrap(sinjangArt());
+  if(a.kind === 'thrall'){
+    const sp = unit && unit.spiritId ? SPIRITS[unit.spiritId] : SPIRITS.kkoma;
+    const f = ART[sp.art];
+    return svgWrap(`<circle cx="50" cy="50" r="46" fill="#4a2a6a" opacity=".45"/>${f ? f() : ''}
+      <path d="M8 30 Q50 52 92 30 M8 70 Q50 48 92 70" fill="none" stroke="#c9c0d8" stroke-width="3" stroke-dasharray="6 4"/>
+      <g transform="rotate(-12 74 26)"><rect x="66" y="10" width="16" height="30" fill="#f2d24a" ${SK2}/><path d="M70 16 L78 16 M74 16 L74 32" stroke="#c8323a" stroke-width="2"/></g>`);
+  }
   return svgWrap(a.kind === 'dog' ? ART.E_dog() : humanArt(a));
+}
+/* 해태 석상 (2막 보스) */
+function haetaeArt(){
+  let mane = '';
+  for(let i = 0; i < 12; i++){ const a = i / 12 * Math.PI * 2; mane += `<circle cx="${50 + Math.cos(a) * 22}" cy="${36 + Math.sin(a) * 20}" r="7" fill="#8a8c90" ${SK2}/>`; }
+  return `<ellipse cx="50" cy="97" rx="38" ry="3" fill="#000" opacity=".35"/>
+    <rect x="12" y="82" width="76" height="14" fill="#6a6c70" ${SK}/>
+    <path d="M20 82 Q18 58 34 52 L66 52 Q82 58 80 82Z" fill="#a8aab0" ${SK}/>
+    <path d="M28 82 L28 68 M72 82 L72 68 M40 82 L40 72 M60 82 L60 72" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>
+    <path d="M78 66 Q94 60 90 44 Q86 52 80 54" fill="#a8aab0" ${SK2}/>
+    ${mane}
+    <circle cx="50" cy="36" r="19" fill="#bcbec4" ${SK}/>
+    <path d="M45 18 L50 4 L55 18Z" fill="#e8c94a" ${SK2}/>
+    <circle cx="42" cy="33" r="5.5" fill="#fff" ${SK2}/><circle cx="58" cy="33" r="5.5" fill="#fff" ${SK2}/>
+    <circle cx="42" cy="33.5" r="2.6" fill="#e2552b"/><circle cx="58" cy="33.5" r="2.6" fill="#e2552b"/>
+    <path d="M36 27 L46 29 M64 27 L54 29" ${SK2}/>
+    <ellipse cx="50" cy="41" rx="6" ry="4" fill="#6a6c70" ${SK2}/>
+    <path d="M38 47 Q50 56 62 47Z" fill="#fff" ${SK2}/><path d="M42 48 l2 4 l2 -3 M54 48 l2 3 l2 -4" stroke="${INK}" stroke-width="1.2" fill="none"/>
+    <circle cx="50" cy="58" r="5" fill="#d9a93f" ${SK2}/>
+    <path d="M30 70 Q40 64 50 70 Q60 64 70 70" fill="none" stroke="#8a8c90" stroke-width="2"/>`;
+}
+/* 신장 인형 (3막) */
+function sinjangArt(){
+  return `<ellipse cx="50" cy="97" rx="30" ry="3" fill="#000" opacity=".35"/>
+    <path d="M80 96 L82 10" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M80 96 L82 10" stroke="#8a5a32" stroke-width="3"/>
+    <path d="M82 10 L76 24 L88 24Z" fill="#d8dce0" ${SK2}/>
+    <path d="M26 96 L30 56 Q50 48 70 56 L74 96Z" fill="#8a3a2a" ${SK}/>
+    ${[62,72,82].map(y=>`<path d="M30 ${y} Q50 ${y + 5} 70 ${y}" fill="none" stroke="#e8c94a" stroke-width="2.5"/>`).join('')}
+    <path d="M30 58 L18 64 L20 78 L32 72Z M70 58 L82 64 L80 78 L68 72Z" fill="#6a6c70" ${SK2}/>
+    <circle cx="50" cy="38" r="15" fill="#f0e0c0" ${SK}/>
+    <path d="M34 34 Q34 16 50 14 Q66 16 66 34 L60 30 L50 26 L40 30Z" fill="#3a3f4a" ${SK2}/>
+    <path d="M50 14 L50 4" ${SK}/><circle cx="50" cy="4" r="3" fill="#c8323a"/>
+    <path d="M42 36 L47 38 M58 36 L53 38" ${SK2}/><circle cx="44" cy="40" r="1.8" fill="${INK}"/><circle cx="56" cy="40" r="1.8" fill="${INK}"/>
+    <circle cx="40" cy="45" r="3" fill="#e86a6a"/><circle cx="60" cy="45" r="3" fill="#e86a6a"/>
+    <path d="M45 48 L55 48" ${SK2}/>
+    <path d="M40 22 L42 8 M60 22 L58 8" stroke="${INK}" stroke-width="1" stroke-dasharray="2 2"/>`;
 }
 /* 대장승 (천하대장군 / 지하여장군) */
 function jangseungArt(male){
@@ -1051,6 +1991,95 @@ const NODE_ICON = {
 };
 /* 사건 삽화 (16:10) */
 const EVENT_ART = {
+  ev_seonang:()=>`<rect width="160" height="100" fill="#1a2240"/><circle cx="130" cy="22" r="12" fill="#f6e9c6"/>
+    <path d="M0 80 Q80 60 160 80 L160 100 L0 100Z" fill="#141a2e"/>
+    <path d="M60 80 Q80 40 100 80Z" fill="#6a6a70" ${SK}/><path d="M66 72 L94 72 M70 62 L90 62" stroke="#4a4a50" stroke-width="2"/>
+    <path d="M110 80 L112 28 M112 30 L140 34" stroke="${INK}" stroke-width="3"/>
+    ${['#c8323a','#2f5d9e','#e8c94a','#3e8a4a','#f2e8d0'].map((c,i)=>`<path d="M${114+i*5} 31 L${113+i*5} 52" stroke="${c}" stroke-width="3"/>`).join('')}
+    <circle cx="80" cy="78" r="4" fill="#d9a93f" ${SK2}/>`,
+  ev_drunk:()=>`<rect width="160" height="100" fill="#1c2238"/><circle cx="28" cy="20" r="10" fill="#f6e9c6"/>
+    <path d="M0 78 L160 70 L160 100 L0 100Z" fill="#2a2a30"/>
+    <path d="M40 76 Q70 66 100 74 L102 82 L40 84Z" fill="#c9b48e" ${SK}/><circle cx="108" cy="74" r="9" fill="#e8cfb0" ${SK}/>
+    <ellipse cx="108" cy="66" rx="14" ry="3" fill="${INK}"/><path d="M104 74 q2 2 4 0 M110 74 q2 2 4 0" ${SK2} fill="none"/>
+    <path d="M30 86 Q26 74 34 70 L40 70 Q46 76 42 86Z" fill="#8a5a3a" ${SK}/>
+    <text x="120" y="50" font-size="12" fill="#ffd9a0">♪</text><text x="132" y="40" font-size="10" fill="#ffd9a0">♪</text>`,
+  ev_jar:()=>`<rect width="160" height="100" fill="#181c30"/>
+    <path d="M56 30 Q36 60 58 92 L102 92 Q124 60 104 30Z" fill="#6a3a22" ${SK}/>
+    <ellipse cx="80" cy="30" rx="24" ry="6" fill="#3a2010" ${SK}/>
+    <g transform="rotate(20 80 56)"><rect x="72" y="40" width="16" height="30" fill="#e8c94a" ${SK2}/><path d="M76 46 L84 46 M80 46 L80 62" stroke="#c8323a" stroke-width="2"/></g>
+    <path d="M96 36 L104 60 L98 70" fill="none" ${SK2}/>
+    <circle cx="74" cy="28" r="2" fill="#b45fa8"/><circle cx="86" cy="28" r="2" fill="#b45fa8"/>
+    <path d="M60 20 q-6 -8 2 -14 M100 18 q6 -8 -2 -14" fill="none" stroke="#b45fa8" stroke-width="2"/>`,
+  ev_ssireum:()=>`<rect width="160" height="100" fill="#1a2040"/><circle cx="80" cy="18" r="11" fill="#f6e9c6"/>
+    <ellipse cx="80" cy="86" rx="70" ry="12" fill="#c9b48e" ${SK}/>
+    <circle cx="66" cy="50" r="9" fill="#c9553a" ${SK}/><path d="M64 42 L66 34 L68 42" fill="#f2e8d0" ${SK2}/>
+    <circle cx="94" cy="50" r="9" fill="#3e6a9a" ${SK}/><path d="M92 42 L94 34 L96 42" fill="#f2e8d0" ${SK2}/>
+    <path d="M60 58 L72 82 M100 58 L88 82 M70 62 L90 62" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>
+    <path d="M70 66 L90 66" stroke="#f2e8d0" stroke-width="3"/>
+    ${[18,30,130,142].map(x=>`<circle cx="${x}" cy="66" r="6" fill="#4a6a3a" ${SK2}/>`).join('')}`,
+  ev_well:()=>`<rect width="160" height="100" fill="#141c30"/>
+    <ellipse cx="80" cy="56" rx="36" ry="10" fill="#0a0e1a" ${SK}/>
+    <path d="M44 56 L44 88 Q80 98 116 88 L116 56" fill="#6a6a70" ${SK}/>
+    <path d="M44 68 Q80 78 116 68 M44 80 Q80 90 116 80" fill="none" stroke="#4a4a50" stroke-width="2"/>
+    <path d="M66 58 Q66 40 80 38 Q94 40 94 58" fill="${INK}"/>
+    <circle cx="75" cy="50" r="2" fill="#5ab0ff"/><circle cx="85" cy="50" r="2" fill="#5ab0ff"/>
+    <path d="M36 56 L36 20 L124 20 L124 56" fill="none" stroke="#5a3a22" stroke-width="5"/>`,
+  ev_fortune:()=>`<rect width="160" height="100" fill="#1c1a30"/>
+    <path d="M20 40 L140 40 L130 30 L30 30Z" fill="#8a3a2a" ${SK}/><path d="M28 40 L28 90 M132 40 L132 90" stroke="${INK}" stroke-width="4"/>
+    <path d="M40 90 L120 90 L120 70 L40 70Z" fill="#6a3a22" ${SK}/>
+    <circle cx="80" cy="54" r="10" fill="#e8cfb0" ${SK}/><ellipse cx="80" cy="45" rx="16" ry="3.5" fill="${INK}"/><path d="M73 45 L75 36 L85 36 L87 45Z" fill="${INK}"/>
+    <path d="M76 56 q2 1.5 4 0 M82 56 q2 1.5 4 0" fill="none" ${SK2}/><path d="M76 62 Q80 70 84 62" fill="#f2e8d0" ${SK2}/>
+    ${[56,64,96,104].map((x,i)=>`<rect x="${x}" y="74" width="5" height="14" fill="#e8c94a" ${SK2}/>`).join('')}`,
+  ev_sansin:()=>`<rect width="160" height="100" fill="#18223a"/>
+    <path d="M0 70 L40 30 L70 60 L100 24 L160 70 L160 100 L0 100Z" fill="#202a40"/>
+    <path d="M44 86 Q50 66 76 66 Q102 66 112 80 L116 92 L40 92Z" fill="#e8a040" ${SK}/>
+    <path d="M60 70 L64 90 M80 68 L82 90 M96 70 L98 90" stroke="${INK}" stroke-width="3"/>
+    <circle cx="118" cy="70" r="10" fill="#e8a040" ${SK}/><circle cx="121" cy="68" r="1.8" fill="${INK}"/>
+    <circle cx="74" cy="42" r="9" fill="#f2e2c8" ${SK}/><path d="M66 46 Q74 66 82 46" fill="#f6f6f0" ${SK2}/>
+    <path d="M62 54 L86 54 L90 66 L58 66Z" fill="#f6f6f0" ${SK2}/>
+    <path d="M56 50 L44 40" stroke="#8a5a32" stroke-width="3"/><circle cx="42" cy="38" r="5" fill="#d9a93f" ${SK2}/><circle cx="98" cy="50" r="5" fill="#d8dce0" ${SK2}/>`,
+  ev_checkpoint:()=>`<rect width="160" height="100" fill="#141a2e"/>
+    <path d="M0 40 L60 40 L60 100 L0 100Z M100 40 L160 40 L160 100 L100 100Z" fill="#2a2a38" ${SK}/>
+    <path d="M-4 40 L64 40 L56 28 L4 28Z M96 40 L164 40 L156 28 L104 28Z" fill="#3a3a4a" ${SK}/>
+    <path d="M60 70 L100 70" stroke="#c8323a" stroke-width="4"/>
+    <circle cx="80" cy="56" r="7" fill="#e8cfb0" ${SK2}/><path d="M68 60 Q80 54 92 60 Q80 63 68 60Z" fill="${INK}"/>
+    <path d="M74 90 L76 64 L84 64 L86 90Z" fill="#3d4f7a" ${SK2}/>
+    <text x="92" y="50" font-size="10" fill="#c9c0d8">z</text><text x="98" y="42" font-size="8" fill="#c9c0d8">z</text>
+    <rect x="110" y="76" width="20" height="14" fill="#6a3a22" ${SK2}/>`,
+  ev_gut:()=>`<rect width="160" height="100" fill="#1c1a30"/><circle cx="130" cy="18" r="9" fill="#f6e9c6" opacity=".85"/>
+    <path d="M0 76 L160 72 L160 100 L0 100Z" fill="#2a2228"/>
+    ${['#c8323a','#2f5d9e','#e8c94a','#3e8a4a','#f2e8d0','#b45fa8'].map((c,i)=>`<path d="M${20+i*22} 10 Q${26+i*22} 30 ${20+i*22} 50" stroke="${c}" stroke-width="5" fill="none"/>`).join('')}
+    <path d="M12 8 L148 8" stroke="${INK}" stroke-width="2"/>
+    <path d="M60 70 L100 70" stroke="#d8dce0" stroke-width="3"/><path d="M64 70 L62 80 M96 70 L98 80" stroke="${INK}" stroke-width="2"/>
+    <path d="M70 70 L74 44 Q80 40 86 44 L90 70Z" fill="#c8323a" ${SK2}/><circle cx="80" cy="38" r="6" fill="#e8cfb0" ${SK2}/>
+    <path d="M73 34 L76 24 L84 24 L87 34Z" fill="#2f5d9e" ${SK2}/>
+    <path d="M90 50 L104 36" ${SK2}/><path d="M104 36 L98 28 Q108 26 112 34Z" fill="#c8323a" ${SK2}/>
+    <path d="M70 52 L58 44" ${SK2}/>${[[56,42],[52,46],[58,48]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.4" fill="#d9a93f" ${SK2}/>`).join('')}
+    <circle cx="30" cy="84" r="9" fill="#d9a93f" ${SK2}/><circle cx="132" cy="86" r="8" fill="#e8c94a" ${SK2}/>`,
+  ev_wish:()=>`<rect width="160" height="100" fill="#141c30"/><circle cx="30" cy="18" r="8" fill="#f6e9c6"/>
+    <path d="M0 80 Q80 70 160 80 L160 100 L0 100Z" fill="#0e1424"/>
+    ${[[62,true],[98,false]].map(([x,m])=>`<path d="M${x-9} 92 L${x-8} 38 L${x+8} 38 L${x+9} 92Z" fill="#9a6a3a" ${SK2}/>
+      <path d="M${x-11} 36 L${x-9} ${m?16:22} L${x+9} ${m?16:22} L${x+11} 36Z" fill="${m?'#2a2a2a':'#3a2424'}" ${SK2}/>
+      <circle cx="${x-4}" cy="44" r="3" fill="#fff" ${SK2}/><circle cx="${x+4}" cy="44" r="3" fill="#fff" ${SK2}/>
+      <path d="M${x-4} 52 Q${x} 55 ${x+4} 52" fill="none" stroke="${INK}" stroke-width="1.5"/>`).join('')}
+    <path d="M30 70 Q30 56 38 54 Q46 56 46 70Z" fill="#3e6a4a" ${SK2}/><circle cx="38" cy="50" r="5" fill="#c9553a" ${SK2}/><path d="M37 45 L38 39 L40 45Z" fill="#f2e8d0"/>
+    <path d="M120 30 l3 6 l6 3 l-6 3 l-3 6 l-3 -6 l-6 -3 l6 -3Z" fill="#ffd25e"/><path d="M136 50 l2 4 l4 2 l-4 2 l-2 4 l-2 -4 l-4 -2 l4 -2Z" fill="#ffd25e"/>`,
+  ev_seonbi:()=>`<rect width="160" height="100" fill="#182038"/><circle cx="128" cy="20" r="9" fill="#f6e9c6"/>
+    <path d="M0 70 L50 52 L90 64 L160 50 L160 100 L0 100Z" fill="#202a40"/>
+    <path d="M70 100 Q80 72 96 60" fill="none" stroke="#3a3a48" stroke-width="10"/>
+    <path d="M70 92 L74 58 Q82 52 90 58 L94 92Z" fill="#e8e4d8" ${SK2}/>
+    <circle cx="82" cy="50" r="7" fill="#e8cfb0" ${SK2}/><ellipse cx="82" cy="44" rx="13" ry="3" fill="${INK}"/><path d="M76 44 L78 34 L86 34 L88 44Z" fill="${INK}"/>
+    <path d="M80 50 q2 1.5 4 0" fill="none" stroke="${INK}" stroke-width="1"/>
+    <rect x="94" y="56" width="14" height="18" rx="2" fill="#8a6a3a" ${SK2}/><path d="M94 62 L108 62" stroke="${INK}" stroke-width="1"/>
+    <path d="M66 70 L58 64" ${SK2}/><path d="M56 62 L50 56" stroke="#2a2228" stroke-width="3" stroke-linecap="round"/>
+    <path d="M30 40 q4 -8 10 -4 M120 70 q4 -6 8 0" fill="none" stroke="#c9c0d8" stroke-width="1.5"/>`,
+  ev_wedding:()=>`<rect width="160" height="100" fill="#141a30"/><circle cx="80" cy="16" r="11" fill="#f6e9c6"/>
+    <path d="M0 78 Q80 70 160 78 L160 100 L0 100Z" fill="#0e1424"/>
+    <path d="M60 76 L64 46 L96 46 L100 76Z" fill="#c8323a" ${SK}/><path d="M58 46 Q80 32 102 46Z" fill="#7a1a1a" ${SK2}/>
+    <rect x="72" y="54" width="16" height="14" fill="#e8c94a" ${SK2}/><path d="M46 70 L114 70" stroke="#6a4a2a" stroke-width="4" stroke-linecap="round"/>
+    ${[50,110].map(x=>`<path d="M${x-4} 92 L${x-3} 72 L${x+3} 72 L${x+4} 92Z" fill="#e8e4d8" ${SK2}/><circle cx="${x}" cy="68" r="4" fill="#e8cfb0" ${SK2}/>`).join('')}
+    ${[[24,40],[136,40]].map(([x,y])=>`<path d="M${x} ${y-12} L${x} ${y}" stroke="${INK}" stroke-width="1.5"/><rect x="${x-5}" y="${y}" width="10" height="14" rx="2" fill="#e8572a" ${SK2}/><rect x="${x-5}" y="${y}" width="10" height="4" fill="#2f5d9e"/><circle cx="${x}" cy="${y+7}" r="14" fill="#ffb24a" opacity=".22"/>`).join('')}
+    <path d="M20 86 L22 66 L30 62 L34 86Z" fill="#3a3a48"/><circle cx="27" cy="58" r="4" fill="#3a3a48"/>`,
   ev_gamble:()=>`<rect width="160" height="100" fill="#1c2238"/><circle cx="132" cy="18" r="9" fill="#f6e9c6"/>
     <path d="M0 70 L160 64 L160 100 L0 100Z" fill="#2a2420"/>
     <path d="M30 66 L130 62 L140 92 L20 96Z" fill="#c9a46a" ${SK}/><path d="M36 74 L132 70 M30 84 L136 80" stroke="#9a7a4a" stroke-width="1.5"/>
@@ -1083,6 +2112,9 @@ const STATUS_ICON = {
   tear:`<svg viewBox="0 0 20 20"><path d="M10 2 C14 8 16 11 15 14 C14 17 12 18 10 18 C8 18 6 17 5 14 C4 11 6 8 10 2Z" fill="#9fe8d8" stroke="${INK}" stroke-width="1.4"/><path d="M8 11 L12 11 M10 9 L10 15" stroke="#2f7f74" stroke-width="1.4"/></svg>`,
   down:`<svg viewBox="0 0 20 20"><path d="M10 18 L2 9 L7 9 L7 2 L13 2 L13 9 L18 9Z" fill="#c8b0e0" stroke="${INK}" stroke-width="1.4"/></svg>`,
   hourglass:`<svg viewBox="0 0 20 20"><path d="M4 2 L16 2 L16 4 Q16 8 11 10 Q16 12 16 16 L16 18 L4 18 L4 16 Q4 12 9 10 Q4 8 4 4Z" fill="#f2d8a0" stroke="${INK}" stroke-width="1.4"/><path d="M7 16 Q10 13 13 16Z M8 5 L12 5 Q11 7 10 8 Q9 7 8 5Z" fill="#c8622a"/></svg>`,
+  fang:`<svg viewBox="0 0 20 20"><path d="M4 3 L16 3 L13 18 L10 10 L7 18Z" fill="#f2e8d0" stroke="${INK}" stroke-width="1.4"/></svg>`,
+  wave:`<svg viewBox="0 0 20 20"><circle cx="5" cy="10" r="3" fill="#e8c94a" stroke="${INK}" stroke-width="1.2"/><path d="M10 4 A7 7 0 0 1 10 16 M14 2 A10 10 0 0 1 14 18" fill="none" stroke="#f2d8a0" stroke-width="1.8"/></svg>`,
+  shield:`<svg viewBox="0 0 20 20"><path d="M10 1 L18 4 Q18 13 10 19 Q2 13 2 4Z" fill="#c8cad0" stroke="${INK}" stroke-width="1.4"/><path d="M10 5 L10 15 M6 9 L14 9" stroke="#6a6c70" stroke-width="1.4"/></svg>`,
   paper:`<svg viewBox="0 0 20 20"><rect x="5" y="1" width="10" height="18" fill="#f6f2e0" stroke="${INK}" stroke-width="1.4"/><path d="M7.5 5 L12.5 5 M10 5 L10 14" stroke="#7a7a7a" stroke-width="1.4"/></svg>`,
   hex:`<svg viewBox="0 0 20 20"><path d="M10 1 L18 5.5 L18 14.5 L10 19 L2 14.5 L2 5.5Z" fill="#8fe0f0" stroke="${INK}" stroke-width="1.4"/><path d="M10 5 L14 7.5 L14 12.5 L10 15 L6 12.5 L6 7.5Z" fill="none" stroke="#2f7f8f" stroke-width="1.2"/></svg>`,
 };
@@ -1094,13 +2126,34 @@ const INTENT_ICON = {
   seal:`<rect x="6" y="2" width="12" height="20" fill="#f2d24a" stroke="${INK}" stroke-width="1.6"/><path d="M9 6 L15 6 M12 6 L12 15 M9 11 L15 12" stroke="#c8323a" stroke-width="1.6"/>`,
   special:`<circle cx="12" cy="12" r="10" fill="#6a4a8a" stroke="${INK}" stroke-width="1.6"/><text x="12" y="17" font-size="14" font-weight="900" text-anchor="middle" fill="#fff">?</text>`,
 };
-function actBackground(){
-  return `<svg viewBox="0 0 100 200" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="80" cy="34" r="16" fill="#f6e9c6" opacity=".08"/><circle cx="80" cy="34" r="9" fill="#f6e9c6" opacity=".85"/>
-    <path d="M0 132 L14 118 L26 126 L40 110 L56 124 L70 114 L86 126 L100 116 L100 200 L0 200Z" fill="#1a2238" opacity=".9"/>
-    <path d="M0 150 L18 138 L34 146 L50 134 L66 144 L82 136 L100 144 L100 200 L0 200Z" fill="#141a2c"/>
-    ${[12,30,62,88].map(x=>`<path d="M${x} 146 l-5 12 l10 0Z M${x} 140 l-6 14 l12 0Z" fill="#0e1424"/>`).join('')}
-    <path d="M0 176 Q50 164 100 176 L100 200 L0 200Z" fill="#0d1120"/></svg>`;
+function actBackground(act){
+  act = act || (G.run ? G.run.act : 1);
+  /* 세로형(100x200) 배경: 하늘은 위, 지형은 아래 */
+  const W = inner => `<svg viewBox="0 0 100 200" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+  const moon = `<circle cx="80" cy="34" r="16" fill="#f6e9c6" opacity=".08"/><circle cx="80" cy="34" r="9" fill="#f6e9c6" opacity=".85"/>`;
+  if(act === 1){
+    return W(`${moon}
+      <path d="M0 132 L14 118 L26 126 L40 110 L56 124 L70 114 L86 126 L100 116 L100 200 L0 200Z" fill="#1a2238" opacity=".9"/>
+      <path d="M0 150 L18 138 L34 146 L50 134 L66 144 L82 136 L100 144 L100 200 L0 200Z" fill="#141a2c"/>
+      ${[12,30,62,88].map(x=>`<path d="M${x} 146 l-5 12 l10 0Z M${x} 140 l-6 14 l12 0Z" fill="#0e1424"/>`).join('')}
+      <path d="M0 176 Q50 164 100 176 L100 200 L0 200Z" fill="#0d1120"/>`);
+  }
+  if(act === 2){
+    return W(`${moon}
+      <path d="M0 130 L100 130 L100 200 L0 200Z" fill="#12182a"/>
+      <path d="M20 130 L20 114 L80 114 L80 130Z" fill="#1a2238"/>
+      <path d="M12 117 Q50 102 88 117 L80 112 Q50 100 20 112Z" fill="#232c46"/>
+      <path d="M40 130 Q50 118 60 130Z" fill="#0b0f1c"/>
+      ${[6,26,46,66,86].map(x=>`<path d="M${x-9} 154 Q${x} 147 ${x+9} 154 L${x+7} 160 L${x-7} 160Z" fill="#0e1424"/><rect x="${x-6}" y="160" width="12" height="10" fill="#0e1424"/><circle cx="${x+3}" cy="165" r="1.2" fill="#ffb24a" opacity=".7"/>`).join('')}
+      <path d="M0 178 L100 178 L100 200 L0 200Z" fill="#0b0f1c"/>`);
+  }
+  return W(`<circle cx="50" cy="44" r="30" fill="none" stroke="#7fbfb2" stroke-width=".6" opacity=".45"/>
+    <circle cx="50" cy="44" r="23" fill="none" stroke="#e8c94a" stroke-width=".4" opacity=".4"/>
+    <path d="M50 14 L50 74 M20 44 L80 44 M29 23 L71 65 M71 23 L29 65" stroke="#7fbfb2" stroke-width=".3" opacity=".4"/>
+    <path d="M0 140 L100 140 L100 200 L0 200Z" fill="#121424"/>
+    <path d="M28 140 L28 122 L72 122 L72 140Z" fill="#1a1c30"/><path d="M20 125 Q50 110 80 125 L72 120 Q50 108 28 120Z" fill="#26283e"/>
+    ${[10,90].map(x=>`<rect x="${x-3}" y="118" width="6" height="24" fill="#1a1c30"/><circle cx="${x}" cy="116" r="3" fill="#7fbfb2" opacity=".6"/>`).join('')}
+    <path d="M0 176 L100 176 L100 200 L0 200Z" fill="#0b0d18"/>`);
 }
 function titleBackground(){
   let walkers = '';
@@ -1128,11 +2181,11 @@ function titleBackground(){
    상태 머신: title → leaderSelect → map → node(battle/shop/inn/event/treasure) → reward → map … → result
    (시험 전투: title → battle → result)
 ---------------------------------------------------------------- */
-const G = {screen:'title', meta:null, run:null, battle:null, ui:{}};
+const G = {screen:'title', meta:null, run:null, battle:null, ui:{}, sim:false};
 
 function defaultMeta(){
   return {version:VERSION, codex:{cards:{}, enemies:{}, relics:{}}, unlocks:{}, ascension:{max:0, selected:0},
-    stats:{battles:0, wins:0, losses:0, runs:0, clears:0, bestFloor:0}, settings:{sfx:true, bgm:true, fast:false}};
+    stats:{battles:0, wins:0, losses:0, runs:0, clears:0, bestFloor:0, bestAct:0, fullClears:0}, settings:{sfx:true, bgm:true, fast:false}};
 }
 function loadMeta(){
   const m = storeGet(SAVE_META), d = defaultMeta();
@@ -1158,7 +2211,7 @@ function newRun(deckIds, seed, mode){
   const run = {version:VERSION, mode:mode || 'test', seed:seed || randomSeedString(), leader:'bangmangi',
     maxHp:L.hp, hp:L.hp, gold:mode === 'run' ? STARTING_GOLD : 0, deck:[], relics:L.relics.slice(), uid:0,
     act:1, map:null, path:[], floor:0, pendingNode:null, nodeState:null, rewardState:null,
-    removeCost:PRICE.remove, flags:{}, seenEvents:[],
+    removeCost:PRICE.remove, flags:{}, seenEvents:[], actBattles:0,
     stats:{kills:0, elites:0, battles:0, startTime:Date.now(), playTime:0, lastTick:Date.now()}};
   run.deck = deckIds.map(id => newCardInst(run, id, false));
   deckIds.forEach(id => codexSee('cards', id));
@@ -1171,6 +2224,7 @@ function relicMod(key){
   if(G.run) for(const id of G.run.relics){ const r = RELICS[id]; if(r && r.mods && r.mods[key]) n += r.mods[key]; }
   return n;
 }
+function spiritSlots(){ return SPIRIT_SLOTS + relicMod('slots'); }
 function hasRelic(id){ return !!(G.run && G.run.relics.includes(id)); }
 function updatePlayTime(){
   const run = G.run;
@@ -1374,6 +2428,7 @@ function resolveTargets(e, ctx, def){
 }
 
 /* 피해 계산 · 적용 */
+function actScale(){ return ACT_SCALE[(G.run && G.run.act) || 1] || {hp:1, dmg:1, bossHp:1, bossDmg:1}; }
 function calcDamage(src, tgt, base){
   let dmg = base;
   if(src){
@@ -1381,6 +2436,7 @@ function calcDamage(src, tgt, base){
     if(src.kind === 'enemy'){
       dmg -= st(src, 'dread');                 // 위축: 타격마다 -N
       if(st(src, 'charm') > 0) dmg *= 0.75;    // 홀림: 25% 감소
+      dmg *= ENEMIES[src.id] && ENEMIES[src.id].boss ? actScale().bossDmg : actScale().dmg;   // 막별 보정
     }
     if(isAllySide(src) && tgt && st(tgt, 'wet') > 0) dmg += relicMod('wetBonus');   // 이무기 비늘
   }
@@ -1401,6 +2457,8 @@ async function dealDamage(src, tgt, base, opts){
     Sound.play('ward');
     return 0;
   }
+  // 철갑: 모든 피해를 수치만큼 줄인다 (무시 불가)
+  if(dmg > 0 && st(tgt, 'armor') > 0){ dmg = Math.max(0, dmg - tgt.status.armor); if(dmg === 0) fxText(tgt.uid, '철갑', 'blk'); }
   let blocked = 0;
   if(!opts.pierce){ blocked = Math.min(tgt.block || 0, dmg); tgt.block -= blocked; dmg -= blocked; }
   tgt.hp = Math.max(0, tgt.hp - dmg);
@@ -1415,9 +2473,28 @@ async function dealDamage(src, tgt, base, opts){
     fxText(tgt.uid, '막음', 'blk');
     Sound.play('block');
   }
+  if(tgt.kind === 'enemy' && tgt.hp > 0) checkPhase(tgt);
   if(tgt.kind === 'spirit' && dmg > 0) await emit('spiritDamaged', {spirit:tgt});
+  // 해태 석상: 불 계열 피해를 받으면 정의의 불 +1, 쌓인 만큼 반격
+  if(opts.fire && tgt.kind === 'enemy' && tgt.hp > 0 && ENEMIES[tgt.id].justice){
+    tgt.status.justice = (tgt.status.justice || 0) + 1;
+    const back = (src && src.kind === 'spirit' && src.hp > 0 && !src.dead) ? src : b.player;
+    fxText(tgt.uid, '정의의 불 ' + tgt.status.justice, 'burn');
+    fxEmbers(back.uid, 8);
+    await dealDamage(tgt, back, tgt.status.justice, {raw:true, cls:'burn', sound:'burn'});
+  }
   if(tgt.hp <= 0) await onUnitDeath(tgt);
   return dmg;
+}
+/* 수치 계산: scale = {status, mult} 이면 대장의 그 상태 수치만큼 더한다 */
+function scaledValue(e, ctx){
+  let v = e.value || 0;
+  if(e.scale && ctx.battle) v += Math.floor(st(ctx.battle.player, e.scale.status) * (e.scale.mult || 1));
+  return v;
+}
+function isFireSource(src, ctx){
+  if(ctx && ctx.card) return ctx.card.family === 'fire';
+  return !!(src && src.kind === 'spirit' && src.family === 'fire');
 }
 function applyStatus(tgt, key, val){
   if(!tgt || tgt.hp <= 0 || tgt.dead || !val) return;
@@ -1468,10 +2545,10 @@ EFFECTS.damage = async (e, ctx) => {
     const targets = resolveTargets(e, ctx, 'enemy');
     if(src.kind === 'enemy' && targets.length) fxClass(src.uid, 'lunge');
     for(const t of targets){
-      let v = e.value || 0;
+      let v = scaledValue(e, ctx);
       if(e.bonusIf && st(t, e.bonusIf) > 0) v += e.bonus || 0;
       if(ctx.card && ctx.card.type === 'attack' && b.turn === 1) v += relicMod('firstTurnAttack');
-      await dealDamage(src, t, v);
+      await dealDamage(src, t, v, {fire:isFireSource(src, ctx)});
     }
     if(hits > 1) await sleep(200);
   }
@@ -1479,18 +2556,25 @@ EFFECTS.damage = async (e, ctx) => {
 EFFECTS.block = async (e, ctx) => {
   const b = ctx.battle; if(!b) return;
   const src = ctx.source || b.player;
-  resolveTargets(e, ctx, src.kind === 'enemy' ? 'self' : 'player').forEach(t => gainBlock(t, e.value));
+  const v = scaledValue(e, ctx);
+  resolveTargets(e, ctx, src.kind === 'enemy' ? 'self' : 'player').forEach(t => gainBlock(t, v));
 };
 for(const k of ['burn','charm','wet','dread']){
   EFFECTS[k] = async (e, ctx) => {
     if(!ctx.battle) return;
-    resolveTargets(e, ctx, 'enemy').forEach(t => applyStatus(t, k, e.value));
+    let v = e.value;
+    if(k === 'burn' && isAllySide(ctx.source || ctx.battle.player)) v += relicMod('burnBonus');   // 꺼지지 않는 숯
+    resolveTargets(e, ctx, 'enemy').forEach(t => applyStatus(t, k, v));
     await sleep(120);
   };
 }
+/* 결계: 다시 치면 더해지지 않고 「결계 N」으로 새로 친다 (끝없이 쌓여 전투가 막히는 것을 방지) */
 EFFECTS.ward = async (e, ctx) => {
   if(!ctx.battle) return;
-  resolveTargets(e, ctx, 'self').forEach(t => applyStatus(t, 'ward', e.value));
+  resolveTargets(e, ctx, 'self').forEach(t => {
+    const add = e.value - st(t, 'ward');
+    if(add > 0) applyStatus(t, 'ward', add); else fxText(t.uid, '결계 유지', 'ward');
+  });
 };
 EFFECTS.multiplyStatus = async (e, ctx) => {
   const b = ctx.battle; if(!b) return;
@@ -1518,7 +2602,7 @@ EFFECTS.gold = async (e, ctx) => {
 };
 EFFECTS.strength = async (e, ctx) => {
   const b = ctx.battle; if(!b) return;
-  resolveTargets(e, ctx, 'self').forEach(t => { t.status.str = (t.status.str || 0) + e.value; });
+  resolveTargets(e, ctx, 'self').forEach(t => { t.status.str = (t.status.str || 0) + e.value; fxText(t.uid, '요기 +' + e.value, 'st'); });
   renderBattle();
 };
 /* 봉인: 적 차례에는 손패가 비어 있으므로, 다음 턴 손패를 뽑은 직후 카드 1장에 부적이 붙는다 */
@@ -1628,6 +2712,7 @@ EFFECTS.unseal = async (e, ctx) => {
     uid = picked || all[0].uid;
   }
   b.sealed.delete(uid);
+  delete b.sealedBy[uid];
   const c = all.find(x => x.uid === uid);
   renderBattle();
   Sound.play('ward');
@@ -1705,6 +2790,161 @@ EFFECTS.yut = async (e, ctx) => {
   }
   (ctx.gained = ctx.gained || []).push({kind:'yut', res});
 };
+/* ===== 4단계 추가 효과 ===== */
+EFFECTS.stripBlock = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  for(const t of resolveTargets(e, ctx, 'enemy')){ if(t.block){ t.block = 0; renderBattle(); fxText(t.uid, '방어 해제', 'st'); } }
+};
+/* 업화: 대상의 불씨 × 배수 만큼 피해 (불씨는 그대로) */
+EFFECTS.burnBurst = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  const t = resolveTargets({target:'enemy'}, ctx, 'enemy')[0];
+  if(!t) return;
+  const v = st(t, 'burn') * (e.mult || 2);
+  if(v <= 0){ fxText(t.uid, '불씨 없음', 'st'); return; }
+  fxEmbers(t.uid, 20); fxFlash();
+  await dealDamage(ctx.source || b.player, t, v, {raw:true, cls:'burn', sound:'burn', fire:true});
+};
+EFFECTS.drawPerStatus = async (e, ctx) => {
+  const n = aliveEnemies().filter(x => st(x, e.status) > 0).length;
+  if(n) await drawCards(n); else toast(STATUS_INFO[e.status].name + ' 걸린 적이 없다');
+};
+EFFECTS.drawPerSpirit = async (e, ctx) => {
+  const n = aliveSpirits().length;
+  if(n) await drawCards(n); else toast('내 요괴가 없다');
+};
+EFFECTS.spiritActAll = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  for(const sp of b.spirits.slice()){ if(b.over) return; if(sp && sp.hp > 0 && !sp.dead) await spiritAct(sp); }
+};
+EFFECTS.healSpirits = async (e, ctx) => {
+  for(const sp of aliveSpirits()){
+    const before = sp.hp; sp.hp = Math.min(sp.maxHp, sp.hp + e.value);
+    if(sp.hp > before) fxText(sp.uid, '+' + (sp.hp - before), 'heal');
+  }
+  renderBattle();
+};
+/* 되울림: 다음에 쓰는 카드가 한 번 더 발동 (cap이 있으면 그 이상 쌓이지 않음) */
+EFFECTS.echo = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  const cur = st(b.player, 'echo');
+  if(e.cap && cur >= e.cap) return;
+  applyStatus(b.player, 'echo', e.value || 1);
+};
+/* 제물: 가장 약한 내 요괴를 쓰러뜨리고 남은 체력만큼 원한 */
+EFFECTS.sacrifice = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  const sp = aliveSpirits().sort((x, y) => x.hp - y.hp)[0];
+  if(!sp){ toast('제물로 바칠 요괴가 없다'); return; }
+  const g = sp.hp;
+  fxText(sp.uid, '제물', 'grudge');
+  await killSpirit(sp);
+  await EFFECTS.gainGrudge({value:g}, ctx);
+};
+EFFECTS.gainGrudgePerSpirit = async (e, ctx) => {
+  const n = aliveSpirits().length;
+  if(n) await EFFECTS.gainGrudge({value:n * e.value}, ctx); else toast('내 요괴가 없다');
+};
+/* 백귀행렬: 무작위 일반 요괴 소환 */
+EFFECTS.summonRandom = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  const pool = Object.keys(SPIRITS).filter(k => !SPIRITS[k].great);
+  await summonSpirit(pick(b.rng, pool));
+};
+EFFECTS.gainMaxHp = async (e, ctx) => {
+  G.run.maxHp += e.value; G.run.hp += e.value;
+  if(ctx.battle){ ctx.battle.player.maxHp += e.value; ctx.battle.player.hp += e.value; renderBattle(); }
+  Sound.play('heal');
+};
+/* 저주 카드를 덱에 추가 (런 덱에 영구로 들어가고, 전투 중이면 버린 더미에도 섞인다) */
+EFFECTS.addCurse = async (e, ctx) => {
+  const n = e.value || 1;
+  for(let i = 0; i < n; i++){
+    const inst = newCardInst(G.run, e.id, false);
+    G.run.deck.push(inst);
+    if(ctx.battle) ctx.battle.discard.push({uid:inst.uid, id:inst.id, up:false});
+  }
+  (ctx.gained = ctx.gained || []).push({kind:'curse', id:e.id, value:n});
+  if(ctx.battle){
+    if(ctx.source) fxText(ctx.source.uid, '「' + CARDS[e.id].name + '」 ×' + n, 'st');
+    toast(`덱에 저주 「${CARDS[e.id].name}」 ${n}장이 섞였다`);
+    Sound.play('seal');
+    renderBattle();
+    await sleep(350);
+  }
+};
+EFFECTS.upgradeCard = async (e, ctx) => {
+  const c = await upgradeFlow();
+  if(c) (ctx.gained = ctx.gained || []).push({kind:'upgrade', id:c.id}); else ctx.cancelled = true;
+};
+EFFECTS.upgradeRandom = async (e, ctx) => {
+  const rng = ctx.rng || Math.random;
+  const list = shuffle(rng, G.run.deck.filter(canUpgrade)).slice(0, e.value || 1);
+  list.forEach(c => { c.up = true; (ctx.gained = ctx.gained || []).push({kind:'upgrade', id:c.id}); });
+};
+EFFECTS.chance = async (e, ctx) => {
+  const rng = ctx.rng || Math.random;
+  const ok = rng() < e.p;
+  ctx.resultText = ok ? e.successText : e.failText;
+  await executeEffects(ok ? e.success : e.fail, ctx);
+};
+/* 무당의 굿판: 카드 1장을 다른 계열의 무작위 카드로 */
+EFFECTS.transformCard = async (e, ctx) => {
+  const uid = await pickFromDeck('바꿀 카드를 고르세요', c => CARDS[c.id].type !== 'curse');
+  if(!uid){ ctx.cancelled = true; return; }
+  const c = G.run.deck.find(x => x.uid === uid);
+  const from = CARDS[c.id];
+  const pool = rewardPool().filter(id => CARDS[id].family !== from.family);
+  const to = pick(ctx.rng || Math.random, pool);
+  (ctx.gained = ctx.gained || []).push({kind:'transform', from:c.id, to});
+  c.id = to; c.up = false;
+  codexSee('cards', to);
+};
+/* 해태 2페이즈: 요괴 칸 1칸 봉쇄 (그 칸의 요괴는 튕겨 나간다) */
+EFFECTS.lockSlot = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  let i = b.spirits.length - 1;
+  while(i >= 0 && b.lockedSlots.includes(i)) i--;
+  if(i < 0) return;
+  b.lockedSlots.push(i);
+  const sp = b.spirits[i];
+  showBanner('요괴 칸 봉쇄');
+  Sound.play('seal');
+  if(sp){ fxText(sp.uid, '봉쇄되어 튕겨 나갔다', 'st'); await killSpirit(sp); }
+  renderBattle();
+  await sleep(400);
+};
+/* 천명 2페이즈: 내 요괴 하나를 빼앗아 적 편으로 (이미 빼앗긴 요괴가 살아 있으면 생략) */
+EFFECTS.stealSpirit = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  if(b.enemies.some(x => x.id === 'thrall' && x.hp > 0)) return;
+  const pool = aliveSpirits();
+  if(!pool.length) return;
+  const sp = pool.sort((x, y) => y.hp - x.hp)[0];
+  const i = b.spirits.indexOf(sp);
+  b.spirits[i] = null;
+  refreshSynergies();
+  const t = newEnemyUnit('thrall', b.enemies.length + 10);
+  t.uid = 'T' + (++b.thrallN);
+  t.name = '빼앗긴 ' + sp.name; t.hp = sp.hp; t.maxHp = sp.maxHp; t.spiritId = sp.id;
+  const bi = b.enemies.indexOf(ctx.source);
+  b.enemies.splice(bi >= 0 ? bi + 1 : b.enemies.length, 0, t);
+  chooseIntent(t);
+  showBanner(sp.name + '을(를) 빼앗겼다');
+  Sound.play('seal');
+  renderBattle();
+  await sleep(600);
+};
+/* 천명 3페이즈: 대봉인진 카운트다운 */
+EFFECTS.startSealArray = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  b.sealArray = e.value;
+  b.sealArrayFresh = true;
+  showBanner('대봉인진 · ' + e.value);
+  Sound.play('seal');
+  renderBattle();
+  await sleep(500);
+};
 /* 요괴 전용 */
 EFFECTS.growHp = async (e, ctx) => {
   const s = ctx.source;
@@ -1751,9 +2991,14 @@ EFFECTS.mimicCharm = async (e, ctx) => {
 /* 효과 설명문 자동 생성 */
 function describeSpiritAction(x){
   switch(x.type){
-    case 'damage': return '피해 <em>' + x.value + '</em>' + (x.bonusIf ? ` (<b class="kw">${STATUS_INFO[x.bonusIf].name}</b> 적에게 <em>${x.value + x.bonus}</em>)` : '');
-    case 'burn': return '<b class="kw">불씨</b> <em>' + x.value + '</em>';
-    case 'charm': return (x.target === 'randomEnemy' ? '무작위 적에게 ' : '') + '<b class="kw">홀림</b> <em>' + x.value + '</em>';
+    case 'damage': return (x.target === 'allEnemies' ? '모든 적에게 ' : '') + '피해 <em>' + x.value + '</em>' + (x.bonusIf ? ` (<b class="kw">${STATUS_INFO[x.bonusIf].name}</b> 적에게 <em>${x.value + x.bonus}</em>)` : '');
+    case 'stripBlock': return '대상 방어도 제거';
+    case 'block': return '주인에게 방어 <em>' + x.value + '</em>';
+    case 'strength': return '내 요괴 모두 <b class="kw">요기</b> <em>+' + x.value + '</em>';
+    case 'draw': return '카드 <em>' + x.value + '</em>장 뽑기';
+    case 'echo': return '다음 카드 <b class="kw">되울림</b>';
+    case 'burn': return (x.target === 'allEnemies' ? '모든 적 ' : x.target === 'randomEnemy' ? '무작위 적에게 ' : '') + '<b class="kw">불씨</b> <em>' + x.value + '</em>';
+    case 'charm': return (x.target === 'randomEnemy' ? '무작위 적에게 ' : x.target === 'allEnemies' ? '모든 적 ' : '') + '<b class="kw">홀림</b> <em>' + x.value + '</em>';
     case 'dread': return '가장 강한 적의 공격 피해 <em>-' + x.value + '</em>';
     case 'gainGrudge': return '<b class="kw">원한</b> <em>+' + x.value + '</em>';
     case 'wet': return (x.target === 'allEnemies' ? '모든 적 ' : '') + '<b class="kw">젖음</b> <em>' + x.value + '</em>';
@@ -1767,11 +3012,11 @@ function describeEffect(e){
   const pre = e.target === 'allEnemies' ? '모든 적에게 ' : e.target === 'randomEnemy' ? '무작위 적에게 ' : '';
   switch(e.type){
     case 'damage':{
-      let s = pre + '피해 <em>' + v + '</em>' + (e.hits > 1 ? ' ×' + e.hits : '');
+      let s = pre + '피해 <em>' + v + '</em>' + (e.hits > 1 ? ' ×' + e.hits : '') + (e.scale ? ` (+<b class="kw">${STATUS_INFO[e.scale.status].name}</b>만큼)` : '');
       if(e.bonusIf) s += `. 대상에게 <b class="kw">${STATUS_INFO[e.bonusIf].name}</b>가 있으면 피해 <em>+${e.bonus}</em>`;
       return s;
     }
-    case 'block': return '방어 <em>' + v + '</em>';
+    case 'block': return (e.target === 'allSpirits' ? '내 요괴 모두 ' : '') + '방어 <em>' + v + '</em>' + (e.scale ? ` (+<b class="kw">${STATUS_INFO[e.scale.status].name}</b>만큼)` : '');
     case 'burn': return pre + '<b class="kw">불씨</b> <em>' + v + '</em>';
     case 'charm': return pre + '<b class="kw">홀림</b> <em>' + v + '</em>';
     case 'wet': return pre + '<b class="kw">젖음</b> <em>' + v + '</em>';
@@ -1789,6 +3034,18 @@ function describeEffect(e){
     case 'mimicIntent': return '적 하나의 다음 행동을 그대로 따라 함';
     case 'unseal': return '<b class="kw">봉인</b>된 카드 1장의 봉인 해제';
     case 'heal': return '생명력 <em>' + v + '</em> 회복';
+    case 'dread': return pre + '<b class="kw">위축</b> <em>' + v + '</em>';
+    case 'stripBlock': return '대상의 방어도 제거';
+    case 'burnBurst': return '대상의 <b class="kw">불씨</b> <em>×' + e.mult + '</em> 피해';
+    case 'drawPerStatus': return `<b class="kw">${STATUS_INFO[e.status].name}</b> 걸린 적 수만큼 카드 뽑기`;
+    case 'drawPerSpirit': return '내 요괴 수만큼 카드 뽑기';
+    case 'spiritActAll': return '내 요괴가 모두 즉시 행동';
+    case 'healSpirits': return '내 요괴 체력 <em>' + v + '</em> 회복';
+    case 'echo': return '다음 카드 <b class="kw">되울림</b>(한 번 더 발동)';
+    case 'sacrifice': return '<b class="kw">제물</b>: 가장 약한 내 요괴를 바쳐 그 체력만큼 원한';
+    case 'gainGrudgePerSpirit': return '내 요괴 하나당 <b class="kw">원한</b> <em>' + v + '</em>';
+    case 'summonRandom': return '무작위 요괴 <b class="kw">소환</b>';
+    case 'strength': return (e.target === 'allSpirits' ? '내 요괴 모두 ' : '') + '<b class="kw">요기</b> <em>+' + v + '</em>';
     case 'summon':{
       const s = SPIRITS[e.spirit];
       return `<b class="kw">소환</b> · 체력 <em>${s.hp}</em><br>매 턴: ${s.action.map(describeSpiritAction).join(', ')}`;
@@ -1800,7 +3057,8 @@ function describeCard(def){
   if(def.text) return def.text;
   let parts = def.effects.map(describeEffect).filter(Boolean);
   // 화톳불 둔갑처럼 대상이 있는 둔갑 카드: 불씨 앞에 '적 하나에' 표시
-  if(def.type === 'guard' && def.target === 'enemy') parts = parts.map(p => p.startsWith('<b class="kw">불씨') ? '적 하나에 ' + p : p);
+  if(def.type === 'guard' && def.target === 'enemy') parts = parts.map(p => p.startsWith('<b class="kw">') ? '적 하나에 ' + p : p);
+  if(def.exhaust) parts.push('<b class="kw">소멸</b>');
   return parts.join('. ');
 }
 
@@ -1814,8 +3072,17 @@ function describeCard(def){
 function newEnemyUnit(id, idx){
   const d = ENEMIES[id];
   codexSee('enemies', id);
-  return {uid:'E' + idx, kind:'enemy', id, name:d.name, hp:d.hp, maxHp:d.hp, block:0, status:{},
-    intent:null, intentTarget:'player', spiritRolled:false, aiIdx:0, history:[]};
+  const hp = d.minion ? d.hp : Math.round(d.hp * (d.boss ? actScale().bossHp : actScale().hp));
+  return {uid:'E' + idx, kind:'enemy', id, name:d.name, hp, maxHp:hp, block:0, status:Object.assign({}, d.startStatus || {}),
+    intent:null, intentTarget:'player', spiritRolled:false, aiIdx:0, history:[], seq:null, phaseDone:[], pendingPhases:[]};
+}
+/* 보스 페이즈: 체력이 기준 이하가 되면 다음 자기 차례에 전환 */
+function checkPhase(e){
+  const d = ENEMIES[e.id];
+  if(!d.phases) return;
+  d.phases.forEach((p, i) => {
+    if(!e.phaseDone.includes(i) && e.hp <= p.below){ e.phaseDone.push(i); e.pendingPhases.push(p); }
+  });
 }
 /* kind: 'battle' | 'elite' | 'boss' / nodeId: 지도 노드 (같은 시드·같은 노드 = 같은 전투) */
 function startBattle(enemyIds, kind, nodeId){
@@ -1826,9 +3093,9 @@ function startBattle(enemyIds, kind, nodeId){
     rng, kind:kind || 'battle', nodeId, turn:0, phase:'start', busy:true, over:null, finished:false,
     player:{uid:'P', kind:'player', name:L.name, hp:run.hp, maxHp:run.maxHp, block:0, status:{}},
     enemies:enemyIds.map((id, i) => newEnemyUnit(id, i)),
-    spirits:new Array(SPIRIT_SLOTS).fill(null), spiritN:0,
+    spirits:new Array(spiritSlots()).fill(null), spiritN:0, lockedSlots:[], thrallN:0, sealArray:0,
     drawPile:shuffle(rng, run.deck.map(c => ({uid:c.uid, id:c.id, up:c.up}))),
-    hand:[], discard:[], exhaust:[], sealed:new Set(), pendingSeals:[],
+    hand:[], discard:[], exhaust:[], sealed:new Set(), sealedBy:{}, pendingSeals:[],
     energy:0, maxEnergy:ENERGY_PER_TURN + relicMod('maxEnergy'), selected:null, hooks:{}, newCards:new Set(), newSeal:null,
     syn:{}, steamUsed:false, mimicTurn:0, turnPlayed:[], copyN:0,
     stats:{dealt:0, taken:0, cards:0, gold:0, summons:0},
@@ -1910,7 +3177,15 @@ async function onUnitDeath(u){
     Sound.play('death');
     if(G.run) G.run.stats.kills++;
     const b = G.battle;
+    const freed = Object.keys(b.sealedBy).filter(cu => b.sealedBy[cu] === u.uid);
+    if(freed.length){
+      freed.forEach(cu => { b.sealed.delete(cu); delete b.sealedBy[cu]; });
+      toast(`${u.name}이(가) 쓰러져 봉인 ${freed.length}장이 풀렸다`);
+    }
     const d = ENEMIES[u.id];
+    if(d.final){
+      b.enemies.filter(x => x.id === 'thrall' && x.hp > 0).forEach(x => { x.hp = 0; x.dead = true; fxText(x.uid, '풀려났다', 'st'); });
+    }
     if(d.pair){
       const partner = b.enemies.find(x => x.id === d.pair && x.hp > 0);
       if(partner){
@@ -1948,9 +3223,10 @@ async function drawCards(n){
 }
 
 /* --- 요괴 --- */
+function freeSlot(){ const b = G.battle; return b.spirits.findIndex((s, i) => !s && !b.lockedSlots.includes(i)); }
 async function summonSpirit(id){
   const b = G.battle;
-  const slot = b.spirits.findIndex(s => !s);
+  const slot = freeSlot();
   if(slot < 0){ toast('요괴 자리가 가득 찼다'); return; }
   const d = SPIRITS[id];
   let hp = d.hp, purified = false;
@@ -1983,6 +3259,8 @@ async function killSpirit(sp){
   const i = b.spirits.indexOf(sp);
   if(i >= 0) b.spirits[i] = null;
   toast(`${sp.name}이(가) 사라졌다`);
+  const dd = SPIRITS[sp.id];
+  if(dd.death && aliveEnemies().length){ fxText('P', sp.name + '의 마지막 원한', 'grudge'); await executeEffects(dd.death, {battle:b, source:sp}); }
   await emit('spiritDeath', {spirit:sp});
   refreshSynergies();
   renderBattle();
@@ -2009,7 +3287,7 @@ function spiritIntent(sp){
   let icon = null, grow = 0;
   for(const x of d.action){
     switch(x.type){
-      case 'damage': parts.push(x.bonusIf ? `${x.value}/${x.value + x.bonus}` : `${x.value}`); icon = icon || 'attack'; break;
+      case 'damage': parts.push((x.bonusIf ? `${x.value + st(sp, 'str')}/${x.value + x.bonus + st(sp, 'str')}` : `${x.value + st(sp, 'str')}`) + (x.target === 'allEnemies' ? '전체' : '')); icon = icon || 'attack'; break;
       case 'damageFromHp': parts.push(`${Math.floor((sp.hp + grow) / x.div)}`); icon = icon || 'attack'; break;
       case 'growHp': grow += x.value; parts.push('체력+' + x.value); break;
       case 'burn': parts.push('불씨' + x.value); icon = icon || 'flame'; break;
@@ -2017,6 +3295,11 @@ function spiritIntent(sp){
       case 'dread': parts.push('위축' + x.value); icon = icon || 'down'; break;
       case 'gainGrudge': parts.push('원한+' + x.value); icon = icon || 'tear'; break;
       case 'wet': parts.push('젖음' + x.value + (x.target === 'allEnemies' ? '전체' : '')); icon = icon || 'drop'; break;
+      case 'stripBlock': parts.push('방어해제'); break;
+      case 'block': parts.push('방어' + x.value); icon = icon || 'shield'; break;
+      case 'strength': parts.push('요기+' + x.value); icon = icon || 'fang'; break;
+      case 'draw': parts.push('카드+' + x.value); icon = icon || 'wave'; break;
+      case 'echo': parts.push('되울림'); icon = icon || 'wave'; break;
     }
   }
   return {icon:icon || 'attack', text:parts.join(' ')};
@@ -2026,7 +3309,8 @@ function spiritIntent(sp){
 function chooseIntent(e){
   const b = G.battle, d = ENEMIES[e.id];
   let key;
-  if(d.ai.type === 'cycle'){ key = d.ai.seq[e.aiIdx % d.ai.seq.length]; e.aiIdx++; }
+  const seq = e.seq || (d.ai.type === 'cycle' ? d.ai.seq : null);
+  if(seq){ key = seq[e.aiIdx % seq.length]; e.aiIdx++; }
   else key = weighted(b.rng, Object.entries(d.ai.weights));
   if(Array.isArray(key)) key = pick(b.rng, key);
   e.intent = key;
@@ -2089,6 +3373,9 @@ function enemyEffectText(e, x, info){
     case 'purify': return '정화 — 다음에 소환되는 요괴의 체력 절반';
     case 'purifySpirit': return (info.target ? `요괴 「${info.target.name}」` : '내 요괴 하나') + ' 정화 — 체력 절반 (요괴가 없으면 다음 소환 요괴 체력 절반)';
     case 'cleanse': return '불씨 정화';
+    case 'addCurse': return `덱에 저주 「${CARDS[x.id].name}」 ${x.value}장 추가`;
+    case 'stealSpirit': return '내 요괴 하나를 빼앗아 자기 편으로 (이미 빼앗은 요괴가 살아 있으면 생략)';
+    case 'startSealArray': return '대봉인진 카운트다운 시작';
     default: return '알 수 없는 행동';
   }
 }
@@ -2103,7 +3390,7 @@ async function tickBurn(u){
   const charmed = st(u, 'charm') > 0;
   fxEmbers(u.uid, 14);
   if(st(u, 'wet') > 0) fxText(u.uid, '젖은 몸에 불씨 ×2', 'burn');
-  await dealDamage(null, u, v, {raw:true, pierce:true, cls:'burn', sound:'burn'});
+  await dealDamage(null, u, v, {raw:true, pierce:true, cls:'burn', sound:'burn', fire:true});
   // 조합 시너지 「화염 연쇄」: 홀림 걸린 적의 불씨 피해 절반이 옆 적에게
   if(u.kind === 'enemy' && charmed && hasSyn('fireChain') && !b.over){
     const half = Math.floor(v / 2);
@@ -2112,7 +3399,7 @@ async function tickBurn(u){
       fxText(nb.uid, '화염 연쇄', 'burn');
       fxEmbers(nb.uid, 10);
       await sleep(150);
-      await dealDamage(null, nb, half, {raw:true, pierce:true, cls:'burn', sound:'burn'});
+      await dealDamage(null, nb, half, {raw:true, pierce:true, cls:'burn', sound:'burn', fire:true});
     }
   }
   if(u.status.burn && !(u.kind === 'enemy' && hasSyn('fire'))){
@@ -2133,6 +3420,7 @@ async function applyPendingSeals(){
     const card = b.hand[idx];
     await fxSealFly(fromUid, idx);
     b.sealed.add(card.uid);
+    if(fromUid) b.sealedBy[card.uid] = fromUid;
     b.newSeal = card.uid;
     Sound.play('seal');
     renderBattle();
@@ -2174,6 +3462,12 @@ async function endTurn(){
   b.selected = null;
   b.phase = 'spirit';
   Sound.play('tap');
+  // 저주: 턴 종료 시 손에 남아 있으면 피해
+  for(const c of b.hand){
+    const d = CARDS[c.id];
+    if(d.endTurnDamage && !b.over){ fxText('P', '「' + d.name + '」', 'st'); await dealDamage(null, b.player, d.endTurnDamage, {raw:true, pierce:true}); }
+  }
+  if(b.over){ await finishBattle(); return; }
   // 남은 손패는 버린 더미로 (복제 카드는 사라진다)
   b.discard.push(...b.hand.filter(c => !c.copy));
   b.hand = [];
@@ -2204,6 +3498,16 @@ async function endTurn(){
   // turnEnd: 대장의 방어도(둔갑)는 턴 종료 시 사라진다. 홀림·젖음은 1 감소.
   b.phase = 'end';
   if(b.player.block){ b.player.block = 0; fxText('P', '둔갑이 풀렸다', 'blk'); }
+  aliveSpirits().forEach(sp => { sp.block = 0; });
+  // 대봉인진 카운트다운 (0이 되면 패배)
+  if(b.sealArray > 0){
+    if(b.sealArrayFresh) b.sealArrayFresh = false;
+    else{
+      b.sealArray--;
+      showBanner('대봉인진 · ' + b.sealArray);
+      if(b.sealArray <= 0){ b.over = 'lose'; b.loseReason = 'sealArray'; Sound.play('seal'); await sleep(600); await finishBattle(); return; }
+    }
+  }
   for(const e of aliveEnemies()){
     for(const k of ['charm','wet']){
       if(e.status[k]){ e.status[k]--; if(e.status[k] <= 0) delete e.status[k]; }
@@ -2242,6 +3546,19 @@ async function enemyAct(e){
   const steam = hasSyn('steam') && !b.steamUsed && st(e, 'wet') > 0 && st(e, 'burn') > 0;
   await tickBurn(e);
   if(e.hp <= 0 || b.over) return;
+  // 보스 페이즈 전환
+  while(e.pendingPhases.length){
+    const p = e.pendingPhases.shift();
+    showBanner(p.name);
+    fxFlash();
+    Sound.play('enemyturn');
+    await sleep(700);
+    await executeEffects(p.effects, {battle:b, source:e});
+    if(p.seq){ e.seq = p.seq; e.aiIdx = 0; chooseIntent(e); }
+    renderBattle();
+    await sleep(300);
+    if(b.over) return;
+  }
   if(steam){
     b.steamUsed = true;
     showBanner('증기');
@@ -2277,7 +3594,7 @@ function cardBlockReason(inst){
   const def = getCardDef(inst);
   if(b.sealed.has(inst.uid) && !relicMod('sealedPlayable')) return '봉인된 카드다. 이번 전투에서는 쓸 수 없다';
   if(def.unplayable) return '저주 카드는 사용할 수 없다';
-  if(def.type === 'spirit' && !b.spirits.some(s => !s)) return '요괴 자리가 가득 찼다';
+  if(def.type === 'spirit' && freeSlot() < 0) return '요괴 자리가 가득 찼다';
   if(cardCost(inst) > b.energy) return '혼력이 부족하다';
   return null;
 }
@@ -2299,7 +3616,16 @@ async function playCard(idx, target, at){
   renderBattle();
   await sleep(180);
   await executeEffects(def.effects, {battle:b, source:b.player, target, card:def});
-  if(!inst.copy) b.discard.push(inst);       // 복제 카드는 사용 후 사라진다
+  // 되울림: 한 번 더 발동
+  if(st(b.player, 'echo') > 0 && !b.over){
+    b.player.status.echo--; if(b.player.status.echo <= 0) delete b.player.status.echo;
+    fxText('P', '되울림!', 'st'); Sound.play('charm');
+    await sleep(250);
+    if(def.target === 'enemy' && (!target || target.hp <= 0)) target = aliveEnemies()[0];
+    await executeEffects(def.effects, {battle:b, source:b.player, target, card:def});
+  }
+  if(def.exhaust) b.exhaust.push(inst);      // 소멸
+  else if(!inst.copy) b.discard.push(inst);  // 복제 카드는 사용 후 사라진다
   b.turnPlayed.push({id:inst.id, up:inst.up});
   b.stats.cards++;
   if(!b.over) await emit('cardPlay', {card:def});
@@ -2325,9 +3651,10 @@ async function finishBattle(){
   if(run.mode === 'run'){
     G.battle = null;
     Sound.bgm('map');
-    if(!win){ endRun(false); return; }
-    if(b.kind === 'battle') run.stats.battles++;
+    if(!win){ G.ui.loseReason = b.loseReason || null; endRun(false); return; }
+    if(b.kind === 'battle'){ run.stats.battles++; run.actBattles++; }
     if(b.kind === 'elite') run.stats.elites++;
+    if(b.kind === 'boss' && run.act >= ACT_COUNT){ G.ui.endingStep = 0; setScreen('ending'); return; }
     run.rewardState = makeReward(b.kind, b.nodeId);
     saveRun();
     setScreen('reward');
@@ -2482,6 +3809,7 @@ function modalFrame(title, body, foot){
     <div class="modal-body">${body}</div>${foot ? `<div class="modal-foot">${foot}</div>` : ''}</div>`;
 }
 function confirmModal(text){
+  if(G.sim) return Promise.resolve(true);
   return new Promise(resolve => {
     showModal(`<div class="modal"><div class="modal-head">확인</div><div class="modal-body">${text}</div>
       <div class="modal-foot"><button class="btn small" data-action="confirmNo">아니오</button><button class="btn small primary" data-action="confirmYes">예</button></div></div>`);
@@ -2490,6 +3818,7 @@ function confirmModal(text){
 }
 /* 전투 중 카드 고르기 (정화 풀기 등) — 고른 카드 uid를 돌려준다 */
 function pickBattleCard(list, title){
+  if(G.sim) return Promise.resolve(list[0] ? list[0].uid : null);
   return new Promise(resolve => {
     const b = G.battle;
     const body = `<div class="card-grid">${list.map(c => cardHtml(getCardDef(c), {cls:'pickable', sealed:b && b.sealed.has(c.uid), attrs:`data-action="pickCard" data-uid="${c.uid}"`})).join('')}</div>`;
@@ -2513,6 +3842,7 @@ function showDeck(){
 }
 /* 덱에서 카드 고르기 (제거·강화) — 고른 uid, 그만두면 null */
 function pickFromDeck(title, filter){
+  if(G.sim) return Promise.resolve(G.simPick ? G.simPick(title, G.run.deck.filter(filter)) : null);
   return new Promise(resolve => {
     const list = G.run.deck.slice().sort(deckSort);
     const body = `<div class="card-grid">${list.map(c => filter(c)
@@ -2527,7 +3857,7 @@ async function upgradeFlow(){
   const uid = await pickFromDeck('강화할 카드를 고르세요', canUpgrade);
   if(!uid) return null;
   const c = G.run.deck.find(x => x.uid === uid);
-  const ok = await new Promise(resolve => {
+  const ok = G.sim ? true : await new Promise(resolve => {
     showModal(`<div class="modal"><div class="modal-head">카드 강화</div><div class="modal-body">
       <div style="display:flex;align-items:center;justify-content:center;gap:6px">${cardHtml(getCardDef(c), {cls:'md'})}<b style="font-size:24px;color:var(--lamp2)">→</b>${cardHtml(getCardDef({id:c.id, up:true}), {cls:'md'})}</div></div>
       <div class="modal-foot"><button class="btn small" data-action="confirmNo">다시 고르기</button><button class="btn small primary" data-action="confirmYes">강화한다</button></div></div>`);
@@ -2601,7 +3931,7 @@ function showUnitInfo(uid){
   const b = G.battle;
   const u = findUnit(uid);
   if(!u) return;
-  const artHtml = u.kind === 'enemy' ? enemyArtSvg(u.id) : u.kind === 'spirit' ? art(SPIRITS[u.id].art) : art(LEADERS[G.run.leader].art);
+  const artHtml = u.kind === 'enemy' ? enemyArtSvg(u.id, u) : u.kind === 'spirit' ? art(SPIRITS[u.id].art) : art(LEADERS[G.run.leader].art);
   let body = `<div class="info-row"><div class="ic">${artHtml}</div><div><b>${esc(u.name)}</b><p>생명 ${u.hp}/${u.maxHp}${u.block ? ` · 방어도 ${u.block}` : ''}</p></div></div>`;
   if(u.kind === 'enemy' && u.hp > 0){
     const ii = intentInfo(u);
@@ -2670,7 +4000,9 @@ function showRules(){
     <div class="info-row"><div><b style="color:#ffd9a0">시너지</b><p>필드 요괴 구성에 따라 발동한다. 발동 중인 칸은 계열 색으로 빛나고, 위쪽에 이름 배지가 뜬다.</p></div></div>
     ${synergyRowsHtml(false)}
     <div class="info-row"><div><b>승패</b><p>적을 모두 쓰러뜨리면 승리, 대장의 생명력이 0이 되면 패배. 런에서는 생명력이 전투 사이에 이어진다.</p></div></div>
-    <div class="info-row"><div><b>1막 지도</b><p>15층. 아래에서 위로 올라간다. 전투·정예·사건·주막·장터·보물을 지나 15층의 대장승을 쓰러뜨리면 1막 돌파.</p></div></div>
+    <div class="info-row"><div><b>지도와 막</b><p>막마다 15층. 아래에서 위로 올라간다. 15층의 우두머리를 쓰러뜨리면 생명력 최대치의 25%를 회복하고 보스 보물 3개 중 하나를 골라 다음 막으로 간다. 1막 산골 고갯길(대장승) → 2막 한양 도성(해태 석상) → 3막 봉요사 본진(천명).</p></div></div>
+    <div class="info-row"><div><b style="color:#e2552b">해태 석상</b><p>불 계열 피해를 받을 때마다 「정의의 불」이 쌓이고 그만큼 반격한다. 체력 절반 이하에서 요괴 칸 1칸을 봉쇄하고 더 세게 친다.</p></div></div>
+    <div class="info-row"><div><b style="color:#7fbfb2">천명</b><p>1페이즈: 매 턴 손패 2장 봉인 + 공격. 2페이즈(체력 200 이하): 내 요괴 하나를 빼앗아 자기 편으로. 3페이즈(100 이하): 대봉인진 카운트다운 5턴 — 0이 되면 패배.</p></div></div>
     <div class="info-row"><div><b style="color:#c8622a">대장승</b><p>천하대장군과 지하여장군 한 쌍. 하나가 쓰러지면 남은 쪽이 ${REVIVE_TURNS}턴 뒤 짝을 최대 체력 절반으로 되살린다. 같은 턴에 둘 다 쓰러뜨리거나, 카운트다운 안에 남은 쪽을 처치하면 승리.</p></div></div>`;
   showModal(modalFrame('전투 규칙', body));
 }
@@ -2692,9 +4024,14 @@ function cardHtml(def, opts){
     <div class="c-art">${art(def.art)}</div>
     <div class="c-type">${CARD_TYPES[def.type].name} · ${fam.name}</div>
     <div class="c-rar rar-${def.rarity}" title="${RARITY_NAME[def.rarity] || ''}"></div>
-    <div class="c-desc"><span>${desc}</span></div>
+    <div class="c-desc ${descLenCls(desc)}"><span>${desc}</span></div>
     ${seal}
   </div>`;
+}
+/* 설명이 길면 글자를 줄인다 */
+function descLenCls(html){
+  const n = html.replace(/<[^>]+>/g, '').length;
+  return n > 52 ? 'xlong' : n > 38 ? 'long' : '';
 }
 function statusesHtml(u){
   return `<div class="statuses">${Object.keys(u.status).filter(k => STATUS_INFO[k]).map(k => {
@@ -2708,7 +4045,7 @@ function hpbarHtml(u){
 }
 function topbarHtml(){
   const b = G.battle, run = G.run;
-  const where = run.mode === 'run' ? `${run.floor}/${ACT1_FLOORS}층` : '시험';
+  const where = run.mode === 'run' ? `${run.act}막 ${run.floor}/${ACT1_FLOORS}층` : '시험';
   return `<div class="topbar">
     <div class="tb-stat tb-hp">${art('heart')}${b ? b.player.hp : run.hp}/${run.maxHp}</div>
     <div class="tb-stat tb-gold">${coinSvg()}${run.gold}</div>
@@ -2743,7 +4080,7 @@ SCREENS.title = () => {
       <div class="hanja">百鬼夜行</div>
       <h1>백귀야행</h1>
       <p>백 년에 한 번, 요괴들의 마지막 행렬</p>
-      <div class="stage-tag">3단계 · 1막 시험판</div>
+      <div class="stage-tag">4단계 · 1~3막 완주판</div>
     </div>
     <div class="title-wrap">
       <div class="btn-col">
@@ -2752,7 +4089,7 @@ SCREENS.title = () => {
         <button class="btn ghost" data-action="settings">설정</button>
         <div style="display:flex;gap:10px"><button class="btn ghost small" style="flex:1" data-action="testMenu">시험 전투</button><button class="btn ghost small" style="flex:1" data-action="rules">전투 규칙</button></div>
       </div>
-      <div class="title-foot">행렬 ${G.meta.stats.runs}회 · 1막 돌파 ${G.meta.stats.clears}회 · 최고 ${G.meta.stats.bestFloor}층</div>
+      <div class="title-foot">행렬 ${G.meta.stats.runs}회 · 대봉인진 파괴 ${G.meta.stats.fullClears}회 · 최고 ${G.meta.stats.bestAct || 1}막 ${G.meta.stats.bestFloor}층</div>
     </div>
   </div>`;
 };
@@ -2779,9 +4116,9 @@ SCREENS.battle = () => {
       const tgt = ii.target ? `<span class="itgt">→${esc(ii.target.name)}</span>` : '';
       intent = `${svgWrap(INTENT_ICON[ii.kind], '0 0 24 24')}${num}${tgt}${ii.steam ? '<span class="steam-tag">증기</span>' : ''}`;
     }
-    return `<div class="unit enemy ${single} ${ed.boss ? 'boss' : ''} ${ed.elite ? 'elite' : ''} ${deadCls} ${targeting && e.hp > 0 ? 'targetable' : ''}" data-action="unit" data-uid="${e.uid}">
+    return `<div class="unit enemy ${single} ${ed.minion ? 'minion' : ''} ${ed.boss ? 'boss' : ''} ${ed.elite ? 'elite' : ''} ${deadCls} ${targeting && e.hp > 0 ? 'targetable' : ''}" data-action="unit" data-uid="${e.uid}">
       <div class="intent">${intent}</div>
-      <div class="u-art">${enemyArtSvg(e.id)}${reviveHtml}</div>
+      <div class="u-art">${enemyArtSvg(e.id, e)}${reviveHtml}</div>
       ${hpbarHtml(e)}
       ${statusesHtml(e)}
       <div class="u-name">${esc(e.name)}</div>
@@ -2795,6 +4132,7 @@ SCREENS.battle = () => {
   }).join('');
   /* 3. 요괴 필드 (최대 3칸) */
   const slots = b.spirits.map((sp, i) => {
+    if(!sp && b.lockedSlots.includes(i)) return `<div class="slot locked">봉쇄</div>`;
     if(!sp) return `<div class="slot empty" data-action="bg">빈 칸</div>`;
     const g = slotGlow(sp);
     const isNew = !G.ui.seenSpirits.has(sp.uid);
@@ -2846,7 +4184,7 @@ SCREENS.battle = () => {
   return `<div class="screen battle">
     <div class="bgart">${actBackground()}</div>
     ${topbarHtml()}
-    <div class="b-enemies" data-action="bg">${enemies}</div>
+    <div class="b-enemies" data-action="bg">${b.sealArray > 0 ? `<div class="seal-array">대봉인진 완성까지<b>${b.sealArray}</b></div>` : ''}${enemies}</div>
     <div class="syn-badges">${badges || '<span class="syn-empty">같은 계열 2마리 · 다른 계열 조합으로 시너지 발동</span>'}</div>
     <div class="b-spirits">${slots}</div>
     <div class="b-leader">
@@ -2877,10 +4215,11 @@ SCREENS.result = () => {
     return `<div class="screen">
       <div class="bgart">${titleBackground()}</div>
       <div class="panel-body">
-        <div class="result-title serif ${r.win ? '' : 'lose'}">${r.win ? '1막 돌파' : '행렬이 흩어졌다'}</div>
-        <div class="story serif">${r.win ? '천하대장군과 지하여장군이 쓰러지고\n고갯길의 봉인 말뚝이 뽑혀 나갔다.\n\n저 아래 한양 도성의 불빛이 보인다.\n(2막은 다음 단계에서 이어진다)' : '등불이 하나둘 꺼지고, 봉인 부적이 바람에 나부낀다.\n하지만 요괴는 사라지지 않는다.\n다음 밤길에서 다시 만나자.'}</div>
+        <div class="result-title serif ${r.win ? '' : 'lose'}">${r.win ? '대봉인진 파괴' : r.reason === 'sealArray' ? '봉인되었다' : '행렬이 흩어졌다'}</div>
+        <div class="story serif">${r.win ? '천명의 지팡이가 부러지고\n하늘을 덮던 대봉인진이 산산이 흩어졌다.\n\n동이 터 오는 하늘 아래\n백귀의 행렬은 산으로 돌아간다.\n…천명의 마지막 말이 자꾸 귓가에 맴돈다.'
+          : r.reason === 'sealArray' ? '대봉인진이 완성되었다.\n하늘이 닫히고, 요괴들의 이름이 하나씩 지워진다.\n\n하지만 백 년 뒤, 봉인은 다시 느슨해질 것이다.' : '등불이 하나둘 꺼지고, 봉인 부적이 바람에 나부낀다.\n하지만 요괴는 사라지지 않는다.\n다음 밤길에서 다시 만나자.'}</div>
         <div class="result-stats">
-          <div><span>도달 층</span><b>${r.floor} / ${ACT1_FLOORS}층</b></div>
+          <div><span>도달</span><b>${r.act}막 · ${r.floor} / ${ACT1_FLOORS}층</b></div>
           <div><span>처치한 봉요사</span><b>${r.kills}</b></div>
           <div><span>정예 처치</span><b>${r.elites}</b></div>
           <div><span>행렬의 카드 / 보물</span><b>${r.cards}장 / ${r.relics}개</b></div>
@@ -2919,7 +4258,11 @@ SCREENS.result = () => {
 function fmtTime(ms){ const m = Math.floor(ms / 60000), sec = Math.floor(ms / 1000) % 60; return `${m}분 ${sec}초`; }
 
 function render(){
+  if(G.sim && G.screen === 'battle') return;
   const f = SCREENS[G.screen];
+  const act = G.run && G.run.mode === 'run' && G.screen !== 'title' && G.screen !== 'result' ? G.run.act : 1;
+  $('#app').classList.toggle('act2', act === 2);
+  $('#app').classList.toggle('act3', act === 3);
   hideKeyword();
   $('#app').classList.toggle('fast', !!(G.meta && G.meta.settings.fast));
   $('#screen').innerHTML = f ? f() : '';
@@ -2984,7 +4327,12 @@ ACTIONS.rewardDone = async () => {
     const ok = await confirmModal('우두머리의 보물을 고르지 않았습니다. 그냥 갈까요?');
     if(!ok) return;
   }
-  if(r.kind === 'boss'){ endRun(true); return; }
+  if(r.kind === 'boss'){
+    if(G.run.act >= ACT_COUNT){ endRun(true); return; }
+    G.run.rewardState = null; G.run.pendingNode = null; G.run.nodeState = null;
+    nextAct();
+    return;
+  }
   completeNode();
 };
 /* 장터 */
@@ -3013,10 +4361,19 @@ ACTIONS.removeService = async () => {
   Sound.play('coin'); toast(`「${getCardDef(c).name}」을(를) 씻어 냈다`); saveRun(); render();
 };
 ACTIONS.leaveNode = () => completeNode();
+ACTIONS.actGo = () => { G.run.stats.lastTick = Date.now(); setScreen('map'); toast(`${G.run.act}막 · ${ACTS[G.run.act].name} — 맨 아래 등불에서 출발한다`); };
+ACTIONS.endingNext = () => {
+  G.ui.endingStep = (G.ui.endingStep || 0) + 1;
+  if(G.ui.endingStep >= ENDING_DIALOGUE.length){ endRun(true); return; }
+  Sound.play('tap');
+  render();
+  const sc = document.querySelector('.panel-scroll'); if(sc) sc.scrollTop = sc.scrollHeight;
+};
 /* 주막 */
 ACTIONS.innRest = () => {
   const run = G.run;
   if(run.nodeState.done) return;
+  if(relicMod('noRest')){ toast('산군 호랑이 가죽이 들썩여 도무지 잠이 오지 않는다'); Sound.play('error'); return; }
   const got = healRun(innHealAmount());
   Sound.play('heal');
   run.nodeState = {done:true, msg:`막걸리 한 사발에 곤히 잤다.\n생명력 ${got} 회복.`};
@@ -3055,7 +4412,10 @@ ACTIONS.eventChoice = async el => {
   s.gainedText = (ctx.gained || []).map(x => x.kind === 'card' ? `카드 「${CARDS[x.id].name}」 획득`
     : x.kind === 'relic' ? `보물 「${RELICS[x.id].name}」 획득`
     : x.kind === 'removed' ? `「${CARDS[x.id].name}${x.up ? '+' : ''}」 제거`
-    : x.kind === 'gold' ? `엽전 ${x.value} 획득` : '').filter(Boolean).join(' · ');
+    : x.kind === 'gold' ? `엽전 ${x.value} 획득`
+    : x.kind === 'curse' ? `저주 「${CARDS[x.id].name}」 ${x.value}장`
+    : x.kind === 'upgrade' ? `「${CARDS[x.id].name}」 강화`
+    : x.kind === 'transform' ? `「${CARDS[x.from].name}」 → 「${CARDS[x.to].name}」` : '').filter(Boolean).join(' · ');
   saveRun(); render();
 };
 ACTIONS.synInfo = () => showSynergyInfo();
@@ -3235,8 +4595,8 @@ const NODE_NAME = {battle:'전투', elite:'정예', event:'사건', inn:'주막'
 
 /* 1막 지도 생성 (시드 기반). 0~13행 = 1~14층, 14행 = 보스.
    3~4줄의 길을 아래에서 위로 걸으며 노드를 찍고, 같은 칸을 지나면 길이 합쳐진다. */
-function generateMap(seed){
-  const rng = makeRng(seed, 'map', 1);
+function generateMap(seed, act){
+  const rng = makeRng(seed, 'map', act || 1);
   const ROWS = ACT1_FLOORS - 1;
   const nodes = {}, edges = new Set();
   const key = (r, c) => r + '-' + c;
@@ -3297,13 +4657,26 @@ function canUseSandal(){ const run = G.run; return hasRelic('jipsin') && !run.fl
 function startRun(seedStr){
   const seed = (seedStr && seedStr.trim()) ? seedStr.trim().toUpperCase().slice(0, 16) : randomSeedString();
   G.run = newRun(STARTER_DECK, seed, 'run');
-  G.run.map = generateMap(seed);
+  G.run.map = generateMap(seed, 1);
   G.meta.stats.runs++;
   saveMeta();
   saveRun();
   G.ui.skipMode = false;
-  setScreen('map');
-  toast('1막 · 산골 고갯길 — 맨 아래 등불에서 출발한다');
+  setScreen('actIntro');
+}
+/* 막 전환: 다음 막 지도 생성 (보스 보상에서 생명력 회복·보스 보물은 이미 처리) */
+function nextAct(){
+  const run = G.run;
+  run.act++;
+  run.map = generateMap(run.seed, run.act);
+  run.path = [];
+  run.floor = 0;
+  run.actBattles = 0;
+  run.pendingNode = null; run.nodeState = null; run.rewardState = null;
+  G.meta.stats.bestAct = Math.max(G.meta.stats.bestAct || 1, run.act);
+  saveMeta();
+  saveRun();
+  setScreen('actIntro');
 }
 function enterNode(id){
   const run = G.run;
@@ -3330,12 +4703,13 @@ function openNode(node){
   const rng = makeRng(run.seed, 'node', node.id);
   switch(node.type){
     case 'battle':{
-      const pool = run.stats.battles < 3 ? ENCOUNTERS[1].easy : ENCOUNTERS[1].normal;
+      const enc = ENCOUNTERS[run.act];
+      const pool = run.actBattles < (run.act === 1 ? 3 : 2) ? enc.easy : enc.normal;
       startBattle(pick(rng, pool).slice(), 'battle', node.id);
       break;
     }
-    case 'elite': startBattle(pick(rng, ENCOUNTERS[1].elite).slice(), 'elite', node.id); break;
-    case 'boss': startBattle(ENCOUNTERS[1].boss[0].slice(), 'boss', node.id); break;
+    case 'elite': startBattle(pick(rng, ENCOUNTERS[run.act].elite).slice(), 'elite', node.id); break;
+    case 'boss': startBattle(ENCOUNTERS[run.act].boss[0].slice(), 'boss', node.id); break;
     case 'shop':
       if(!run.nodeState) run.nodeState = makeShop(rng);
       saveRun(); setScreen('shop'); break;
@@ -3347,8 +4721,8 @@ function openNode(node){
       saveRun(); setScreen('treasure'); break;
     case 'event':{
       if(!run.nodeState){
-        let pool = Object.keys(EVENTS).filter(k => !run.seenEvents.includes(k));
-        if(!pool.length) pool = Object.keys(EVENTS);
+        let pool = Object.keys(EVENTS).filter(k => EVENTS[k].acts.includes(run.act) && !run.seenEvents.includes(k));
+        if(!pool.length) pool = Object.keys(EVENTS).filter(k => EVENTS[k].acts.includes(run.act));
         const ev = pick(rng, pool);
         run.seenEvents.push(ev);
         run.nodeState = {event:ev, done:false, resultText:'', gainedText:''};
@@ -3378,9 +4752,11 @@ function continueRun(){
 function endRun(win){
   const run = G.run;
   updatePlayTime();
-  G.ui.result = {mode:'run', win, floor:run.floor, kills:run.stats.kills, elites:run.stats.elites,
-    cards:run.deck.length, relics:run.relics.length, gold:run.gold, time:run.stats.playTime, seed:run.seed};
-  if(win) G.meta.stats.clears++;
+  G.ui.result = {mode:'run', win, act:run.act, floor:run.floor, kills:run.stats.kills, elites:run.stats.elites,
+    cards:run.deck.length, relics:run.relics.length, gold:run.gold, time:run.stats.playTime, seed:run.seed, reason:G.ui.loseReason || null};
+  G.ui.loseReason = null;
+  if(win){ G.meta.stats.clears++; G.meta.stats.fullClears = (G.meta.stats.fullClears || 0) + 1; }
+  G.meta.stats.bestAct = Math.max(G.meta.stats.bestAct || 1, run.act);
   G.meta.stats.bestFloor = Math.max(G.meta.stats.bestFloor, run.floor);
   saveMeta();
   clearRun();
@@ -3433,7 +4809,11 @@ function makeReward(kind, nodeId){
   const n = Math.max(1, 3 + relicMod('rewardChoices'));
   const r = {kind, gold:0, goldTaken:false, cards:[], cardTaken:false, relic:null, relicTaken:false, bossRelics:null};
   if(kind === 'elite'){ r.gold = rint(rng, 25, 35); r.cards = rollCardChoices(rng, RARE_CHANCE.elite, n); r.relic = rollRelic(rng, 0.3); }
-  else if(kind === 'boss'){ r.gold = rint(rng, 60, 80); r.cards = rollCardChoices(rng, RARE_CHANCE.boss, n); r.bossRelics = relicPool('boss'); r.relicTaken = !r.bossRelics.length; }
+  else if(kind === 'boss'){
+    r.gold = rint(rng, 60, 80); r.cards = rollCardChoices(rng, RARE_CHANCE.boss, n);
+    r.bossRelics = shuffle(rng, relicPool('boss')).slice(0, 3); r.relicTaken = !r.bossRelics.length;
+    r.healed = healRun(Math.ceil(run.maxHp * BOSS_HEAL));   // 막 보스 처치: 최대 생명력의 25% 회복
+  }
   else{ r.gold = rint(rng, 10, 20); r.cards = rollCardChoices(rng, RARE_CHANCE.battle, n); }
   if(!r.relic && kind === 'elite'){ r.relicTaken = true; }
   r.cards.forEach(id => codexSee('cards', id));
@@ -3542,7 +4922,10 @@ SCREENS.map = () => {
       ${id === cur ? `<circle r="${r + 4}" fill="none" stroke="#c8323a" stroke-width="3"/>` : ''}
     </g></g>`;
   }
-  const deco = `<path d="M0 ${H * 0.62} Q60 ${H * 0.55} 120 ${H * 0.6} T260 ${H * 0.58} T400 ${H * 0.62}" fill="none" stroke="rgba(60,40,25,.08)" stroke-width="22"/>
+  const deco = run.act === 2 ? `${[0.15, 0.4, 0.65, 0.88].map(f => `<path d="M${20 + f * 300} ${H * f} l14 -10 l14 10 l0 14 l-28 0Z" fill="rgba(60,50,40,.1)"/>`).join('')}
+    <path d="M0 ${H * 0.5} L400 ${H * 0.5}" stroke="rgba(60,40,25,.08)" stroke-width="18"/><path d="M30 ${H * 0.3} L370 ${H * 0.3}" stroke="rgba(60,40,25,.06)" stroke-width="10" stroke-dasharray="20 10"/>`
+    : run.act === 3 ? `${[0.25, 0.6, 0.85].map(f => `<circle cx="${f > 0.5 ? 300 : 110}" cy="${H * f}" r="70" fill="none" stroke="rgba(120,30,30,.1)" stroke-width="3"/><circle cx="${f > 0.5 ? 300 : 110}" cy="${H * f}" r="50" fill="none" stroke="rgba(120,30,30,.08)" stroke-width="2" stroke-dasharray="6 6"/>`).join('')}`
+    : `<path d="M0 ${H * 0.62} Q60 ${H * 0.55} 120 ${H * 0.6} T260 ${H * 0.58} T400 ${H * 0.62}" fill="none" stroke="rgba(60,40,25,.08)" stroke-width="22"/>
     <path d="M0 ${H * 0.25} L40 ${H * 0.2} L80 ${H * 0.24} L130 ${H * 0.17} L180 ${H * 0.23}" fill="none" stroke="rgba(60,40,25,.12)" stroke-width="2"/>
     <path d="M220 ${H * 0.8} L260 ${H * 0.75} L300 ${H * 0.79} L350 ${H * 0.72} L400 ${H * 0.78}" fill="none" stroke="rgba(60,40,25,.12)" stroke-width="2"/>`;
   const sandal = canUseSandal()
@@ -3550,10 +4933,10 @@ SCREENS.map = () => {
   return `<div class="screen">
     <div class="bgart">${actBackground()}</div>
     ${topbarHtml()}
-    <div class="map-head"><b class="serif">1막 · 산골 고갯길</b>${sandal || `<span>${G.ui.skipMode ? '' : '불 켜진 길을 따라 위로'}</span>`}</div>
+    <div class="map-head"><b class="serif">${run.act}막 · ${ACTS[run.act].name}</b>${sandal || `<span>${G.ui.skipMode ? '' : '불 켜진 길을 따라 위로'}</span>`}</div>
     <div class="map-wrap">
       <div class="roller"></div>
-      <div class="map-scroll" id="mapScroll">
+      <div class="map-scroll act${run.act}" id="mapScroll">
         <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
           <defs><radialGradient id="lit"><stop offset="0" stop-color="#ffb24a" stop-opacity=".75"/><stop offset="1" stop-color="#ffb24a" stop-opacity="0"/></radialGradient></defs>
           ${deco}${floors}${edges}${nodes}
@@ -3577,6 +4960,7 @@ function afterMapRender(){
 SCREENS.reward = () => {
   const r = G.run.rewardState;
   const items = [];
+  if(r.healed !== undefined) items.push(`<div class="reward-item" style="cursor:default">${art('heart')}<div>숨을 돌렸다 <small>최대 생명력의 25% — 생명력 ${r.healed} 회복</small></div></div>`);
   items.push(`<button class="reward-item ${r.goldTaken ? 'taken' : ''}" data-action="takeGold">${coinSvg()}<div>엽전 ${r.gold}냥</div></button>`);
   if(r.relic) items.push(`<button class="reward-item ${r.relicTaken ? 'taken' : ''}" data-action="takeRelic">${art(RELICS[r.relic].art)}<div>${RELICS[r.relic].name} <small>${RELIC_TIER_NAME[RELICS[r.relic].tier]} 보물 · ${RELICS[r.relic].desc}</small></div></button>`);
   let boss = '';
@@ -3590,9 +4974,9 @@ SCREENS.reward = () => {
   return `<div class="screen">
     <div class="bgart">${actBackground()}</div>
     ${topbarHtml()}
-    <div class="panel-head serif"><h2>${isBoss ? '대장승을 쓰러뜨렸다!' : r.kind === 'elite' ? '정예를 물리쳤다' : '전리품'}</h2><p>${isBoss ? '고갯길의 봉인 말뚝이 뽑혀 나갔다.' : '봉요사가 흘리고 간 것들'}</p></div>
+    <div class="panel-head serif"><h2>${isBoss ? BOSS_CLEAR[G.run.act].title : r.kind === 'elite' ? '정예를 물리쳤다' : '전리품'}</h2><p>${isBoss ? BOSS_CLEAR[G.run.act].desc : '봉요사가 흘리고 간 것들'}</p></div>
     <div class="panel-scroll">${items.join('')}${boss}${cards}</div>
-    <div class="panel-foot"><button class="btn primary" data-action="rewardDone">${isBoss ? '1막 돌파!' : '길을 계속 간다'}</button></div>
+    <div class="panel-foot"><button class="btn primary" data-action="rewardDone">${isBoss ? (G.run.act + 1) + '막으로' : '길을 계속 간다'}</button></div>
   </div>`;
 };
 
@@ -3619,6 +5003,49 @@ SCREENS.shop = () => {
   </div>`;
 };
 
+const BOSS_CLEAR = {
+  1:{title:'대장승을 쓰러뜨렸다!', desc:'고갯길의 봉인 말뚝이 뽑혀 나갔다. 저 아래 한양의 불빛이 보인다.'},
+  2:{title:'해태 석상이 무너졌다!', desc:'광화문 앞 해태가 금이 가며 주저앉았다. 봉요사 본진으로 가는 길이 열렸다.'},
+  3:{title:'천명을 쓰러뜨렸다', desc:''},
+};
+SCREENS.actIntro = () => {
+  const act = G.run.act;
+  return `<div class="screen">
+    <div class="bgart">${actBackground(act)}</div>
+    <div class="panel-body" style="justify-content:center;gap:18px">
+      <div class="serif" style="font-size:16px;color:var(--lamp2);letter-spacing:.5em">제${['','一','二','三'][act]}막</div>
+      <div class="serif" style="font-size:34px;font-weight:900;letter-spacing:.15em;text-shadow:2px 2px 0 #1b1512,0 0 18px rgba(232,87,42,.6)">${ACTS[act].name}</div>
+      <div class="story serif">${ACTS[act].story}</div>
+      ${act > 1 ? `<div style="color:#7fe0a0;font-weight:700;font-size:13px">생명력 ${G.run.hp}/${G.run.maxHp} · 덱 ${G.run.deck.length}장 · 보물 ${G.run.relics.length}개</div>` : ''}
+    </div>
+    <div class="panel-foot"><button class="btn primary" data-action="actGo">행렬 출발</button></div>
+  </div>`;
+};
+/* 엔딩 대화: 봉요사가 요괴를 봉인하는 진짜 이유의 단서 (답은 주지 않는다) */
+const ENDING_DIALOGUE = [
+  {who:'cheonmyeong', text:'…끝내 여기까지 왔구나, 도깨비.'},
+  {who:'me', text:'백 년마다 우리를 가두려 드는 이유가 뭐냐. 우리가 사람을 해친 적이 있었나?'},
+  {who:'cheonmyeong', text:'가두려던 것이 아니다. …숨기려던 것이다.'},
+  {who:'cheonmyeong', text:'백귀야행의 밤에 열리는 문은, 너희가 여는 것이 아니다. 너희 등불을 보고 저편에서 무언가가 길을 찾아온다.'},
+  {who:'me', text:'저편? 무슨 소리냐.'},
+  {who:'cheonmyeong', text:'첫 봉인을 친 것은 사람이 아니었다. 봉요사의 초대 수장은… 너희와 같은 뿔이 있었지.'},
+  {who:'cheonmyeong', text:'등불을 꺼라, 도깨비. 이번 밤은 너희가 이겼지만… 문은 아직 닫히지 않았다.'},
+  {who:'me', text:'…행렬은 산으로 돌아간다. 하지만 이 말은 잊지 않겠다.'},
+];
+SCREENS.ending = () => {
+  const n = Math.min(G.ui.endingStep || 0, ENDING_DIALOGUE.length - 1);
+  const lines = ENDING_DIALOGUE.slice(0, n + 1).map(l => `<div class="dlg-line ${l.who === 'me' ? 'me' : ''}">
+      <div class="dlg-face">${l.who === 'me' ? art(LEADERS[G.run.leader].art) : enemyArtSvg('cheonmyeong')}</div>
+      <div><div class="dlg-name">${l.who === 'me' ? LEADERS[G.run.leader].name : '천명 · 봉요사 수장'}</div><div class="dlg-text">${esc(l.text)}</div></div>
+    </div>`).join('');
+  const last = n >= ENDING_DIALOGUE.length - 1;
+  return `<div class="screen">
+    <div class="bgart">${actBackground(3)}</div>
+    <div class="panel-head serif"><h2>대봉인진이 흩어진다</h2><p>쓰러진 천명이 마지막 숨을 고른다</p></div>
+    <div class="panel-scroll"><div class="dialogue">${lines}</div></div>
+    <div class="panel-foot"><button class="btn primary" data-action="endingNext">${last ? '동이 튼다' : '다음'}</button></div>
+  </div>`;
+};
 function innHealAmount(){ return Math.ceil(G.run.maxHp * (INN_HEAL + relicMod('innHeal'))); }
 SCREENS.inn = () => {
   const run = G.run, s = run.nodeState || {};
@@ -3631,7 +5058,7 @@ SCREENS.inn = () => {
       <div class="npc"><div class="npc-art">${art('innkeeper')}</div><p>"오늘 같은 밤엔 다들 바쁘구먼. 쉬어 가든 몸을 풀든, 한 가지만 하시게."</p></div>
       ${s.done ? `<div class="story" style="margin-top:12px">${s.msg}</div>${s.cardId ? `<div style="margin-top:6px">${cardHtml(getCardDef({id:s.cardId, up:true}), {cls:'md'})}</div>` : ''}` : `
       <div class="inn-opts">
-        <button class="inn-opt" data-action="innRest">${art('rest')}<b>쉬어 간다</b><small>생명력 ${pct}% (${innHealAmount()}) 회복</small></button>
+        <button class="inn-opt ${relicMod('noRest') ? 'disabled' : ''}" data-action="innRest">${art('rest')}<b>쉬어 간다</b><small>${relicMod('noRest') ? '호랑이 가죽 때문에 쉴 수 없다' : `생명력 ${pct}% (${innHealAmount()}) 회복`}</small></button>
         <button class="inn-opt ${run.deck.some(canUpgrade) ? '' : 'disabled'}" data-action="innTrain">${art('train')}<b>수련한다</b><small>카드 1장 강화</small></button>
       </div>`}
     </div>
