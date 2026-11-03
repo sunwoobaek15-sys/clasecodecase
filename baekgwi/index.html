@@ -103,8 +103,8 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .unit .u-art{position:relative;}
 .unit .u-art svg{width:100%;height:100%;display:block;filter:drop-shadow(0 4px 3px rgba(0,0,0,.6));}
 .unit.enemy{flex:1;max-width:140px;cursor:pointer;}
-.unit.enemy .u-art{width:min(100px,25vw);height:min(100px,25vw);}
-.unit.enemy.single .u-art{width:min(132px,33vw);height:min(132px,33vw);}
+.unit.enemy .u-art{width:min(96px,24vw,13vh);height:min(96px,24vw,13vh);}
+.unit.enemy.single .u-art{width:min(124px,31vw,17vh);height:min(124px,31vw,17vh);}
 .unit.enemy.targetable .u-art::after{content:"";position:absolute;inset:-6px;border:3px dashed var(--lamp2);border-radius:50%;animation:spin 6s linear infinite;pointer-events:none;}
 .unit.enemy.drop-hover .u-art{transform:scale(1.1);}
 .unit.enemy.drop-hover .u-art::after{content:"";position:absolute;inset:-8px;border:4px solid #ff6a3a;border-radius:50%;box-shadow:0 0 18px #ff6a3a;pointer-events:none;}
@@ -128,11 +128,37 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .u-art.warded{animation:wardPulse .5s;}
 @keyframes wardPulse{0%{filter:drop-shadow(0 0 0 #5fb8c8)}50%{filter:drop-shadow(0 0 16px #8ff0ff) brightness(1.4)}100%{filter:none}}
 
-.b-spirits{display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 12px;height:66px;flex:none;}
-.slot{width:54px;height:54px;border-radius:50%;border:2px dashed rgba(255,214,150,.25);display:flex;align-items:center;justify-content:center;font-size:9.5px;color:rgba(255,214,150,.35);text-align:center;line-height:1.2;}
-.b-spirits .lbl{font-size:10px;color:rgba(255,214,150,.4);writing-mode:vertical-rl;letter-spacing:.2em;}
+/* 요괴 필드 */
+.syn-badges{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;padding:2px 8px;min-height:24px;flex:none;}
+.syn-badge{font-size:11px;font-weight:800;padding:2px 9px;border-radius:10px;border:1.5px solid var(--ink);color:#fff;text-shadow:0 0 2px #000,0 0 2px #000;animation:pop .3s;box-shadow:0 0 10px rgba(255,220,150,.5);}
+.syn-empty{font-size:10px;color:rgba(255,214,150,.35);}
+.b-spirits{display:flex;align-items:stretch;justify-content:center;gap:8px;padding:2px 12px 4px;height:122px;flex:none;}
+.slot{--sc:rgba(255,214,150,.25);position:relative;flex:1;max-width:108px;border-radius:12px;border:2px dashed var(--sc);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:2px 2px 3px;transition:box-shadow .3s,border-color .3s;}
+.slot.empty{justify-content:center;font-size:11px;color:rgba(255,214,150,.35);}
+.slot.filled{border-style:solid;border-color:rgba(255,214,150,.18);background:rgba(0,0,0,.18);}
+.slot.syn{border-color:var(--sc);box-shadow:0 0 12px var(--sc),inset 0 0 12px var(--sc);animation:synGlow 1.8s infinite ease-in-out;}
+.slot.combo{border-color:var(--sc);border-style:dashed;box-shadow:0 0 6px var(--sc);}
+@keyframes synGlow{50%{box-shadow:0 0 22px var(--sc),inset 0 0 18px var(--sc)}}
+.unit.spirit{width:100%;cursor:pointer;}
+.unit.spirit .u-art{width:52px;height:52px;}
+.unit.spirit .hpbar{height:12px;max-width:84px;}
+.unit.spirit .hpbar .fill{background:linear-gradient(180deg,#7fd0a0,#2f8a5a);}
+.unit.spirit .hpbar .num{font-size:9.5px;line-height:10px;}
+.unit.spirit .statuses{min-height:0;}
+.unit.spirit.summoned .u-art{animation:summonPop .5s ease-out;}
+@keyframes summonPop{0%{transform:scale(.2) translateY(30px);opacity:0;filter:brightness(3)}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.unit.spirit.dying{animation:dieOut .45s forwards;}
+.sp-intent{display:flex;align-items:center;gap:2px;font-size:10.5px;font-weight:900;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;height:18px;white-space:nowrap;}
+.sp-intent svg{width:15px;height:15px;}
+.fam-dot{position:absolute;top:4px;right:6px;width:11px;height:11px;border-radius:50%;border:1.5px solid var(--ink);}
+.act{animation:act .45s;}
+@keyframes act{0%,100%{transform:translateY(0)}40%{transform:translateY(-18px) scale(1.12);filter:brightness(1.4)}}
+.st.charm{background:#a04a98;} .st.grudge{background:#3f8f84;} .st.wet{background:#2f6fc0;} .st.purify{background:#d8d8c8;color:#1b1512;text-shadow:none;} .st.dread{background:#5a4a6a;}
+.card .copy-tag{position:absolute;right:-.5em;top:-.6em;background:#b8893a;color:#fff;font-size:.8em;font-weight:900;padding:.05em .45em;border-radius:.5em;border:.12em solid var(--ink);z-index:3;}
+.card.pickable{cursor:pointer;}
+.steam-tag{font-size:10px;background:#d8dce0;color:#1b1512;border:1px solid var(--ink);border-radius:6px;padding:0 4px;margin-left:3px;text-shadow:none;}
 
-.b-leader{display:flex;align-items:center;gap:10px;padding:4px 12px;height:88px;flex:none;
+.b-leader{display:flex;align-items:center;gap:10px;padding:2px 12px;height:80px;flex:none;
   background:linear-gradient(90deg,rgba(10,8,6,.0),rgba(10,8,6,.55) 20%,rgba(10,8,6,.55) 80%,rgba(10,8,6,0));}
 .leader-portrait{position:relative;width:76px;height:76px;flex:none;cursor:pointer;}
 .leader-portrait .u-art{width:76px;height:76px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3a3456,#16142a);border:2.5px solid var(--lamp2);overflow:hidden;}
@@ -173,7 +199,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .ftext{position:absolute;font-size:24px;font-weight:900;color:#ff5a4a;text-shadow:-2px -2px 0 #1b1512,2px -2px 0 #1b1512,-2px 2px 0 #1b1512,2px 2px 0 #1b1512;
   animation:floatUp 1s ease-out forwards;transform:translate(-50%,-50%);white-space:nowrap;}
 .ftext.blk{color:#9cc8ff;font-size:17px;} .ftext.heal{color:#7fe0a0;} .ftext.st{font-size:15px;color:#ffd9a0;}
-.ftext.burn{color:#ff9a3a;} .ftext.ward{color:#9ff0ff;font-size:18px;} .ftext.gold{color:#ffd25e;font-size:17px;}
+.ftext.burn{color:#ff9a3a;} .ftext.charm{color:#f4a6ee;} .ftext.wet{color:#8fc0ff;} .ftext.grudge{color:#9fe8d8;} .ftext.ward{color:#9ff0ff;font-size:18px;} .ftext.gold{color:#ffd25e;font-size:17px;}
 @keyframes floatUp{0%{opacity:0;margin-top:12px;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;margin-top:0;transform:translate(-50%,-50%) scale(1.25)}30%{transform:translate(-50%,-50%) scale(1)}100%{opacity:0;margin-top:-56px}}
 .shake{animation:shake .35s;}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px) rotate(-3deg)}40%{transform:translateX(7px) rotate(2deg)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
@@ -231,7 +257,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 <script>
 'use strict';
 /* =====================================================================
-   백귀야행 (百鬼夜行) — 1단계: 전투 한 판이 끝까지 돌아가는 버전
+   백귀야행 (百鬼夜行) — 2단계: 요괴 소환 · 5계열 · 시너지
    구조: 데이터(CARDS·ENEMIES·RELICS·EVENTS·LEADERS) / 공용 실행기 executeEffects()
          / 턴 단계 훅 전투 엔진 / 상태 머신 / 시드 난수 / localStorage(런·메타 분리)
    ===================================================================== */
@@ -244,7 +270,8 @@ const PLAYER_MAX_HP = 75;      // 대장 최대 생명력 (런 동안 유지 예
 const ENERGY_PER_TURN = 3;     // 턴마다 충전되는 혼력
 const DRAW_PER_TURN = 5;       // 턴마다 뽑는 카드 수
 const MAX_HAND = 10;           // 손패 최대 장수
-const SPIRIT_SLOTS = 3;        // 요괴 필드 칸 수 (2단계에서 사용)
+const SPIRIT_SLOTS = 3;        // 요괴 필드 최대 칸 수
+const DEFAULT_SPIRIT_TARGET = 0.3;  // 적이 공격할 때 요괴를 노릴 기본 확률 (적 데이터 spiritTarget으로 개별 조정)
 const STARTING_GOLD = 0;
 
 /* ---------------------------------------------------------------
@@ -308,7 +335,7 @@ const FAMILIES = {
   fire:   {name:'불',   color:'#e2552b'},
   charm:  {name:'홀림', color:'#b45fa8'},
   grudge: {name:'원한', color:'#7fbfb2'},
-  water:  {name:'물',   color:'#2f5d9e'},
+  water:  {name:'물',   color:'#3f7fd0'},
   sound:  {name:'소리', color:'#b8893a'},
   neutral:{name:'공용', color:'#8a7a68'},
 };
@@ -316,7 +343,7 @@ const CARD_TYPES = {
   attack:{name:'공격', desc:'즉시 피해를 준다.'},
   guard: {name:'둔갑', desc:'방어도를 얻는다. 방어도는 턴이 끝나면 사라진다.'},
   skill: {name:'술법', desc:'버프·디버프·드로우·혼력 조작.'},
-  spirit:{name:'요괴', desc:'필드에 소환되어 매 턴 자동으로 행동한다. (2단계에서 구현)'},
+  spirit:{name:'요괴', desc:'빈 요괴 칸(최대 ' + SPIRIT_SLOTS + '칸)에 소환된다. 요괴는 자기 체력을 갖고, 플레이어 턴이 끝난 직후 왼쪽부터 자동으로 행동한다. 칸이 모두 차 있으면 쓸 수 없다.'},
   curse: {name:'저주', desc:'사용할 수 없는 카드.'},
 };
 const STATUS_INFO = {
@@ -326,11 +353,28 @@ const STATUS_INFO = {
     desc:'적 전용. 스택만큼 다음 공격의 피해를 통째로 무효로 한다. 막을 때마다 1 줄어든다. 불씨 피해는 막지 못한다.'},
   seal:{name:'봉인', cls:'seal', color:'#e8c94a', icon:'talisman', enemyOnly:true,
     desc:'적 전용. 플레이어 손패의 카드 1장에 노란 부적이 붙는다. 그 카드는 이번 전투 동안 사용할 수 없다.'},
+  charm:{name:'홀림', cls:'charm', color:'#b45fa8', icon:'swirl',
+    desc:'공격 피해가 25% 줄고, 50% 확률로 공격 대상이 무작위가 된다(같은 편 포함). 턴마다 1 감소.'},
+  wet:{name:'젖음', cls:'wet', color:'#3f7fd0', icon:'drop',
+    desc:'받는 불씨 피해가 2배, 둔갑으로 얻는 방어가 25% 줄어든다. 턴마다 1 감소.'},
+  grudge:{name:'원한', cls:'grudge', color:'#4f9f92', icon:'tear',
+    desc:'대장에게 쌓이는 자원. 줄어들지 않으며 「원한 폭발」 같은 카드로 소모한다.'},
+  purify:{name:'정화', cls:'purify', color:'#d8d8c8', icon:'paper', enemyOnly:true,
+    desc:'적 전용. 다음에 소환되는 내 요괴의 체력이 절반이 된다.'},
+  dread:{name:'위축', cls:'dread', color:'#6a5a7a', icon:'down',
+    desc:'이번 행동의 공격 피해가 타격마다 수치만큼 줄어든다. 행동이 끝나면 사라진다.'},
 };
 const KEYWORDS = {
   '불씨':STATUS_INFO.burn.desc,
   '결계':STATUS_INFO.ward.desc,
   '봉인':STATUS_INFO.seal.desc,
+  '홀림':STATUS_INFO.charm.desc,
+  '젖음':STATUS_INFO.wet.desc,
+  '원한':STATUS_INFO.grudge.desc,
+  '정화':STATUS_INFO.purify.desc,
+  '위축':STATUS_INFO.dread.desc,
+  '소환':'빈 요괴 칸 중 가장 왼쪽에 요괴를 불러낸다.',
+  '복제':'복제한 카드는 사용하거나 턴이 끝나면 사라진다. 소리 시너지 「메아리」가 켜져 있으면 비용이 0.',
   '방어':'받는 피해를 먼저 막아 준다. 턴이 끝나면 사라진다.',
   '혼력':'카드를 쓰는 데 드는 힘. 매 턴 ' + ENERGY_PER_TURN + ' 충전된다.',
   '엽전':'요괴 세계의 돈. 장터에서 쓴다. (이후 단계)',
@@ -340,12 +384,17 @@ const KEYWORDS = {
    4. 데이터 — 카드
    effects: 공용 실행기 executeEffects()가 처리하는 효과 배열
    target : 'enemy' = 대상 적 지정 / 'none' = 대상 없음
+   요괴 카드: effects:[{type:'summon', spirit:'요괴id'}]
 ---------------------------------------------------------------- */
 const CARDS = {
+  /* 공용 */
   bangmang:{name:'방망이질', family:'neutral', type:'attack', cost:1, rarity:'basic', target:'enemy', art:'club',
     effects:[{type:'damage', value:6}]},
   bawi:{name:'바위 둔갑', family:'neutral', type:'guard', cost:1, rarity:'basic', target:'none', art:'rock',
     effects:[{type:'block', value:5}]},
+  jeonghwapulgi:{name:'정화 풀기', family:'neutral', type:'skill', cost:1, rarity:'common', target:'none', art:'unseal',
+    effects:[{type:'unseal'},{type:'draw', value:1}]},
+  /* 불 */
   dokkaebibul:{name:'도깨비불', family:'fire', type:'attack', cost:1, rarity:'basic', target:'enemy', art:'dokkaebibul',
     effects:[{type:'damage', value:3},{type:'burn', value:3}]},
   bulti:{name:'불티 날리기', family:'fire', type:'skill', cost:1, rarity:'common', target:'none', art:'embers',
@@ -362,6 +411,36 @@ const CARDS = {
     effects:[{type:'damage', value:5, target:'allEnemies'},{type:'burn', value:2, target:'allEnemies'}]},
   yeopjeon:{name:'엽전 던지기', family:'fire', type:'attack', cost:1, rarity:'common', target:'enemy', art:'coins',
     effects:[{type:'damage', value:4},{type:'gold', value:3}]},
+  c_kkoma:{name:'꼬마 도깨비', family:'fire', type:'spirit', cost:2, rarity:'common', target:'none', art:'kkoma',
+    effects:[{type:'summon', spirit:'kkoma'}]},
+  /* 홀림 */
+  yeounun:{name:'여우 눈빛', family:'charm', type:'skill', cost:1, rarity:'common', target:'enemy', art:'eye',
+    effects:[{type:'charm', value:2},{type:'draw', value:1}]},
+  c_yeoubul:{name:'여우불', family:'charm', type:'spirit', cost:2, rarity:'common', target:'none', art:'foxfire',
+    effects:[{type:'summon', spirit:'yeoubul'}]},
+  c_geuseundae:{name:'그슨대', family:'charm', type:'spirit', cost:2, rarity:'uncommon', target:'none', art:'geuseundae',
+    effects:[{type:'summon', spirit:'geuseundae'}]},
+  /* 원한 */
+  seoreoun:{name:'서러운 울음', family:'grudge', type:'skill', cost:0, rarity:'common', target:'none', art:'cry',
+    effects:[{type:'gainGrudge', value:3},{type:'selfDamage', value:2}]},
+  wonhanpokbal:{name:'원한 폭발', family:'grudge', type:'attack', cost:2, rarity:'uncommon', target:'enemy', art:'burst',
+    effects:[{type:'grudgeBurst', mult:2}]},
+  c_songaksi:{name:'손각시', family:'grudge', type:'spirit', cost:2, rarity:'common', target:'none', art:'songaksi',
+    effects:[{type:'summon', spirit:'songaksi'}]},
+  /* 물 */
+  mulgwison:{name:'물귀신 손', family:'water', type:'attack', cost:1, rarity:'common', target:'enemy', art:'waterhand',
+    effects:[{type:'damage', value:4},{type:'wet', value:2},{type:'pullFront'}]},
+  c_imugi:{name:'이무기', family:'water', type:'spirit', cost:3, rarity:'rare', target:'none', art:'imugi',
+    effects:[{type:'summon', spirit:'imugi'}]},
+  c_mulgwisin:{name:'물귀신', family:'water', type:'spirit', cost:2, rarity:'common', target:'none', art:'mulgwisin',
+    effects:[{type:'summon', spirit:'mulgwisin'}]},
+  /* 소리 */
+  heungnae:{name:'흉내 소리', family:'sound', type:'skill', cost:1, rarity:'common', target:'none', art:'echo',
+    effects:[{type:'copyLastCard'}]},
+  c_eoduksini:{name:'어둑시니', family:'sound', type:'spirit', cost:2, rarity:'uncommon', target:'none', art:'eoduksini',
+    effects:[{type:'summon', spirit:'eoduksini'}]},
+  jangsanbeom:{name:'장산범 울음', family:'sound', type:'skill', cost:1, rarity:'uncommon', target:'enemy', art:'jangsanbeom',
+    effects:[{type:'mimicIntent'}]},
   /* 저주 — 사용 불가 */
   bujeong:{name:'부정(不淨)', family:'neutral', type:'curse', cost:-1, rarity:'special', target:'none', art:'smudge', unplayable:true,
     effects:[], text:'사용할 수 없다.'},
@@ -373,30 +452,82 @@ const STARTER_DECK = [
 ];
 /* 시험 덱: 시작 덱 + 1단계 불 카드 전부 1장씩 + 저주 1장 */
 const TEST_DECK = STARTER_DECK.concat(['bulti','bulkkot','hwalhwal','hwatot','jangnan','hwaetbul','yeopjeon','bujeong']);
+/* 계열 테스트 덱: 5계열 카드를 섞은 덱 (요괴는 시너지가 잘 나오도록 2장씩 섞음) */
+const FAMILY_TEST_DECK = [
+  'bangmang','bangmang','bawi','bawi','jeonghwapulgi',
+  'dokkaebibul','bulti','c_kkoma','c_kkoma',
+  'yeounun','c_yeoubul','c_geuseundae',
+  'seoreoun','wonhanpokbal','c_songaksi','c_songaksi',
+  'mulgwison','c_imugi','c_mulgwisin',
+  'heungnae','jangsanbeom','c_eoduksini','c_eoduksini',
+];
 
 /* ---------------------------------------------------------------
-   5. 데이터 — 적 (1막 일반)
-   moves[].intent: attack(칼+숫자) / defend(방패: 방어·결계) / seal(부적: 봉인·정화) / special(물음표)
-   ai: cycle(순서 반복) | random(가중치)
+   5. 데이터 — 적 · 요괴 · 시너지
+   적 moves[].intent: attack(칼+숫자 / 요괴를 노리면 칼+요괴 표시) / defend(방패: 방어·결계)
+                      / seal(부적: 봉인·정화) / special(물음표)
+   spiritTarget: 공격 행동을 고를 때 내 요괴를 노릴 확률 (기본 DEFAULT_SPIRIT_TARGET)
 ---------------------------------------------------------------- */
 const ENEMIES = {
-  jangjeong:{name:'마을 장정', hp:32, art:{kind:'human', robe:'#7a6a4a', hat:'band', item:'club', belt:'#3a2a1a'},
+  jangjeong:{name:'마을 장정', hp:32, spiritTarget:0.3, art:{kind:'human', robe:'#7a6a4a', hat:'band', item:'club', belt:'#3a2a1a'},
     moves:{
       punch:{name:'주먹질', intent:'attack', effects:[{type:'damage', value:7}]},
       guard:{name:'멍석 두르기', intent:'defend', effects:[{type:'block', value:6}]}},
     ai:{type:'cycle', seq:['punch','guard','punch']}},
-  sanyanggae:{name:'사냥개', hp:18, art:{kind:'dog'},
+  sanyanggae:{name:'사냥개', hp:18, spiritTarget:0.4, art:{kind:'dog'},
     moves:{
       bite:{name:'연속 물기', intent:'attack', effects:[{type:'damage', value:4, hits:2}]}},
     ai:{type:'cycle', seq:['bite']}},
-  mudang:{name:'떠돌이 무당', hp:28, art:{kind:'human', robe:'#a53a3a', hat:'mudang', item:'bell', belt:'#2f5d9e'},
+  mudang:{name:'떠돌이 무당', hp:28, spiritTarget:0.3, art:{kind:'human', robe:'#a53a3a', hat:'mudang', item:'bell', belt:'#2f5d9e'},
     moves:{
       strike:{name:'방울 후려치기', intent:'attack', effects:[{type:'damage', value:5}]},
       seal:{name:'봉인 부적', intent:'seal', effects:[{type:'sealCard', value:1}]},
       ward:{name:'결계 치기', intent:'defend', effects:[{type:'ward', value:2}]}},
     ai:{type:'cycle', seq:['strike','seal','ward']}},
+  /* 2단계 추가: 정화를 쓰는 적 */
+  dongja:{name:'동자승', hp:22, spiritTarget:0.25, art:{kind:'human', robe:'#9a8a6a', hat:'monk', item:'beads', belt:'#c8323a', skin:'#f0d8b8'},
+    moves:{
+      moktak:{name:'목탁 두드리기', intent:'attack', effects:[{type:'damage', value:6}]},
+      purify:{name:'정화 부적', intent:'seal', effects:[{type:'purify', value:1}]}},
+    ai:{type:'cycle', seq:['moktak','purify']}},
 };
-const TEST_ENEMY_POOL = ['jangjeong','sanyanggae','mudang'];
+const TEST_ENEMY_POOL = ['jangjeong','sanyanggae','mudang','dongja'];
+
+/* 요괴 (필드에 상주) — action: spiritPhase에 실행되는 효과 배열
+   targetRule: 'wetFirst' = 젖은 적을 먼저 노린다 */
+const SPIRITS = {
+  kkoma:{name:'꼬마 도깨비', family:'fire', hp:8, art:'kkoma',
+    action:[{type:'damage', value:3},{type:'burn', value:1}]},
+  yeoubul:{name:'여우불', family:'charm', hp:6, art:'foxfire',
+    action:[{type:'charm', value:1, target:'randomEnemy'}]},
+  geuseundae:{name:'그슨대', family:'charm', hp:9, art:'geuseundae',
+    action:[{type:'dread', value:3, target:'strongestEnemy'}]},
+  songaksi:{name:'손각시', family:'grudge', hp:7, art:'songaksi',
+    action:[{type:'gainGrudge', value:2}]},
+  imugi:{name:'이무기', family:'water', hp:15, art:'imugi',
+    action:[{type:'wet', value:1, target:'allEnemies'}]},
+  mulgwisin:{name:'물귀신', family:'water', hp:10, art:'mulgwisin', targetRule:'wetFirst',
+    action:[{type:'damage', value:4, bonusIf:'wet', bonus:4}]},
+  eoduksini:{name:'어둑시니', family:'sound', hp:10, art:'eoduksini',
+    action:[{type:'growHp', value:3},{type:'damageFromHp', div:3}]},
+};
+
+/* 시너지 — kind:'family'(같은 계열 2마리 이상) / 'combo'(서로 다른 계열이 함께)
+   triggers가 있으면 발동 중에 전투 훅에 효과를 등록하고, 없으면 엔진이 hasSyn(key)로 규칙을 바꾼다. */
+const SYNERGIES = {
+  fire:  {kind:'family', families:['fire'],   name:'꺼지지 않는 불', desc:'불씨가 턴마다 줄어들지 않는다.'},
+  charm: {kind:'family', families:['charm'],  name:'갈팡질팡',       desc:'홀림 걸린 적의 공격은 무조건 무작위 대상을 노린다.'},
+  grudge:{kind:'family', families:['grudge'], name:'맺힌 한',        desc:'내 요괴가 피해를 받을 때마다 원한 +1.',
+    triggers:[{on:'spiritDamaged', effects:[{type:'gainGrudge', value:1}]}]},
+  water: {kind:'family', families:['water'],  name:'물먹은 방패',    desc:'매 턴 시작 시 젖은 적의 방어도가 절반이 된다.',
+    triggers:[{on:'turnStart', effects:[{type:'halveWetBlock'}]}]},
+  sound: {kind:'family', families:['sound'],  name:'메아리',         desc:'복제한 카드의 비용이 0이 된다.'},
+  fireChain: {kind:'combo', families:['fire','charm'],   name:'화염 연쇄', desc:'홀림 걸린 적이 불씨 피해를 받으면 옆 적에게 절반이 옮겨 붙는다.'},
+  steam:     {kind:'combo', families:['water','fire'],   name:'증기',     desc:'젖음과 불씨가 함께 걸린 적의 다음 행동을 취소한다. (전투당 1회)'},
+  wail:      {kind:'combo', families:['grudge','sound'], name:'곡소리',   desc:'원한 폭발이 모든 적에게 적용된다.'},
+  mimicCharm:{kind:'combo', families:['charm','sound'],  name:'흉내 홀림', desc:'요괴 행동 단계에 내 요괴 하나가 적이 예고한 행동을 복사해 사용한다. (턴당 1회)',
+    triggers:[{on:'spiritPhase', effects:[{type:'mimicCharm'}]}]},
+};
 
 /* ---------------------------------------------------------------
    6. 데이터 — 보물 · 사건 · 대장
@@ -484,6 +615,102 @@ const ART = {
     <path d="M22 50 C14 30 34 16 50 22 C66 12 88 28 80 48 C92 62 76 86 58 78 C44 90 20 82 24 66 C12 62 14 54 22 50Z" fill="#2a2228" ${SK}/>
     <circle cx="42" cy="48" r="4" fill="#c8323a"/><circle cx="60" cy="46" r="4" fill="#c8323a"/>
     <path d="M40 62 q10 -6 20 0" fill="none" stroke="#c8323a" stroke-width="2.5"/>`,
+  /* 2단계 — 요괴 · 4계열 카드 */
+  songaksi:()=>`
+    <path d="M24 94 L34 60 Q50 54 66 60 L76 94Z" fill="#9fd0c6" ${SK}/>
+    <path d="M30 76 L70 76 M28 83 L72 83" stroke="#e2552b" stroke-width="3"/><path d="M29 80 L71 80" stroke="#e8c94a" stroke-width="2.5"/>
+    <path d="M44 60 L50 70 L56 60" fill="none" stroke="#f2e8d0" stroke-width="3"/>
+    <circle cx="50" cy="42" r="14" fill="#f1f6f4" ${SK}/>
+    <path d="M36 42 Q36 26 50 26 Q64 26 64 42 Q58 32 50 32 Q42 32 36 42Z" fill="${INK}"/>
+    <path d="M41 27 L43 15 L57 15 L59 27Z" fill="#2a2a2a" ${SK2}/>
+    <circle cx="46" cy="18" r="1.6" fill="#e8c94a"/><circle cx="50" cy="17" r="1.6" fill="#e8c94a"/><circle cx="54" cy="18" r="1.6" fill="#e8c94a"/>
+    <circle cx="43" cy="47" r="2.6" fill="#d23a3a"/><circle cx="57" cy="47" r="2.6" fill="#d23a3a"/><circle cx="50" cy="37" r="1.8" fill="#d23a3a"/>
+    <path d="M42 43 l5 0 M53 43 l5 0" ${SK2}/>`,
+  mulgwisin:()=>`
+    <path d="M30 82 Q28 44 50 42 Q72 44 70 82Z" fill="${INK}" ${SK}/>
+    <ellipse cx="50" cy="62" rx="10" ry="12" fill="#cfe3ef" ${SK2}/>
+    <circle cx="46" cy="60" r="2" fill="#5ab0ff"/><circle cx="54" cy="60" r="2" fill="#5ab0ff"/>
+    <path d="M38 48 L36 76 M62 48 L64 76 M44 46 L43 54 M56 46 L57 54" stroke="#3a3a4a" stroke-width="2"/>
+    <path d="M74 80 L80 50" stroke="${INK}" stroke-width="8" stroke-linecap="round"/><path d="M74 80 L80 50" stroke="#cfe3ef" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M80 50 L76 38 M80 50 L81 36 M80 50 L86 39 M80 50 L90 46" stroke="#cfe3ef" stroke-width="3" stroke-linecap="round"/>
+    <path d="M2 80 q12 -10 24 0 t24 0 t24 0 t24 0 L98 100 L2 100Z" fill="#2f5d9e" ${SK}/>
+    <path d="M6 90 q10 -7 20 0 t20 0 t20 0 t20 0" fill="none" stroke="#9fc3ee" stroke-width="2.5"/>`,
+  imugi:()=>`
+    <path d="M18 88 C8 70 30 60 50 66 C72 72 88 60 80 44 C74 32 58 34 54 24" fill="none" stroke="${INK}" stroke-width="19" stroke-linecap="round"/>
+    <path d="M18 88 C8 70 30 60 50 66 C72 72 88 60 80 44 C74 32 58 34 54 24" fill="none" stroke="#2f5d9e" stroke-width="13" stroke-linecap="round"/>
+    <path d="M18 88 C8 70 30 60 50 66 C72 72 88 60 80 44 C74 32 58 34 54 24" fill="none" stroke="#9fc3ee" stroke-width="3" stroke-dasharray="3 6"/>
+    <ellipse cx="54" cy="19" rx="13" ry="9" fill="#2f5d9e" ${SK}/>
+    <circle cx="58" cy="16" r="2.6" fill="#ffd25e"/>
+    <path d="M65 22 q10 2 15 10 M64 18 q12 -4 18 2" fill="none" stroke="${INK}" stroke-width="2"/>
+    <path d="M47 11 l-3 -6 M54 10 l0 -7" ${SK}/>`,
+  jangsanbeom:()=>`
+    <path d="M14 70 Q8 28 50 14 Q92 28 86 70 Q80 92 50 92 Q20 92 14 70Z" fill="#f4efe6" ${SK}/>
+    <path d="M24 40 Q22 60 28 80 M34 30 Q30 56 36 86 M76 40 Q78 60 72 80 M66 30 Q70 56 64 86" fill="none" stroke="#c9b48e" stroke-width="2"/>
+    <ellipse cx="50" cy="56" rx="18" ry="16" fill="#e8dcc8" ${SK}/>
+    <circle cx="43" cy="52" r="3.6" fill="#b8893a" ${SK2}/><circle cx="57" cy="52" r="3.6" fill="#b8893a" ${SK2}/>
+    <path d="M38 47 L46 49 M62 47 L54 49" ${SK2}/>
+    <path d="M42 64 Q50 70 58 64" fill="none" ${SK}/>
+    <path d="M45 65 l1.5 4 l1.5 -3.5 M52 65.5 l1.5 3.5 l1.5 -4" fill="#fff" stroke="${INK}" stroke-width="1.5"/>
+    <path d="M4 50 q-3 8 0 16 M96 50 q3 8 0 16" fill="none" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>`,
+  eye:()=>`
+    <path d="M8 50 Q50 10 92 50 Q50 90 8 50Z" fill="#f6eadf" ${SK}/>
+    <circle cx="50" cy="50" r="18" fill="#b45fa8" ${SK}/>
+    <path d="M50 50 m-2 0 a2 2 0 1 1 4 0 a5 5 0 1 1 -10 0 a8 8 0 1 1 16 0 a11 11 0 1 1 -22 0" fill="none" stroke="#f6e6f2" stroke-width="2"/>
+    <path d="M20 30 L14 22 M36 22 L34 12 M64 22 L66 12 M80 30 L86 22" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`,
+  ghosthand:()=>`
+    <path d="M0 84 Q50 74 100 84 L100 100 L0 100Z" fill="#2a2a3a"/>
+    <path d="M36 86 L38 52 L32 26 Q32 20 37 22 L44 46 L44 16 Q46 10 50 16 L52 44 L56 18 Q60 12 62 20 L60 46 L68 28 Q73 24 72 32 L64 60 L62 86Z" fill="#cfe9e3" ${SK}/>
+    <path d="M32 26 l-3 -8 M44 16 l0 -9 M56 18 l2 -9 M68 28 l4 -7" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>
+    <path d="M18 70 q-6 -12 4 -20 M84 64 q6 -10 -2 -18" fill="none" stroke="#7fbfb2" stroke-width="2.5"/>`,
+  scroll:()=>`
+    <g transform="rotate(-10 40 50)"><path d="M28 14 L50 14 L46 40 L52 52 L44 86 L28 86Z" fill="#e8c94a" ${SK}/>
+    <path d="M33 24 L43 24 M38 24 L38 44 M32 34 L44 36 M34 56 L40 66 L34 76" fill="none" stroke="#c8323a" stroke-width="2.5"/></g>
+    <g transform="rotate(10 62 50)"><path d="M56 14 L74 14 L74 86 L52 86 L58 54 L50 42Z" fill="#e8c94a" ${SK}/>
+    <path d="M62 24 L70 24 M66 24 L66 44 M60 60 L70 60 M65 60 L65 78" fill="none" stroke="#c8323a" stroke-width="2.5"/></g>`,
+  echo:()=>`
+    <path d="M4 90 L34 40 L50 60 L66 30 L96 90Z" fill="#5a4a3a" ${SK}/>
+    <path d="M60 40 L66 30 L72 40Z" fill="#f2e8d0"/>
+    <path d="M30 26 q-8 10 0 20 M22 20 q-14 16 0 32 M76 22 q8 10 0 20 M84 16 q14 16 0 32" fill="none" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>`,
+  kkoma:()=>`
+    <path d="M30 92 L34 66 Q50 60 66 66 L70 92Z" fill="#3e6a4a" ${SK}/>
+    <circle cx="50" cy="48" r="18" fill="#d8653a" ${SK}/>
+    <path d="M45 32 L50 15 L55 32Z" fill="#f2e8d0" ${SK2}/>
+    <circle cx="43" cy="46" r="5" fill="#fff" ${SK2}/><circle cx="57" cy="46" r="5" fill="#fff" ${SK2}/>
+    <circle cx="44" cy="47" r="2.2" fill="${INK}"/><circle cx="56" cy="47" r="2.2" fill="${INK}"/>
+    <path d="M42 56 Q50 63 58 56Z" fill="#fff" ${SK2}/>
+    <path d="M70 72 L84 48" stroke="${INK}" stroke-width="8" stroke-linecap="round"/><path d="M70 72 L84 48" stroke="#8a5a32" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M84 46 C79 38 84 31 86 24 C90 33 95 38 90 46Z" fill="#e2552b" ${SK2}/>`,
+  foxfire:()=>`
+    <path d="M30 32 L22 16 L38 26 M70 32 L78 16 L62 26" fill="#b45fa8" ${SK2}/>
+    <path d="M50 10 C62 30 78 40 74 62 C71 80 60 88 50 88 C40 88 29 80 26 62 C22 40 44 32 50 10Z" fill="#b45fa8" ${SK}/>
+    <path d="M50 36 C56 46 64 54 62 66 C60 76 55 80 50 80 C45 80 40 76 38 66 C37 56 45 48 50 36Z" fill="#9fd8f8"/>
+    <path d="M40 62 q4 -4 8 0 M52 62 q4 -4 8 0" fill="none" ${SK2}/>
+    <path d="M46 70 L50 73 L54 70" fill="none" ${SK2}/>`,
+  geuseundae:()=>`
+    <path d="M14 96 q10 -16 22 -6 M86 96 q-10 -16 -22 -6" fill="none" stroke="#2a2440" stroke-width="7" stroke-linecap="round"/>
+    <path d="M30 96 Q22 40 50 8 Q78 40 70 96Z" fill="#2a2440" ${SK}/>
+    <path d="M34 90 Q28 46 50 16" fill="none" stroke="#b45fa8" stroke-width="2" opacity=".7"/>
+    <ellipse cx="42" cy="40" rx="4.5" ry="2.6" fill="#f0a0e8"/><ellipse cx="58" cy="40" rx="4.5" ry="2.6" fill="#f0a0e8"/>
+    <path d="M40 56 Q50 50 60 56" fill="none" stroke="#f0a0e8" stroke-width="1.8"/>`,
+  cry:()=>`
+    <circle cx="50" cy="48" r="30" fill="#e3efe9" ${SK}/>
+    <path d="M30 40 Q32 20 50 20 Q68 20 70 40 Q60 30 50 31 Q40 30 30 40Z" fill="${INK}"/>
+    <path d="M36 46 q6 4 12 0 M52 46 q6 4 12 0" fill="none" ${SK2}/>
+    <path d="M40 64 Q50 56 60 64" fill="none" ${SK}/>
+    <path d="M38 50 C34 60 36 70 38 72 C42 70 42 60 38 50Z M62 50 C58 60 60 70 62 72 C66 70 66 60 62 50Z" fill="#7fbfb2" ${SK2}/>
+    <path d="M12 30 q-6 10 0 20 M88 30 q6 10 0 20" fill="none" stroke="#7fbfb2" stroke-width="3" stroke-linecap="round"/>`,
+  burst:()=>`
+    <path d="M50 6 L58 34 L86 22 L66 46 L94 58 L64 62 L72 92 L50 70 L28 92 L36 62 L6 58 L34 46 L14 22 L42 34Z" fill="#4f9f92" ${SK}/>
+    <path d="M50 26 L55 42 L70 38 L60 50 L72 58 L56 58 L58 74 L50 62 L42 74 L44 58 L28 58 L40 50 L30 38 L45 42Z" fill="#cfeee8"/>
+    <circle cx="50" cy="52" r="6" fill="${INK}"/>`,
+  eoduksini:()=>`
+    <path d="M6 40 q-4 8 0 16 M94 40 q4 8 0 16" fill="none" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M14 92 Q8 50 30 30 Q50 10 70 30 Q92 50 86 92 Q76 84 68 92 Q58 82 50 92 Q42 82 32 92 Q24 84 14 92Z" fill="#1e1a2e" ${SK}/>
+    <circle cx="40" cy="50" r="6" fill="#ffd25e"/><circle cx="60" cy="50" r="6" fill="#ffd25e"/>
+    <circle cx="40" cy="50" r="2.5" fill="${INK}"/><circle cx="60" cy="50" r="2.5" fill="${INK}"/>
+    <path d="M38 66 Q50 74 62 66" fill="none" stroke="#b8893a" stroke-width="2.5"/>`,
+  waterhand:()=>ART.ghosthand() + `<path d="M0 84 q12 -8 25 0 t25 0 t25 0 t25 0 L100 100 L0 100Z" fill="#2f5d9e" ${SK}/><path d="M4 92 q10 -6 20 0 t20 0 t20 0 t20 0" fill="none" stroke="#9fc3ee" stroke-width="2.5"/>`,
+  unseal:()=>ART.scroll() + `<path d="M14 18 L86 82" stroke="#f2e8d0" stroke-width="5" stroke-linecap="round" opacity=".9"/>`,
   /* 대장 — 도깨비 대장 '방망이' */
   L_bangmangi:()=>`
     <path d="M70 98 L90 16" stroke="${INK}" stroke-width="15" stroke-linecap="round"/>
@@ -529,15 +756,17 @@ function humanArt(o){
   s.push(`<path d="M32 62 L22 80 M68 62 L76 78" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/><path d="M32 62 L22 80 M68 62 L76 78" fill="none" stroke="${robe}" stroke-width="3.5" stroke-linecap="round"/>`);
   s.push(`<circle cx="22" cy="81" r="4" fill="${skin}" ${SK2}/><circle cx="76" cy="79" r="4" fill="${skin}" ${SK2}/>`);
   s.push(`<circle cx="50" cy="40" r="13" fill="${skin}" ${SK}/>`);
-  s.push(`<path d="M37 38 Q38 27 50 27 Q62 27 63 38 Q58 31 50 31 Q42 31 37 38Z" fill="${INK}"/>`);
+  if(o.hat !== 'monk') s.push(`<path d="M37 38 Q38 27 50 27 Q62 27 63 38 Q58 31 50 31 Q42 31 37 38Z" fill="${INK}"/>`);
   s.push(`<path d="M42 37 L47 39.5 M58 37 L53 39.5" ${SK2}/><circle cx="45" cy="42" r="1.6" fill="${INK}"/><circle cx="55" cy="42" r="1.6" fill="${INK}"/>`);
   s.push(`<path d="M46 48 L54 48" ${SK2}/>`);
   switch(o.hat){
     case 'band': s.push(`<path d="M37 34 L63 34" stroke="#f2e8d0" stroke-width="4"/><circle cx="50" cy="25" r="4.5" fill="${INK}"/><path d="M63 34 L70 38" stroke="#f2e8d0" stroke-width="3"/>`); break;
+    case 'monk': s.push(`<path d="M39 34 Q50 26 61 34" fill="none" stroke="#c9b08a" stroke-width="2"/><circle cx="50" cy="36" r="1.6" fill="#c8323a"/>`); break;
     case 'mudang': s.push(`<path d="M37 31 L41 13 L59 13 L63 31Z" fill="#c8323a" ${SK2}/><path d="M59 14 Q72 4 80 12" fill="none" stroke="#2f5d9e" stroke-width="3"/><path d="M41 22 L59 22" stroke="#e8c94a" stroke-width="2.5"/>`); break;
   }
   switch(o.item){
     case 'club': s.push(`<path d="M76 80 L90 48" stroke="${INK}" stroke-width="10" stroke-linecap="round"/><path d="M76 80 L90 48" stroke="#8a6a3a" stroke-width="6" stroke-linecap="round"/>`); break;
+    case 'beads': s.push(`${Array.from({length:12}, (_, i) => { const a = i / 12 * Math.PI * 2; return `<circle cx="${50 + Math.cos(a) * 10}" cy="${66 + Math.sin(a) * 7}" r="2.4" fill="#6a3a22" stroke="${INK}" stroke-width="1"/>`; }).join('')}<path d="M78 80 L88 62" ${SK}/><ellipse cx="89" cy="58" rx="8" ry="6" fill="#a8743a" ${SK2}/>`); break;
     case 'bell': s.push(`<path d="M76 79 L84 60" ${SK}/>${[[84,58],[89,63],[80,55],[88,54]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.2" fill="#d9a93f" ${SK2}/>`).join('')}<path d="M84 60 Q94 70 90 84" fill="none" stroke="#c8323a" stroke-width="2"/><g transform="rotate(-12 20 74)"><rect x="12" y="62" width="11" height="20" fill="#f2d24a" ${SK2}/><path d="M15 66 L20 66 M17.5 66 L17.5 76" stroke="#c8323a" stroke-width="1.6"/></g>`); break;
   }
   return s.join('');
@@ -550,11 +779,17 @@ function enemyArtSvg(id){
 function coinSvg(){ return art('coin'); }
 const STATUS_ICON = {
   flame:`<svg viewBox="0 0 20 20"><path d="M10 1 C13 6 17 8 16 13 C15 17 12 19 10 19 C8 19 5 17 4 13 C3 9 7 7 8 4 C9 7 10 6 10 1Z" fill="#ffb24a" stroke="${INK}" stroke-width="1.4"/></svg>`,
+  swirl:`<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.5" fill="#e8a6e0" stroke="${INK}" stroke-width="1.4"/><path d="M10 10 m-1.5 0 a1.5 1.5 0 1 1 3 0 a4 4 0 1 1 -8 0 a6 6 0 1 1 12 0" fill="none" stroke="#7a2a72" stroke-width="1.4"/></svg>`,
+  drop:`<svg viewBox="0 0 20 20"><path d="M10 1 C13 7 16 10 16 13 C16 17 13 19 10 19 C7 19 4 17 4 13 C4 10 7 7 10 1Z" fill="#8fc0ff" stroke="${INK}" stroke-width="1.4"/><path d="M7 13 q0 3 3 3" fill="none" stroke="#fff" stroke-width="1.4"/></svg>`,
+  tear:`<svg viewBox="0 0 20 20"><path d="M10 2 C14 8 16 11 15 14 C14 17 12 18 10 18 C8 18 6 17 5 14 C4 11 6 8 10 2Z" fill="#9fe8d8" stroke="${INK}" stroke-width="1.4"/><path d="M8 11 L12 11 M10 9 L10 15" stroke="#2f7f74" stroke-width="1.4"/></svg>`,
+  down:`<svg viewBox="0 0 20 20"><path d="M10 18 L2 9 L7 9 L7 2 L13 2 L13 9 L18 9Z" fill="#c8b0e0" stroke="${INK}" stroke-width="1.4"/></svg>`,
+  paper:`<svg viewBox="0 0 20 20"><rect x="5" y="1" width="10" height="18" fill="#f6f2e0" stroke="${INK}" stroke-width="1.4"/><path d="M7.5 5 L12.5 5 M10 5 L10 14" stroke="#7a7a7a" stroke-width="1.4"/></svg>`,
   hex:`<svg viewBox="0 0 20 20"><path d="M10 1 L18 5.5 L18 14.5 L10 19 L2 14.5 L2 5.5Z" fill="#8fe0f0" stroke="${INK}" stroke-width="1.4"/><path d="M10 5 L14 7.5 L14 12.5 L10 15 L6 12.5 L6 7.5Z" fill="none" stroke="#2f7f8f" stroke-width="1.2"/></svg>`,
 };
 /* 의도 아이콘: 칼=공격 / 방패=방어·결계 / 부적=봉인·정화 / 물음표=특수 */
 const INTENT_ICON = {
   attack:`<path d="M5 21 L19 6 L22 2 L18 5 L4 19Z" fill="#e0e4e8" stroke="${INK}" stroke-width="1.6"/><path d="M3 15 L9 21" stroke="${INK}" stroke-width="3.2" stroke-linecap="round"/><path d="M2 22 L5 19" stroke="#8a5a32" stroke-width="3" stroke-linecap="round"/>`,
+  attackSpirit:`<path d="M3 19 L15 6 L18 2 L14 5 L2 17Z" fill="#e0e4e8" stroke="${INK}" stroke-width="1.5"/><path d="M1 13 L6 18" stroke="${INK}" stroke-width="3" stroke-linecap="round"/><path d="M14 22 Q12 12 18 10 Q24 12 22 22 Q20 20 18 22 Q16 20 14 22Z" fill="#9fe8c0" stroke="${INK}" stroke-width="1.4"/><circle cx="16.6" cy="15" r="1" fill="${INK}"/><circle cx="19.6" cy="15" r="1" fill="${INK}"/>`,
   defend:`<path d="M12 2 L21 6 Q21 16 12 22 Q3 16 3 6Z" fill="#5d8fc9" stroke="${INK}" stroke-width="1.6"/><path d="M12 5 L12 19" stroke="#a8c8f0" stroke-width="1.5"/>`,
   seal:`<rect x="6" y="2" width="12" height="20" fill="#f2d24a" stroke="${INK}" stroke-width="1.6"/><path d="M9 6 L15 6 M12 6 L12 15 M9 11 L15 12" stroke="#c8323a" stroke-width="1.6"/>`,
   special:`<circle cx="12" cy="12" r="10" fill="#6a4a8a" stroke="${INK}" stroke-width="1.6"/><text x="12" y="17" font-size="14" font-weight="900" text-anchor="middle" fill="#fff">?</text>`,
@@ -677,6 +912,12 @@ const Sound = {
       case 'death': this.tone(300, 0.5, 'sawtooth', 0.08, 0, null, 60); this.noise(0.5, 0.15, 400, 0, 0.5); break;
       case 'turn': this.tone(294, 0.4, 'triangle', 0.1); this.tone(440, 0.5, 'triangle', 0.08, 0.1); break;
       case 'enemyturn': this.tone(196, 0.35, 'sawtooth', 0.06); this.noise(0.2, 0.15, 200, 0, 1); break;
+      case 'summon': [392, 523, 659, 784].forEach((f, i)=>this.tone(f, 0.22, 'triangle', 0.1, i * 0.06)); this.noise(0.4, 0.08, 1800, 0, 0.6); break;
+      case 'spirit': this.tone(620, 0.1, 'triangle', 0.08, 0, null, 900); break;
+      case 'charm': [660, 880, 990].forEach((f, i)=>this.tone(f, 0.25, 'sine', 0.08, i * 0.05)); break;
+      case 'wet': this.noise(0.3, 0.18, 900, 0, 0.6); this.tone(500, 0.25, 'sine', 0.06, 0, null, 250); break;
+      case 'grudge': this.tone(330, 0.5, 'sine', 0.1, 0, null, 250); this.tone(336, 0.5, 'sine', 0.08); break;
+      case 'synergy': [523, 659, 784, 1047].forEach((f, i)=>this.tone(f, 0.35, 'sine', 0.08, i * 0.08)); break;
       case 'error': this.tone(180, 0.15, 'square', 0.07); break;
       case 'victory': [392, 440, 523, 587, 784].forEach((f, i)=>this.tone(f, 0.45, 'triangle', 0.1, i * 0.12)); break;
       case 'defeat': [392, 349, 294, 262].forEach((f, i)=>this.tone(f, 0.6, 'sine', 0.1, i * 0.22)); break;
@@ -711,7 +952,10 @@ const Sound = {
 
 /* ---------------------------------------------------------------
    10. 공용 효과 실행기 executeEffects()
-   ctx: {battle, source, target, card, force}
+   ctx: {battle, source, target, attackTarget, card, force}
+     source       : 효과를 일으킨 유닛 (대장·요괴·적)
+     target       : 카드/요괴가 고른 대상 적
+     attackTarget : 적의 공격이 향할 대상 (대장·요괴·홀려서 고른 아무나)
 ---------------------------------------------------------------- */
 const EFFECTS = {};
 async function executeEffects(effects, ctx){
@@ -727,9 +971,40 @@ async function executeEffects(effects, ctx){
   }
 }
 function getCardDef(inst){ const d = CARDS[inst.id]; return d ? Object.assign({id:inst.id}, d) : null; }
+/* 카드 비용: 복제 카드는 소리 시너지 「메아리」가 켜져 있으면 0 */
+function cardCost(inst){
+  const d = CARDS[inst.id];
+  if(inst.copy && hasSyn('sound')) return 0;
+  return d.cost;
+}
 function isAllySide(u){ return u && (u.kind === 'player' || u.kind === 'spirit'); }
 function aliveEnemies(){ const b = G.battle; return b ? b.enemies.filter(e => e.hp > 0) : []; }
+function aliveSpirits(){ const b = G.battle; return b ? b.spirits.filter(s => s && s.hp > 0 && !s.dead) : []; }
+function findSpirit(uid){ const b = G.battle; return b ? b.spirits.find(s => s && s.uid === uid) || null : null; }
 function st(u, k){ return (u && u.status && u.status[k]) || 0; }
+function hasSyn(key){ const b = G.battle; return !!(b && b.syn && b.syn[key]); }
+function spiritChance(d){ return d.spiritTarget === undefined ? DEFAULT_SPIRIT_TARGET : d.spiritTarget; }
+
+/* 가장 강한 적: 이번 턴 예고한 공격 피해가 가장 큰 적 (같으면 체력이 많은 적) */
+function strongestEnemy(){
+  const alive = aliveEnemies();
+  if(!alive.length) return null;
+  const score = e => {
+    const ii = intentInfo(e);
+    const atk = ii && (ii.kind === 'attack' || ii.kind === 'attackSpirit') ? (ii.value || 0) * (ii.hits || 1) : 0;
+    return atk * 1000 + e.hp;
+  };
+  return alive.slice().sort((a, c) => score(c) - score(a))[0];
+}
+function neighborEnemy(u){
+  const b = G.battle;
+  const i = b.enemies.indexOf(u);
+  for(const j of [i + 1, i - 1, i + 2, i - 2]){
+    const e = b.enemies[j];
+    if(e && e !== u && e.hp > 0) return e;
+  }
+  return null;
+}
 
 /* 대상 해석 */
 function resolveTargets(e, ctx, def){
@@ -740,13 +1015,20 @@ function resolveTargets(e, ctx, def){
   const alive = aliveEnemies();
   switch(e.target || def){
     case 'enemy':
-      if(!ally) return [b.player];
+      if(!ally){
+        const t = ctx.attackTarget;
+        if(t && t.hp > 0 && !t.dead) return [t];
+        if(t && t.kind === 'spirit'){ const sp = aliveSpirits(); return sp.length ? [pick(b.rng, sp)] : [b.player]; }
+        return [b.player];
+      }
       if(ctx.target && ctx.target.hp > 0 && ctx.target.kind === 'enemy') return [ctx.target];
       return alive.length ? [pick(b.rng, alive)] : [];
     case 'randomEnemy': return ally ? (alive.length ? [pick(b.rng, alive)] : []) : [b.player];
+    case 'strongestEnemy':{ if(!ally) return [b.player]; const s = strongestEnemy(); return s ? [s] : []; }
     case 'allEnemies': return ally ? alive : [b.player];
     case 'player': return [b.player];
     case 'self': return [src];
+    case 'allSpirits': return aliveSpirits();
     case 'allAllies': return ally ? [b.player] : alive;
     default: return [];
   }
@@ -755,12 +1037,18 @@ function resolveTargets(e, ctx, def){
 /* 피해 계산 · 적용 */
 function calcDamage(src, tgt, base){
   let dmg = base;
-  if(src) dmg += st(src, 'str');
+  if(src){
+    dmg += st(src, 'str');
+    if(src.kind === 'enemy'){
+      dmg -= st(src, 'dread');                 // 위축: 타격마다 -N
+      if(st(src, 'charm') > 0) dmg *= 0.75;    // 홀림: 25% 감소
+    }
+  }
   return Math.max(0, Math.floor(dmg));
 }
 async function dealDamage(src, tgt, base, opts){
   opts = opts || {};
-  if(!tgt || tgt.hp <= 0) return 0;
+  if(!tgt || tgt.hp <= 0 || tgt.dead) return 0;
   const b = G.battle;
   let dmg = opts.raw ? base : calcDamage(src, tgt, base);
   // 결계: 공격 피해를 통째로 무효 (불씨 같은 raw 피해는 통과)
@@ -787,24 +1075,47 @@ async function dealDamage(src, tgt, base, opts){
     fxText(tgt.uid, '막음', 'blk');
     Sound.play('block');
   }
+  if(tgt.kind === 'spirit' && dmg > 0) await emit('spiritDamaged', {spirit:tgt});
   if(tgt.hp <= 0) await onUnitDeath(tgt);
   return dmg;
 }
 function applyStatus(tgt, key, val){
-  if(!tgt || tgt.hp <= 0 || !val) return;
+  if(!tgt || tgt.hp <= 0 || tgt.dead || !val) return;
   tgt.status[key] = (tgt.status[key] || 0) + val;
   if(tgt.status[key] <= 0) delete tgt.status[key];
   renderBattle();
-  fxText(tgt.uid, STATUS_INFO[key].name + ' +' + val, key === 'burn' ? 'burn' : key === 'ward' ? 'ward' : 'st');
+  const si = STATUS_INFO[key];
+  fxText(tgt.uid, si.name + (val > 0 ? ' +' : ' ') + val, ['burn','ward','charm','wet','grudge'].includes(key) ? key : 'st');
   if(key === 'burn'){ fxEmbers(tgt.uid, 6 + val * 2); Sound.play('burn'); }
-  if(key === 'ward') Sound.play('ward');
+  else if(key === 'ward') Sound.play('ward');
+  else if(key === 'charm') Sound.play('charm');
+  else if(key === 'wet') Sound.play('wet');
+  else if(key === 'grudge') Sound.play('grudge');
 }
 function gainBlock(u, v){
   if(!u || u.hp <= 0 || v <= 0) return;
+  if(st(u, 'wet') > 0) v = Math.floor(v * 0.75);   // 젖음: 얻는 방어 25% 감소
+  if(v <= 0) return;
   u.block = (u.block || 0) + v;
   renderBattle();
   fxText(u.uid, '방어 +' + v, 'blk');
   Sound.play('block');
+}
+/* 적이 예고한 행동을 내 편이 따라 할 때의 효과 변환 (장산범 울음 · 흉내 홀림) */
+function mirrorEffects(enemy){
+  const mv = ENEMIES[enemy.id].moves[enemy.intent];
+  if(!mv) return [];
+  return mv.effects.map(x => {
+    switch(x.type){
+      case 'damage':   return {type:'damage', value:x.value, hits:x.hits, target:'enemy'};
+      case 'block':    return {type:'block', value:x.value, target:'player'};
+      case 'ward':     return {type:'block', value:x.value * 4, target:'player'};
+      case 'sealCard': return {type:'charm', value:2, target:'enemy'};
+      case 'purify':   return {type:'stripWard', target:'enemy'};
+      case 'strength': return {type:'strength', value:x.value, target:'player'};
+      default: return null;
+    }
+  }).filter(Boolean);
 }
 
 /* --- 효과 정의 --- */
@@ -829,11 +1140,13 @@ EFFECTS.block = async (e, ctx) => {
   const src = ctx.source || b.player;
   resolveTargets(e, ctx, src.kind === 'enemy' ? 'self' : 'player').forEach(t => gainBlock(t, e.value));
 };
-EFFECTS.burn = async (e, ctx) => {
-  if(!ctx.battle) return;
-  resolveTargets(e, ctx, 'enemy').forEach(t => applyStatus(t, 'burn', e.value));
-  await sleep(120);
-};
+for(const k of ['burn','charm','wet','dread']){
+  EFFECTS[k] = async (e, ctx) => {
+    if(!ctx.battle) return;
+    resolveTargets(e, ctx, 'enemy').forEach(t => applyStatus(t, k, e.value));
+    await sleep(120);
+  };
+}
 EFFECTS.ward = async (e, ctx) => {
   if(!ctx.battle) return;
   resolveTargets(e, ctx, 'self').forEach(t => applyStatus(t, 'ward', e.value));
@@ -875,14 +1188,166 @@ EFFECTS.sealCard = async (e, ctx) => {
   Sound.play('seal');
   await sleep(250);
 };
+/* 정화(적 전용): 다음에 소환되는 내 요괴의 체력 절반 */
+EFFECTS.purify = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  b.player.status.purify = (b.player.status.purify || 0) + (e.value || 1);
+  renderBattle();
+  fxText('P', '정화 부적!', 'st');
+  Sound.play('seal');
+  await sleep(250);
+};
 EFFECTS.cleanse = async (e, ctx) => {
   const src = ctx.source; if(!src) return;
   ['burn'].forEach(k => delete src.status[k]);
   renderBattle();
   fxText(src.uid, '정화', 'st');
 };
+EFFECTS.stripWard = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  for(const t of resolveTargets(e, ctx, 'enemy')){
+    delete t.status.ward;
+    t.block = 0;
+    renderBattle();
+    fxText(t.uid, '결계·방어 해제', 'ward');
+  }
+};
+/* 원한 (대장 자원) */
+EFFECTS.gainGrudge = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  applyStatus(b.player, 'grudge', e.value);
+  await sleep(100);
+};
+EFFECTS.selfDamage = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  await dealDamage(null, b.player, e.value, {raw:true, pierce:true});
+};
+EFFECTS.grudgeBurst = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  const g = st(b.player, 'grudge');
+  if(g <= 0){ toast('쌓인 원한이 없다'); fxText('P', '원한 0', 'st'); return; }
+  const wail = hasSyn('wail');
+  const targets = wail ? aliveEnemies() : resolveTargets({target:'enemy'}, ctx, 'enemy');
+  delete b.player.status.grudge;
+  renderBattle();
+  if(wail){ showBanner('곡소리'); Sound.play('grudge'); await sleep(300); }
+  fxFlash();
+  for(const t of targets) await dealDamage(ctx.source || b.player, t, g * (e.mult || 2));
+};
+/* 물귀신 손: 대상을 맨 앞으로 끌어옴 */
+EFFECTS.pullFront = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  const t = resolveTargets({target:'enemy'}, ctx, 'enemy')[0];
+  if(!t || t.hp <= 0) return;
+  const i = b.enemies.indexOf(t);
+  if(i > 0){
+    b.enemies.splice(i, 1);
+    b.enemies.unshift(t);
+    renderBattle();
+    fxText(t.uid, '끌려왔다!', 'wet');
+    Sound.play('wet');
+    await sleep(200);
+  }
+};
+/* 흉내 소리: 이번 턴 마지막에 쓴 카드 1장을 복제해 손에 추가 */
+EFFECTS.copyLastCard = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  const last = b.turnPlayed[b.turnPlayed.length - 1];
+  if(!last){ toast('이번 턴에 쓴 카드가 없다'); return; }
+  if(b.hand.length >= MAX_HAND){ toast('손패가 가득 찼다'); return; }
+  const c = {uid:'cp' + (++b.copyN), id:last, copy:true};
+  b.hand.push(c);
+  b.newCards.add(c.uid);
+  Sound.play('draw');
+  renderBattle();
+  toast(`「${CARDS[last].name}」을(를) 흉내 냈다${hasSyn('sound') ? ' — 메아리: 비용 0' : ''}`);
+  await sleep(250);
+};
+/* 장산범 울음: 적 하나의 다음 행동을 그대로 따라 함 */
+EFFECTS.mimicIntent = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  const t = resolveTargets({target:'enemy'}, ctx, 'enemy')[0];
+  if(!t) return;
+  const effs = mirrorEffects(t);
+  if(!effs.length){ toast('흉내 낼 행동이 없다'); return; }
+  fxText(t.uid, '「' + ENEMIES[t.id].moves[t.intent].name + '」 흉내!', 'st');
+  Sound.play('charm');
+  await sleep(300);
+  await executeEffects(effs, Object.assign({}, ctx, {target:t}));
+};
+/* 정화 풀기: 봉인된 카드 1장의 봉인 해제 */
+EFFECTS.unseal = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  const all = b.hand.concat(b.drawPile, b.discard).filter(c => b.sealed.has(c.uid));
+  if(!all.length){ toast('봉인된 카드가 없다'); return; }
+  let uid = all[0].uid;
+  if(all.length > 1){
+    const picked = await pickBattleCard(all, '봉인을 풀 카드를 고르세요');
+    uid = picked || all[0].uid;
+  }
+  b.sealed.delete(uid);
+  const c = all.find(x => x.uid === uid);
+  renderBattle();
+  Sound.play('ward');
+  toast(`「${CARDS[c.id].name}」의 봉인이 풀렸다`);
+};
+/* 요괴 전용 */
+EFFECTS.growHp = async (e, ctx) => {
+  const s = ctx.source;
+  if(!s || s.kind !== 'spirit' || s.hp <= 0) return;
+  s.maxHp += e.value; s.hp += e.value;
+  renderBattle();
+  fxText(s.uid, '체력 +' + e.value, 'heal');
+  await sleep(150);
+};
+EFFECTS.damageFromHp = async (e, ctx) => {
+  const s = ctx.source;
+  if(!s || s.hp <= 0) return;
+  await EFFECTS.damage({type:'damage', value:Math.floor(s.hp / (e.div || 3))}, ctx);
+};
+EFFECTS.summon = async (e, ctx) => { if(ctx.battle) await summonSpirit(e.spirit); };
+/* 시너지 전용 */
+EFFECTS.halveWetBlock = async (e, ctx) => {
+  for(const t of aliveEnemies()){
+    if(st(t, 'wet') > 0 && t.block > 0){
+      t.block = Math.floor(t.block / 2);
+      renderBattle();
+      fxText(t.uid, '방어 절반', 'wet');
+    }
+  }
+};
+EFFECTS.mimicCharm = async (e, ctx) => {
+  const b = ctx.battle; if(!b) return;
+  if(b.mimicTurn === b.turn) return;
+  const sp = aliveSpirits().find(s => s.family === 'charm' || s.family === 'sound');
+  if(!sp) return;
+  const cands = aliveEnemies().filter(x => mirrorEffects(x).length);
+  if(!cands.length) return;
+  cands.sort((x, y) => { const a = intentInfo(x), c = intentInfo(y); return ((c.value || 0) * (c.hits || 1)) - ((a.value || 0) * (a.hits || 1)); });
+  const t = cands[0];
+  b.mimicTurn = b.turn;
+  fxClass(sp.uid, 'act');
+  fxText(sp.uid, '흉내 홀림!', 'charm');
+  fxText(t.uid, '「' + ENEMIES[t.id].moves[t.intent].name + '」', 'st');
+  Sound.play('charm');
+  await sleep(400);
+  await executeEffects(mirrorEffects(t), {battle:b, source:sp, target:t});
+};
 
 /* 효과 설명문 자동 생성 */
+function describeSpiritAction(x){
+  switch(x.type){
+    case 'damage': return '피해 <em>' + x.value + '</em>' + (x.bonusIf ? ` (<b class="kw">${STATUS_INFO[x.bonusIf].name}</b> 적에게 <em>${x.value + x.bonus}</em>)` : '');
+    case 'burn': return '<b class="kw">불씨</b> <em>' + x.value + '</em>';
+    case 'charm': return (x.target === 'randomEnemy' ? '무작위 적에게 ' : '') + '<b class="kw">홀림</b> <em>' + x.value + '</em>';
+    case 'dread': return '가장 강한 적의 공격 피해 <em>-' + x.value + '</em>';
+    case 'gainGrudge': return '<b class="kw">원한</b> <em>+' + x.value + '</em>';
+    case 'wet': return (x.target === 'allEnemies' ? '모든 적 ' : '') + '<b class="kw">젖음</b> <em>' + x.value + '</em>';
+    case 'growHp': return '자기 체력 <em>+' + x.value + '</em>';
+    case 'damageFromHp': return '피해 = 현재 체력의 1/' + x.div;
+    default: return '';
+  }
+}
 function describeEffect(e){
   const v = e.value;
   const pre = e.target === 'allEnemies' ? '모든 적에게 ' : e.target === 'randomEnemy' ? '무작위 적에게 ' : '';
@@ -894,12 +1359,25 @@ function describeEffect(e){
     }
     case 'block': return '방어 <em>' + v + '</em>';
     case 'burn': return pre + '<b class="kw">불씨</b> <em>' + v + '</em>';
+    case 'charm': return pre + '<b class="kw">홀림</b> <em>' + v + '</em>';
+    case 'wet': return pre + '<b class="kw">젖음</b> <em>' + v + '</em>';
     case 'ward': return '<b class="kw">결계</b> <em>' + v + '</em>';
     case 'multiplyStatus': return `대상의 <b class="kw">${STATUS_INFO[e.status].name}</b> 스택 <em>${e.mult}배</em>`;
     case 'draw': return '카드 <em>' + v + '</em>장 뽑기';
     case 'energy': return '<b class="kw">혼력</b> <em>' + v + '</em> 획득';
     case 'gold': return '<b class="kw">엽전</b> <em>' + v + '</em> 획득';
     case 'sealCard': return '손패 카드 ' + v + '장 <b class="kw">봉인</b>';
+    case 'gainGrudge': return '<b class="kw">원한</b> <em>' + v + '</em>';
+    case 'selfDamage': return '자신에게 피해 <em>' + v + '</em>';
+    case 'grudgeBurst': return '<b class="kw">원한</b> 스택 <em>×' + e.mult + '</em> 피해. 원한을 0으로';
+    case 'pullFront': return '대상을 맨 앞으로 끌어옴';
+    case 'copyLastCard': return '이번 턴 마지막에 쓴 카드 1장을 <b class="kw">복제</b>해 손에 추가';
+    case 'mimicIntent': return '적 하나의 다음 행동을 그대로 따라 함';
+    case 'unseal': return '<b class="kw">봉인</b>된 카드 1장의 봉인 해제';
+    case 'summon':{
+      const s = SPIRITS[e.spirit];
+      return `<b class="kw">소환</b> · 체력 <em>${s.hp}</em><br>매 턴: ${s.action.map(describeSpiritAction).join(', ')}`;
+    }
     default: return '';
   }
 }
@@ -914,14 +1392,15 @@ function describeCard(def){
 /* ---------------------------------------------------------------
    11. 전투 엔진
    턴 단계: turnStart → draw → playerPhase → spiritPhase(요괴 행동) → enemyPhase → turnEnd
-   훅 이름: battleStart, turnStart, draw, cardPlay, playerPhaseEnd, spiritPhase, enemyPhase,
-            turnEnd, enemyDeath, battleWin
+   훅 이름: battleStart, turnStart, draw, cardPlay, playerPhaseEnd, spiritPhase, spiritAct,
+            enemyPhase, turnEnd, summon, spiritDamaged, spiritDeath, enemyDeath, battleWin
    보물·시너지는 registerTriggers()로 훅에 효과를 등록한다.
 ---------------------------------------------------------------- */
 function newEnemyUnit(id, idx){
   const d = ENEMIES[id];
   codexSee('enemies', id);
-  return {uid:'E' + idx, kind:'enemy', id, name:d.name, hp:d.hp, maxHp:d.hp, block:0, status:{}, intent:null, aiIdx:0, history:[]};
+  return {uid:'E' + idx, kind:'enemy', id, name:d.name, hp:d.hp, maxHp:d.hp, block:0, status:{},
+    intent:null, intentTarget:'player', spiritRolled:false, aiIdx:0, history:[]};
 }
 function startBattle(enemyIds){
   const run = G.run;
@@ -931,15 +1410,18 @@ function startBattle(enemyIds){
     rng, turn:0, phase:'start', busy:true, over:null, finished:false,
     player:{uid:'P', kind:'player', name:L.name, hp:run.hp, maxHp:run.maxHp, block:0, status:{}},
     enemies:enemyIds.map((id, i) => newEnemyUnit(id, i)),
-    spirits:[],
+    spirits:new Array(SPIRIT_SLOTS).fill(null), spiritN:0,
     drawPile:shuffle(rng, run.deck.map(c => ({uid:c.uid, id:c.id}))),
     hand:[], discard:[], exhaust:[], sealed:new Set(), pendingSeals:[],
     energy:0, maxEnergy:ENERGY_PER_TURN, selected:null, hooks:{}, newCards:new Set(), newSeal:null,
-    stats:{dealt:0, taken:0, cards:0, gold:0},
+    syn:{}, steamUsed:false, mimicTurn:0, turnPlayed:[], copyN:0,
+    stats:{dealt:0, taken:0, cards:0, gold:0, summons:0},
   };
   G.battle = b;
   G.ui.renderedDead = new Set();
+  G.ui.seenSpirits = new Set();
   for(const rid of run.relics){ const d = RELICS[rid]; if(d && d.triggers) registerTriggers('relic:' + rid, d.triggers); }
+  refreshSynergies();
   b.enemies.forEach(e => chooseIntent(e));
   G.meta.stats.battles++;
   saveMeta(); saveRun();
@@ -974,8 +1456,27 @@ async function emit(name, ctx, force){
   for(const h of (b.hooks[name] || []).slice()){
     if(b.over && !force) return;
     if(!checkCond(h)) continue;
-    await executeEffects(h.effects, {battle:b, source:ctx.source || b.player, target:ctx.target, force});
+    await executeEffects(h.effects, {battle:b, source:ctx.source || b.player, target:ctx.target, spirit:ctx.spirit, force});
   }
+}
+/* 시너지 갱신: 필드 요괴 구성이 바뀔 때마다 호출. 발동 중인 시너지의 triggers를 훅에 등록한다. */
+function refreshSynergies(){
+  const b = G.battle;
+  for(const k in b.hooks) b.hooks[k] = b.hooks[k].filter(h => !h.source.startsWith('syn:'));
+  const cnt = {};
+  aliveSpirits().forEach(s => cnt[s.family] = (cnt[s.family] || 0) + 1);
+  const prev = b.syn || {};
+  const newly = [];
+  b.syn = {};
+  for(const key in SYNERGIES){
+    const sy = SYNERGIES[key];
+    const on = sy.kind === 'family' ? (cnt[sy.families[0]] || 0) >= 2 : sy.families.every(f => (cnt[f] || 0) > 0);
+    if(!on) continue;
+    b.syn[key] = true;
+    if(sy.triggers) registerTriggers('syn:' + key, sy.triggers);
+    if(!prev[key]) newly.push(sy.name);
+  }
+  if(newly.length){ toast('시너지 발동 — ' + newly.map(n => '「' + n + '」').join(' ')); Sound.play('synergy'); }
 }
 function checkBattleEnd(){
   const b = G.battle;
@@ -991,6 +1492,8 @@ async function onUnitDeath(u){
     renderBattle();
     await sleep(300);
     await emit('enemyDeath', {target:u});
+  }else if(u.kind === 'spirit'){
+    await killSpirit(u);
   }
   checkBattleEnd();
 }
@@ -1012,6 +1515,83 @@ async function drawCards(n){
   }
   if(drew){ Sound.play('draw'); renderBattle(); await sleep(260); }
 }
+
+/* --- 요괴 --- */
+async function summonSpirit(id){
+  const b = G.battle;
+  const slot = b.spirits.findIndex(s => !s);
+  if(slot < 0){ toast('요괴 자리가 가득 찼다'); return; }
+  const d = SPIRITS[id];
+  let hp = d.hp, purified = false;
+  if(st(b.player, 'purify') > 0){
+    hp = Math.ceil(hp / 2);
+    b.player.status.purify--;
+    if(b.player.status.purify <= 0) delete b.player.status.purify;
+    purified = true;
+  }
+  const sp = {uid:'S' + (++b.spiritN), kind:'spirit', id, name:d.name, family:d.family, hp, maxHp:hp, block:0, status:{}, slot};
+  b.spirits[slot] = sp;
+  b.stats.summons++;
+  refreshSynergies();
+  rollSpiritTargets();
+  Sound.play('summon');
+  renderBattle();
+  if(purified) fxText(sp.uid, '정화: 체력 절반', 'st');
+  await sleep(420);
+  await emit('summon', {spirit:sp});
+}
+async function killSpirit(sp){
+  const b = G.battle;
+  if(sp.dead) return;
+  sp.dead = true;
+  sp.hp = 0;
+  Sound.play('death');
+  const el = unitEl(sp.uid);
+  if(el) el.classList.add('dying');
+  await sleep(420);
+  const i = b.spirits.indexOf(sp);
+  if(i >= 0) b.spirits[i] = null;
+  toast(`${sp.name}이(가) 사라졌다`);
+  await emit('spiritDeath', {spirit:sp});
+  refreshSynergies();
+  renderBattle();
+}
+async function spiritAct(sp){
+  const b = G.battle;
+  const d = SPIRITS[sp.id];
+  const alive = aliveEnemies();
+  if(!alive.length) return;
+  let pool = alive;
+  if(d.targetRule === 'wetFirst'){ const w = alive.filter(e => st(e, 'wet') > 0); if(w.length) pool = w; }
+  const target = pick(b.rng, pool);
+  fxClass(sp.uid, 'act');
+  Sound.play('spirit');
+  await sleep(220);
+  await executeEffects(d.action, {battle:b, source:sp, target});
+  await sleep(220);
+  if(!b.over) await emit('spiritAct', {spirit:sp, source:sp, target});
+}
+/* 요괴 머리 위에 표시할 다음 행동 */
+function spiritIntent(sp){
+  const d = SPIRITS[sp.id];
+  const parts = [];
+  let icon = null, grow = 0;
+  for(const x of d.action){
+    switch(x.type){
+      case 'damage': parts.push(x.bonusIf ? `${x.value}/${x.value + x.bonus}` : `${x.value}`); icon = icon || 'attack'; break;
+      case 'damageFromHp': parts.push(`${Math.floor((sp.hp + grow) / x.div)}`); icon = icon || 'attack'; break;
+      case 'growHp': grow += x.value; parts.push('체력+' + x.value); break;
+      case 'burn': parts.push('불씨' + x.value); icon = icon || 'flame'; break;
+      case 'charm': parts.push('홀림' + x.value); icon = icon || 'swirl'; break;
+      case 'dread': parts.push('위축' + x.value); icon = icon || 'down'; break;
+      case 'gainGrudge': parts.push('원한+' + x.value); icon = icon || 'tear'; break;
+      case 'wet': parts.push('젖음' + x.value + (x.target === 'allEnemies' ? '전체' : '')); icon = icon || 'drop'; break;
+    }
+  }
+  return {icon:icon || 'attack', text:parts.join(' ')};
+}
+
+/* --- 적 의도 --- */
 function chooseIntent(e){
   const b = G.battle, d = ENEMIES[e.id];
   let key;
@@ -1019,40 +1599,85 @@ function chooseIntent(e){
   else key = weighted(b.rng, Object.entries(d.ai.weights));
   e.intent = key;
   e.history.push(key);
+  e.intentTarget = 'player';
+  const sp = aliveSpirits();
+  e.spiritRolled = sp.length > 0;
+  if(d.moves[key].intent === 'attack' && sp.length && b.rng() < spiritChance(d)) e.intentTarget = pick(b.rng, sp).uid;
+}
+/* 요괴가 없을 때 정한 의도는, 요괴가 처음 소환되면 한 번 더 요괴를 노릴지 굴린다 */
+function rollSpiritTargets(){
+  const b = G.battle;
+  const sp = aliveSpirits();
+  if(!sp.length) return;
+  for(const e of aliveEnemies()){
+    if(e.spiritRolled) continue;
+    e.spiritRolled = true;
+    const d = ENEMIES[e.id];
+    if(d.moves[e.intent].intent === 'attack' && b.rng() < spiritChance(d)) e.intentTarget = pick(b.rng, sp).uid;
+  }
 }
 function intentInfo(e){
   const b = G.battle;
   const mv = ENEMIES[e.id].moves[e.intent];
   if(!mv) return null;
-  const info = {kind:mv.intent || 'special', name:mv.name, value:null, hits:1};
+  const info = {kind:mv.intent || 'special', name:mv.name, value:null, hits:1, target:null};
   if(info.kind === 'attack'){
     const dmgE = mv.effects.find(x => x.type === 'damage');
-    if(dmgE){ info.value = calcDamage(e, b.player, dmgE.value); info.hits = dmgE.hits || 1; }
+    if(e.intentTarget !== 'player'){
+      const sp = findSpirit(e.intentTarget);
+      if(sp && sp.hp > 0 && !sp.dead){ info.kind = 'attackSpirit'; info.target = sp; }
+      else if(aliveSpirits().length){ info.kind = 'attackSpirit'; }
+    }
+    if(dmgE){ info.value = calcDamage(e, null, dmgE.value); info.hits = dmgE.hits || 1; }
   }else if(info.kind === 'defend'){
     const x = mv.effects.find(x => x.type === 'block' || x.type === 'ward');
     if(x) info.value = x.value;
   }
-  info.desc = mv.effects.map(x => enemyEffectText(e, x)).join(', ');
+  info.steam = hasSyn('steam') && !b.steamUsed && st(e, 'wet') > 0 && st(e, 'burn') > 0;
+  info.desc = mv.effects.map(x => enemyEffectText(e, x, info)).join(', ');
   return info;
 }
-function enemyEffectText(e, x){
-  const b = G.battle;
+function enemyEffectText(e, x, info){
   switch(x.type){
-    case 'damage': return '대장에게 피해 ' + calcDamage(e, b.player, x.value) + (x.hits > 1 ? ' × ' + x.hits + '회' : '');
+    case 'damage':{
+      const who = info.kind === 'attackSpirit' ? (info.target ? `요괴 「${info.target.name}」에게` : '내 요괴에게') : '대장에게';
+      return who + ' 피해 ' + calcDamage(e, null, x.value) + (x.hits > 1 ? ' × ' + x.hits + '회' : '');
+    }
     case 'block': return '방어도 ' + x.value + ' 획득';
     case 'ward': return '결계 ' + x.value + ' — 다음 공격 ' + x.value + '번을 무효로 한다';
     case 'sealCard': return '다음 턴 손패 카드 1장을 봉인한다';
+    case 'purify': return '정화 — 다음에 소환되는 요괴의 체력 절반';
     case 'cleanse': return '불씨 정화';
     default: return '알 수 없는 행동';
   }
 }
-/* 불씨 처리: 자기 차례 시작 시 스택만큼 피해, 1 감소 */
+
+/* --- 턴 진행 --- */
+/* 불씨 처리: 자기 차례 시작 시 스택만큼 피해(젖음이면 2배), 1 감소(불 시너지면 유지) */
 async function tickBurn(u){
   if(st(u, 'burn') <= 0) return;
-  const v = u.status.burn;
+  const b = G.battle;
+  let v = u.status.burn;
+  if(st(u, 'wet') > 0) v *= 2;
+  const charmed = st(u, 'charm') > 0;
   fxEmbers(u.uid, 14);
+  if(st(u, 'wet') > 0) fxText(u.uid, '젖은 몸에 불씨 ×2', 'burn');
   await dealDamage(null, u, v, {raw:true, pierce:true, cls:'burn', sound:'burn'});
-  if(u.status.burn){ u.status.burn--; if(u.status.burn <= 0) delete u.status.burn; }
+  // 조합 시너지 「화염 연쇄」: 홀림 걸린 적의 불씨 피해 절반이 옆 적에게
+  if(u.kind === 'enemy' && charmed && hasSyn('fireChain') && !b.over){
+    const half = Math.floor(v / 2);
+    const nb = neighborEnemy(u);
+    if(half > 0 && nb){
+      fxText(nb.uid, '화염 연쇄', 'burn');
+      fxEmbers(nb.uid, 10);
+      await sleep(150);
+      await dealDamage(null, nb, half, {raw:true, pierce:true, cls:'burn', sound:'burn'});
+    }
+  }
+  if(u.status.burn && !(u.kind === 'enemy' && hasSyn('fire'))){
+    u.status.burn--;
+    if(u.status.burn <= 0) delete u.status.burn;
+  }
   renderBattle();
   await sleep(250);
 }
@@ -1080,6 +1705,7 @@ async function beginTurn(){
   b.turn++;
   b.phase = 'start';
   b.busy = true;
+  b.turnPlayed = [];
   // turnStart: 혼력 충전, 대장의 불씨 처리
   b.energy = b.maxEnergy;
   await tickBurn(b.player);
@@ -1107,15 +1733,19 @@ async function endTurn(){
   b.selected = null;
   b.phase = 'spirit';
   Sound.play('tap');
-  // 남은 손패는 버린 더미로
-  b.discard.push(...b.hand);
+  // 남은 손패는 버린 더미로 (복제 카드는 사라진다)
+  b.discard.push(...b.hand.filter(c => !c.copy));
   b.hand = [];
   renderBattle();
   await emit('playerPhaseEnd');
   await sleep(200);
-  // spiritPhase: 요괴 행동 (2단계에서 구현 — 지금은 훅만 열어 둔다)
+  // spiritPhase: 요괴가 왼쪽부터 자동 행동
+  if(aliveSpirits().length){ showBanner('요괴 행동'); await sleep(450); }
   await emit('spiritPhase');
-  for(const sp of b.spirits.slice()){ if(b.over) break; /* 2단계: spiritAct(sp) */ }
+  for(const sp of b.spirits.slice()){
+    if(b.over) break;
+    if(sp && sp.hp > 0 && !sp.dead && b.spirits.includes(sp)) await spiritAct(sp);
+  }
   if(b.over){ await finishBattle(); return; }
   // enemyPhase
   b.phase = 'enemy';
@@ -1130,9 +1760,14 @@ async function endTurn(){
     await sleep(250);
   }
   if(b.over){ await finishBattle(); return; }
-  // turnEnd: 대장의 방어도(둔갑)는 턴 종료 시 사라진다
+  // turnEnd: 대장의 방어도(둔갑)는 턴 종료 시 사라진다. 홀림·젖음은 1 감소.
   b.phase = 'end';
   if(b.player.block){ b.player.block = 0; fxText('P', '둔갑이 풀렸다', 'blk'); }
+  for(const e of aliveEnemies()){
+    for(const k of ['charm','wet']){
+      if(e.status[k]){ e.status[k]--; if(e.status[k] <= 0) delete e.status[k]; }
+    }
+  }
   await emit('turnEnd');
   if(b.over){ await finishBattle(); return; }
   b.enemies.forEach(e => { if(e.hp > 0) chooseIntent(e); });
@@ -1144,20 +1779,46 @@ async function enemyAct(e){
   const b = G.battle;
   // 적의 방어도는 자기 차례가 시작될 때 사라진다
   if(e.block){ e.block = 0; renderBattle(); }
+  // 조합 시너지 「증기」: 젖음+불씨가 같이 걸린 적의 행동 취소 (전투당 1회) — 불씨가 터지기 전 상태로 판정
+  const steam = hasSyn('steam') && !b.steamUsed && st(e, 'wet') > 0 && st(e, 'burn') > 0;
   await tickBurn(e);
   if(e.hp <= 0 || b.over) return;
+  if(steam){
+    b.steamUsed = true;
+    showBanner('증기');
+    fxText(e.uid, '김이 서려 행동 취소!', 'ward');
+    Sound.play('burn');
+    delete e.status.dread;
+    renderBattle();
+    await sleep(600);
+    return;
+  }
   const mv = ENEMIES[e.id].moves[e.intent];
   if(!mv) return;
+  let attackTarget = null;
+  if(mv.effects.some(x => x.type === 'damage')){
+    if(e.intentTarget !== 'player') attackTarget = findSpirit(e.intentTarget) || {kind:'spirit', hp:0, dead:true};
+    // 홀림: 50% 확률(「갈팡질팡」이면 무조건)로 같은 편 포함 무작위 대상
+    if(st(e, 'charm') > 0 && (hasSyn('charm') || b.rng() < 0.5)){
+      const pool = [b.player, ...aliveSpirits(), ...aliveEnemies().filter(x => x !== e)];
+      attackTarget = pick(b.rng, pool);
+      fxText(e.uid, '홀렸다! → ' + attackTarget.name, 'charm');
+      Sound.play('charm');
+      await sleep(450);
+    }
+  }
   fxText(e.uid, mv.name, 'st');
   await sleep(300);
-  await executeEffects(mv.effects, {battle:b, source:e});
+  await executeEffects(mv.effects, {battle:b, source:e, attackTarget});
+  if(e.status.dread){ delete e.status.dread; renderBattle(); }
 }
 function cardBlockReason(inst){
   const b = G.battle;
   const def = getCardDef(inst);
   if(b.sealed.has(inst.uid)) return '봉인된 카드다. 이번 전투에서는 쓸 수 없다';
   if(def.unplayable) return '저주 카드는 사용할 수 없다';
-  if(def.cost > b.energy) return '혼력이 부족하다';
+  if(def.type === 'spirit' && !b.spirits.some(s => !s)) return '요괴 자리가 가득 찼다';
+  if(cardCost(inst) > b.energy) return '혼력이 부족하다';
   return null;
 }
 async function playCard(idx, target, at){
@@ -1171,14 +1832,15 @@ async function playCard(idx, target, at){
   if(def.target === 'enemy' && (!target || target.hp <= 0)) target = aliveEnemies()[0];
   b.busy = true;
   b.selected = null;
-  b.energy -= def.cost;
+  b.energy -= cardCost(inst);
   b.hand.splice(idx, 1);
   Sound.play('card');
-  fxCardPlay(def, at);
+  fxCardPlay(def, at, inst.copy);
   renderBattle();
   await sleep(180);
   await executeEffects(def.effects, {battle:b, source:b.player, target, card:def});
-  b.discard.push(inst);
+  if(!inst.copy) b.discard.push(inst);       // 복제 카드는 사용 후 사라진다
+  b.turnPlayed.push(inst.id);
   b.stats.cards++;
   if(!b.over) await emit('cardPlay', {card:def});
   b.busy = false;
@@ -1201,7 +1863,7 @@ async function finishBattle(){
   showBanner(win ? '승리' : '패배');
   await sleep(1300);
   G.ui.result = {win, turns:b.turn, dealt:b.stats.dealt, taken:b.stats.taken, cards:b.stats.cards, gold:b.stats.gold,
-    hp:run.hp, maxHp:run.maxHp, enemies:b.enemies.map(e => e.name), seed:run.seed};
+    summons:b.stats.summons, hp:run.hp, maxHp:run.maxHp, enemies:b.enemies.map(e => e.name), seed:run.seed};
   G.battle = null;
   Sound.bgm('map');
   setScreen('result');
@@ -1210,7 +1872,8 @@ async function finishBattle(){
 function startTestBattle(mode){
   G.ui.mode = mode;
   const seed = randomSeedString();
-  G.run = newRun(mode === 'test' ? TEST_DECK : STARTER_DECK, seed);
+  const deck = mode === 'test' ? TEST_DECK : mode === 'family' ? FAMILY_TEST_DECK : STARTER_DECK;
+  G.run = newRun(deck, seed);
   const rng = makeRng(seed, 'encounter');
   const n = rint(rng, 1, 3);
   const ids = [];
@@ -1349,6 +2012,15 @@ function confirmModal(text){
     G.ui.modalResolve = resolve;
   });
 }
+/* 전투 중 카드 고르기 (정화 풀기 등) — 고른 카드 uid를 돌려준다 */
+function pickBattleCard(list, title){
+  return new Promise(resolve => {
+    const b = G.battle;
+    const body = `<div class="card-grid">${list.map(c => cardHtml(getCardDef(c), {cls:'pickable', sealed:b && b.sealed.has(c.uid), attrs:`data-action="pickCard" data-uid="${c.uid}"`})).join('')}</div>`;
+    showModal(modalFrame(title, body));
+    G.ui.modalResolve = resolve;
+  });
+}
 function keywordRows(text){
   return Object.keys(KEYWORDS).filter(k => text.includes(k)).map(k => `<div class="info-row"><div><b>${k}</b><p>${KEYWORDS[k]}</p></div></div>`).join('');
 }
@@ -1358,24 +2030,40 @@ function showCardDetail(inst){
   const b = G.battle;
   const sealed = b && b.sealed.has(inst.uid);
   const plain = describeCard(def).replace(/<[^>]+>/g, '');
-  let body = `<div class="detail-wrap">${cardHtml(def, {cls:'lg', sealed})}</div>`;
-  body += `<div class="info-row"><div><b>${CARD_TYPES[def.type].name} 카드</b><p>${CARD_TYPES[def.type].desc}${def.target === 'enemy' ? ' 대상 적을 골라 사용한다.' : ' 위로 끌어올리면 사용한다.'}</p></div></div>`;
+  let body = `<div class="detail-wrap">${cardHtml(def, {cls:'lg', sealed, cost:b ? cardCost(inst) : def.cost, copy:inst.copy})}</div>`;
+  body += `<div class="info-row"><div><b>${CARD_TYPES[def.type].name} 카드</b><p>${CARD_TYPES[def.type].desc}${def.type === 'curse' ? '' : def.target === 'enemy' ? ' 대상 적을 골라 사용한다.' : ' 위로 끌어올리면 사용한다.'}</p></div></div>`;
+  if(def.type === 'spirit'){
+    const s = SPIRITS[def.effects[0].spirit];
+    body += `<div class="info-row"><div class="ic">${art(s.art)}</div><div><b>${s.name} · ${FAMILIES[s.family].name} 계열</b><p>체력 ${s.hp}. 같은 계열 요괴가 2마리 이상이면 「${SYNERGIES[s.family].name}」 시너지가 발동한다.</p></div></div>`;
+  }
+  if(inst.copy) body += `<div class="info-row"><div><b style="color:#e0b060">복제 카드</b><p>${KEYWORDS['복제']}</p></div></div>`;
   if(sealed) body += `<div class="info-row"><div><b style="color:#e8c94a">봉인됨</b><p>${STATUS_INFO.seal.desc}</p></div></div>`;
   body += keywordRows(plain + (def.type === 'guard' ? '방어' : '') + '혼력');
   showModal(modalFrame(def.name, body));
 }
+function findUnit(uid){
+  const b = G.battle;
+  if(!b) return null;
+  if(uid === 'P') return b.player;
+  return b.enemies.find(e => e.uid === uid) || findSpirit(uid);
+}
 function showUnitInfo(uid){
   const b = G.battle;
-  if(!b) return;
-  const u = uid === 'P' ? b.player : b.enemies.find(e => e.uid === uid);
+  const u = findUnit(uid);
   if(!u) return;
-  const artHtml = u.kind === 'enemy' ? enemyArtSvg(u.id) : art(LEADERS[G.run.leader].art);
+  const artHtml = u.kind === 'enemy' ? enemyArtSvg(u.id) : u.kind === 'spirit' ? art(SPIRITS[u.id].art) : art(LEADERS[G.run.leader].art);
   let body = `<div class="info-row"><div class="ic">${artHtml}</div><div><b>${esc(u.name)}</b><p>생명 ${u.hp}/${u.maxHp}${u.block ? ` · 방어도 ${u.block}` : ''}</p></div></div>`;
   if(u.kind === 'enemy' && u.hp > 0){
     const ii = intentInfo(u);
-    if(ii) body += `<div class="info-row"><div class="ic">${svgWrap(INTENT_ICON[ii.kind], '0 0 24 24')}</div><div><b>다음 행동: ${ii.name}</b><p>${ii.desc}</p></div></div>`;
+    if(ii) body += `<div class="info-row"><div class="ic">${svgWrap(INTENT_ICON[ii.kind], '0 0 24 24')}</div><div><b>다음 행동: ${ii.name}</b><p>${ii.desc}${ii.steam ? '<br><b style="color:#d8dce0">증기 — 이 행동은 취소된다</b>' : ''}</p></div></div>`;
     const d = ENEMIES[u.id];
-    body += `<div class="info-row"><div><b>행동 패턴</b><p>${d.ai.seq.map(k => d.moves[k].name).join(' → ')} (반복)</p></div></div>`;
+    body += `<div class="info-row"><div><b>행동 패턴</b><p>${d.ai.seq.map(k => d.moves[k].name).join(' → ')} (반복)<br>공격 시 내 요괴를 노릴 확률 ${Math.round(spiritChance(d) * 100)}%</p></div></div>`;
+  }
+  if(u.kind === 'spirit'){
+    const d = SPIRITS[u.id];
+    const syn = SYNERGIES[u.family];
+    body += `<div class="info-row"><div><b style="color:${FAMILIES[u.family].color}">${FAMILIES[u.family].name} 계열 요괴</b><p>매 턴: ${d.action.map(describeSpiritAction).join(', ').replace(/<[^>]+>/g, '')}${d.targetRule === 'wetFirst' ? ' (젖은 적을 먼저 노림)' : ''}</p></div></div>`;
+    body += `<div class="info-row"><div><b>${hasSyn(u.family) ? '● ' : '○ '}${syn.name}</b><p>${syn.desc}</p></div></div>`;
   }
   for(const k in u.status){
     const si = STATUS_INFO[k];
@@ -1384,6 +2072,16 @@ function showUnitInfo(uid){
   }
   showModal(modalFrame('정보', body));
 }
+function synergyRowsHtml(onlyActive){
+  return Object.keys(SYNERGIES).filter(k => !onlyActive || hasSyn(k)).map(k => {
+    const sy = SYNERGIES[k];
+    const on = hasSyn(k);
+    const cond = sy.kind === 'family' ? `${FAMILIES[sy.families[0]].name} 요괴 2마리 이상` : sy.families.map(f => FAMILIES[f].name).join(' + ') + ' 요괴가 함께';
+    const dots = sy.families.map(f => `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${FAMILIES[f].color};border:1px solid #000;margin-right:2px"></span>`).join('');
+    return `<div class="info-row"><div><b style="color:${on ? '#ffd9a0' : '#cbbfa6'}">${on ? '● ' : '○ '}${dots}${sy.name}</b><p>${cond} — ${sy.desc}</p></div></div>`;
+  }).join('');
+}
+function showSynergyInfo(){ showModal(modalFrame('시너지', synergyRowsHtml(false))); }
 function showPile(key){
   const b = G.battle;
   if(!b) return;
@@ -1405,14 +2103,16 @@ function showSettings(){
   showModal(modalFrame('설정', body));
 }
 function showRules(){
+  const st = k => `<div class="info-row"><div><b style="color:${STATUS_INFO[k].color}">${STATUS_INFO[k].name}</b><p>${STATUS_INFO[k].desc}</p></div></div>`;
   const body = `
-    <div class="info-row"><div><b>턴 진행</b><p>턴 시작 시 혼력 ${ENERGY_PER_TURN} 충전, 카드 ${DRAW_PER_TURN}장 뽑기. 턴 종료 시 남은 손패는 버린 더미로 간다. 뽑을 더미가 비면 버린 더미를 섞어 채운다.</p></div></div>
+    <div class="info-row"><div><b>턴 진행</b><p>턴 시작 시 혼력 ${ENERGY_PER_TURN} 충전, 카드 ${DRAW_PER_TURN}장 뽑기. 턴 종료 시 남은 손패는 버린 더미로 간다. 뽑을 더미가 비면 버린 더미를 섞어 채운다. 턴 종료 직후 요괴가 왼쪽부터 행동하고, 그다음 적이 행동한다.</p></div></div>
     <div class="info-row"><div><b>카드 사용</b><p>카드를 위로 끌어 적 위에 놓으면 사용한다. 대상이 없는 카드는 위로 끌어올리기만 하면 된다. 탭해서 고른 뒤 적을 탭해도 된다. 길게 누르면 상세 설명.</p></div></div>
-    <div class="info-row"><div><b>적의 의도</b><p>칼+숫자 = 대장 공격 · 방패 = 방어/결계 · 부적 = 봉인/정화 · 물음표 = 특수 행동</p></div></div>
+    <div class="info-row"><div><b>요괴</b><p>${CARD_TYPES.spirit.desc} 체력이 0이 되면 사라진다.</p></div></div>
+    <div class="info-row"><div><b>적의 의도</b><p>칼+숫자 = 대장 공격 · 칼+요괴 = 내 요괴 공격 · 방패 = 방어/결계 · 부적 = 봉인/정화 · 물음표 = 특수 행동</p></div></div>
     <div class="info-row"><div><b>방어(둔갑)</b><p>${KEYWORDS['방어']}</p></div></div>
-    <div class="info-row"><div><b style="color:#e2552b">불씨</b><p>${STATUS_INFO.burn.desc}</p></div></div>
-    <div class="info-row"><div><b style="color:#5fb8c8">결계</b><p>${STATUS_INFO.ward.desc}</p></div></div>
-    <div class="info-row"><div><b style="color:#e8c94a">봉인</b><p>${STATUS_INFO.seal.desc} 적 차례에 걸면 다음 턴 손패를 뽑은 직후 붙는다.</p></div></div>
+    ${['burn','charm','wet','grudge','dread','ward','seal','purify'].map(st).join('')}
+    <div class="info-row"><div><b style="color:#ffd9a0">시너지</b><p>필드 요괴 구성에 따라 발동한다. 발동 중인 칸은 계열 색으로 빛나고, 위쪽에 이름 배지가 뜬다.</p></div></div>
+    ${synergyRowsHtml(false)}
     <div class="info-row"><div><b>승패</b><p>적을 모두 쓰러뜨리면 승리, 대장의 생명력이 0이 되면 패배.</p></div></div>`;
   showModal(modalFrame('전투 규칙', body));
 }
@@ -1423,10 +2123,12 @@ function showRules(){
 function cardHtml(def, opts){
   opts = opts || {};
   const fam = FAMILIES[def.family];
-  const cost = def.cost < 0 ? '' : `<div class="c-cost">${coinSvg()}<b>${def.cost}</b></div>`;
+  const costVal = opts.cost !== undefined ? opts.cost : def.cost;
+  const cost = def.cost < 0 ? '' : `<div class="c-cost">${coinSvg()}<b ${costVal < def.cost ? 'style="color:#9fffb0"' : ''}>${costVal}</b></div>`;
   const seal = opts.sealed ? `<div class="seal-tag ${opts.sealNew ? 'stick' : ''}">${svgWrap(ART.talisman(), '0 0 40 60')}</div>` : '';
   return `<div class="card fam-${def.family} type-${def.type} ${opts.sealed ? 'sealed' : ''} ${opts.cls || ''}" ${opts.attrs || ''} ${opts.style ? `style="${opts.style}"` : ''}>
     ${cost}
+    ${opts.copy ? '<div class="copy-tag">복제</div>' : ''}
     <div class="c-name">${esc(def.name)}</div>
     <div class="c-art">${art(def.art)}</div>
     <div class="c-type">${CARD_TYPES[def.type].name} · ${fam.name}</div>
@@ -1454,6 +2156,20 @@ function topbarHtml(){
     <button class="tb-btn" data-action="settings" title="설정">${art('menu')}</button>
   </div>`;
 }
+/* 요괴 칸 테두리 색: 같은 계열 시너지면 계열 색으로 강하게, 조합 시너지에만 참여하면 점선 */
+function slotGlow(sp){
+  if(!sp) return {cls:'', color:''};
+  const color = FAMILIES[sp.family].color;
+  if(hasSyn(sp.family)) return {cls:'syn', color};
+  for(const k in SYNERGIES){
+    const sy = SYNERGIES[k];
+    if(sy.kind === 'combo' && hasSyn(k) && sy.families.includes(sp.family)) return {cls:'combo', color};
+  }
+  return {cls:'', color:''};
+}
+function spiritIntentIcon(icon){
+  return icon === 'attack' ? svgWrap(INTENT_ICON.attack, '0 0 24 24') : (STATUS_ICON[icon] || '');
+}
 
 const SCREENS = {};
 SCREENS.title = () => `<div class="screen">
@@ -1462,14 +2178,14 @@ SCREENS.title = () => `<div class="screen">
       <div class="hanja">百鬼夜行</div>
       <h1>백귀야행</h1>
       <p>백 년에 한 번, 요괴들의 마지막 행렬</p>
-      <div class="stage-tag">1단계 · 전투 시험판</div>
+      <div class="stage-tag">2단계 · 요괴 소환 시험판</div>
     </div>
     <div class="title-wrap">
       <div class="btn-col">
         <button class="btn primary" data-action="startBattle">전투 시작</button>
-        <button class="btn" data-action="startTestDeck">시험 덱으로 전투</button>
-        <button class="btn ghost" data-action="rules">전투 규칙</button>
-        <button class="btn ghost" data-action="settings">설정</button>
+        <button class="btn" data-action="startFamilyDeck">계열 테스트 덱</button>
+        <button class="btn" data-action="startTestDeck">불 계열 시험 덱</button>
+        <div style="display:flex;gap:10px"><button class="btn ghost" style="flex:1" data-action="rules">전투 규칙</button><button class="btn ghost" style="flex:1" data-action="settings">설정</button></div>
       </div>
       <div class="title-foot">전투 ${G.meta.stats.battles}회 · 승리 ${G.meta.stats.wins} · 패배 ${G.meta.stats.losses}</div>
     </div>
@@ -1488,7 +2204,12 @@ SCREENS.battle = () => {
     let deadCls = '';
     if(e.hp <= 0){ deadCls = G.ui.renderedDead.has(e.uid) ? 'gone' : 'dead'; G.ui.renderedDead.add(e.uid); }
     const ii = e.hp > 0 && showIntent ? intentInfo(e) : null;
-    const intent = ii ? `${svgWrap(INTENT_ICON[ii.kind], '0 0 24 24')}${ii.kind === 'attack' && ii.value !== null ? `<span>${ii.value}${ii.hits > 1 ? '×' + ii.hits : ''}</span>` : ''}` : '';
+    let intent = '';
+    if(ii){
+      const num = (ii.kind === 'attack' || ii.kind === 'attackSpirit') && ii.value !== null ? `<span>${ii.value}${ii.hits > 1 ? '×' + ii.hits : ''}</span>` : '';
+      const tgt = ii.kind === 'attackSpirit' && ii.target ? `<span style="font-size:10px;margin-left:2px">→${esc(ii.target.name)}</span>` : '';
+      intent = `${svgWrap(INTENT_ICON[ii.kind], '0 0 24 24')}${num}${tgt}${ii.steam ? '<span class="steam-tag">증기</span>' : ''}`;
+    }
     return `<div class="unit enemy ${single} ${deadCls} ${targeting && e.hp > 0 ? 'targetable' : ''}" data-action="unit" data-uid="${e.uid}">
       <div class="intent">${intent}</div>
       <div class="u-art">${enemyArtSvg(e.id)}</div>
@@ -1497,9 +2218,31 @@ SCREENS.battle = () => {
       <div class="u-name">${esc(e.name)}</div>
     </div>`;
   }).join('');
-  /* 3. 요괴 필드 — 빈 슬롯 */
-  let slots = '';
-  for(let i = 0; i < SPIRIT_SLOTS; i++) slots += `<div class="slot">요괴<br>자리</div>`;
+  /* 시너지 배지 */
+  const badges = Object.keys(SYNERGIES).filter(k => hasSyn(k)).map(k => {
+    const sy = SYNERGIES[k];
+    const bg = sy.families.length > 1 ? `linear-gradient(90deg,${sy.families.map(f => FAMILIES[f].color).join(',')})` : FAMILIES[sy.families[0]].color;
+    return `<button class="syn-badge" style="background:${bg}" data-action="synInfo">${sy.name}</button>`;
+  }).join('');
+  /* 3. 요괴 필드 (최대 3칸) */
+  const slots = b.spirits.map((sp, i) => {
+    if(!sp) return `<div class="slot empty" data-action="bg">빈 칸</div>`;
+    const g = slotGlow(sp);
+    const isNew = !G.ui.seenSpirits.has(sp.uid);
+    G.ui.seenSpirits.add(sp.uid);
+    const si = spiritIntent(sp);
+    const showSi = !sp.dead && b.phase !== 'enemy';
+    return `<div class="slot filled ${g.cls}" ${g.color ? `style="--sc:${g.color}"` : ''}>
+      <div class="unit spirit ${isNew ? 'summoned' : ''} ${sp.dead ? 'dying' : ''}" data-action="unit" data-uid="${sp.uid}">
+        <div class="sp-intent">${showSi ? spiritIntentIcon(si.icon) + esc(si.text) : ''}</div>
+        <div class="u-art">${art(SPIRITS[sp.id].art)}</div>
+        <div class="fam-dot" style="background:${FAMILIES[sp.family].color}"></div>
+        ${hpbarHtml(sp)}
+        ${statusesHtml(sp)}
+        <div class="u-name">${esc(sp.name)}</div>
+      </div>
+    </div>`;
+  }).join('');
   /* 4. 대장 영역 */
   let orbs = '';
   const orbCount = Math.max(b.maxEnergy, b.energy);
@@ -1523,18 +2266,20 @@ SCREENS.battle = () => {
     const isNew = b.newCards.has(c.uid);
     const baseT = `translateY(${y}px) rotate(${rot}deg) scale(${scale})`;
     return cardHtml(def, {cls:`${dim} ${isSel ? 'sel' : ''} ${isNew ? 'drawin' : ''}`, sealed, sealNew:b.newSeal === c.uid,
+      cost:cardCost(c), copy:c.copy,
       attrs:`data-idx="${i}"`,
       style:`left:${left}px;transform:${baseT};z-index:${isSel ? 60 : i + 1};${isNew ? `animation-delay:${(i % 5) * 60}ms` : ''}`});
   }).join('');
   b.newCards.clear();
   b.newSeal = null;
-  const phaseText = b.phase === 'enemy' ? '적의 차례…' : b.phase === 'spirit' ? '요괴 행동…' : b.phase === 'start' ? '' : '';
+  const phaseText = b.phase === 'enemy' ? '적의 차례…' : b.phase === 'spirit' ? '요괴 행동…' : '';
   const hint = sel ? (targeting ? '대상 적을 탭하거나 카드를 적 위로 끌어 놓으세요' : (cardBlockReason(selInst) || '한 번 더 탭하거나 위로 끌어올리면 사용')) : (phaseText || (b.phase === 'player' ? '카드를 위로 끌어 사용 · 길게 누르면 설명' : ''));
   return `<div class="screen battle">
     <div class="bgart">${actBackground()}</div>
     ${topbarHtml()}
     <div class="b-enemies" data-action="bg">${enemies}</div>
-    <div class="b-spirits" data-action="bg"><span class="lbl">요괴</span>${slots}</div>
+    <div class="syn-badges">${badges || '<span class="syn-empty">같은 계열 2마리 · 다른 계열 조합으로 시너지 발동</span>'}</div>
+    <div class="b-spirits">${slots}</div>
     <div class="b-leader">
       <div class="leader-portrait" data-action="unit" data-uid="P">
         <div class="u-art">${art(LEADERS[run.leader].art)}</div>
@@ -1568,7 +2313,7 @@ SCREENS.result = () => {
         <div><span>상대</span><b>${r.enemies.map(esc).join(', ')}</b></div>
         <div><span>버틴 밤</span><b>${r.turns}턴</b></div>
         <div><span>준 피해 / 받은 피해</span><b>${r.dealt} / ${r.taken}</b></div>
-        <div><span>사용한 카드</span><b>${r.cards}장</b></div>
+        <div><span>사용한 카드 / 소환한 요괴</span><b>${r.cards}장 / ${r.summons}마리</b></div>
         <div><span>얻은 엽전</span><b>${r.gold}</b></div>
         <div><span>남은 생명력</span><b>${r.hp}/${r.maxHp}</b></div>
         <div><span>시드</span><b>${esc(r.seed)}</b></div>
@@ -1600,6 +2345,9 @@ const ACTIONS = {};
 let _busyAction = false;
 ACTIONS.startBattle = () => startTestBattle('starter');
 ACTIONS.startTestDeck = () => startTestBattle('test');
+ACTIONS.startFamilyDeck = () => startTestBattle('family');
+ACTIONS.synInfo = () => showSynergyInfo();
+ACTIONS.pickCard = el => resolveModal(el.dataset.uid);
 ACTIONS.again = () => startTestBattle(G.ui.mode || 'starter');
 ACTIONS.toTitle = () => setScreen('title');
 ACTIONS.rules = () => showRules();
@@ -1653,7 +2401,7 @@ document.addEventListener('click', async ev => {
   const a = el.dataset.action;
   const fn = ACTIONS[a];
   if(!fn) return;
-  if(_busyAction && !['closeModal','confirmYes','confirmNo','toggleSetting','giveUp'].includes(a)) return;
+  if(_busyAction && !['closeModal','confirmYes','confirmNo','toggleSetting','giveUp','pickCard'].includes(a)) return;
   _busyAction = true;
   try{ await fn(el, ev); }catch(e){ console.error(e); }
   finally{ _busyAction = false; }
@@ -1769,7 +2517,7 @@ function boot(){
   setScreen('title');
 }
 boot();
-window.BAEKGWI = {G, CARDS, ENEMIES, RELICS, EVENTS, LEADERS, executeEffects, startBattle, startTestBattle, playCard, endTurn, setScreen};
+window.BAEKGWI = {G, CARDS, ENEMIES, SPIRITS, SYNERGIES, RELICS, EVENTS, LEADERS, executeEffects, startBattle, startTestBattle, playCard, endTurn, setScreen, summonSpirit};
 </script>
 </body>
 </html>
