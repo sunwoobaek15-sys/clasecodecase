@@ -331,6 +331,97 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .dlg-line.me .dlg-text{background:rgba(255,214,160,.95);}
 .dlg-name{font-size:11px;font-weight:800;color:#ffd9a0;margin-bottom:2px;}
 
+/* ---------- 5단계: 도감 · 대장 · 연출 ---------- */
+.codex-tabs{flex-wrap:wrap;}
+.codex-tabs .tab{flex:1 0 13%;padding:7px 0;font-size:12px;}
+.codex-grid{display:flex;flex-wrap:wrap;gap:12px 8px;justify-content:center;padding:8px;}
+.codex-ent{width:calc(50% - 8px);max-width:200px;text-align:center;font-size:11px;padding:6px;border-radius:8px;background:rgba(242,232,208,.06);border:1px solid #3a2a20;}
+.codex-ent .ce-art{width:76px;height:76px;margin:0 auto;border-radius:8px;background:radial-gradient(circle,#2a2a40,#141420);border:1.5px solid #4a3a2a;overflow:hidden;}
+.codex-ent .ce-art.card-frame{background:#efe3c6;border:3px solid var(--fc,#8a7a68);}
+.codex-ent .ce-art.fam-fire{--fc:var(--fire);} .codex-ent .ce-art.fam-charm{--fc:var(--charm);} .codex-ent .ce-art.fam-grudge{--fc:var(--grudge);}
+.codex-ent .ce-art.fam-water{--fc:var(--water);} .codex-ent .ce-art.fam-sound{--fc:var(--sound);}
+.codex-ent .ce-art svg{width:100%;height:100%;}
+.codex-ent b{display:block;margin-top:4px;font-size:12.5px;color:#ffe2b0;}
+.codex-ent p{color:#d8cbb0;font-size:11px;word-break:keep-all;line-height:1.35;margin-top:3px;}
+.codex-ent p.hid{color:#9fd8c8;font-style:italic;}
+.codex-ent.unseen .ce-art{background:radial-gradient(circle at 40% 40%,#2a2228,#0c0a0e);}
+.codex-ent.unseen .ce-art svg{filter:brightness(0) contrast(1.4);opacity:.85;}
+.codex-ent.unseen p.hid{color:#6a6a7a;}
+.asc-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;width:100%;}
+.asc-ctrl{display:flex;align-items:center;gap:6px;}
+.asc-num{font-size:20px;font-weight:900;color:var(--lamp2);min-width:26px;text-align:center;}
+.asc-desc{font-size:11px;color:var(--muted);min-height:15px;width:100%;line-height:1.4;word-break:keep-all;}
+.leader-card{cursor:pointer;}
+.tails{position:absolute;left:-26px;top:-28px;width:128px;height:128px;z-index:-1;pointer-events:none;}
+.tails svg{width:100%;height:100%;}
+.tails.on{filter:drop-shadow(0 0 10px #f0a0e8);animation:intentBob 1.4s infinite ease-in-out;}
+.leader-portrait.transformed .u-art{border-color:#f0a0e8;box-shadow:0 0 16px #f0a0e8;}
+.tail-count{position:absolute;left:-6px;top:-6px;background:#b45fa8;color:#fff;font-size:11px;font-weight:900;border-radius:9px;padding:0 5px;border:1.5px solid var(--ink);}
+.ink{position:absolute;width:90px;height:90px;border-radius:46% 54% 50% 50%/55% 45% 55% 45%;pointer-events:none;
+  background:radial-gradient(circle,rgba(14,10,12,.95) 0 38%,rgba(14,10,12,.55) 58%,rgba(14,10,12,0) 72%);
+  transform:translate(-50%,-50%) scale(.05);animation:inkSpread 1s ease-out forwards;}
+@keyframes inkSpread{0%{transform:translate(-50%,-50%) scale(.05) rotate(0);opacity:1}60%{opacity:.9}100%{transform:translate(-50%,-50%) scale(var(--s,1.4)) rotate(40deg);opacity:0}}
+#screen.slap{animation:slap .28s;}
+@keyframes slap{0%,100%{transform:translate(0,0)}25%{transform:translate(-3px,2px)}50%{transform:translate(3px,-2px)}75%{transform:translate(-2px,1px)}}
+.unroll{position:absolute;left:50%;top:30%;width:86%;height:120px;transform:translateX(-50%);z-index:97;animation:unrollFade 2.3s forwards;}
+.unroll-paper{position:absolute;inset:0;background:repeating-linear-gradient(17deg,rgba(120,90,50,.07) 0 2px,transparent 2px 6px),#eadcbc;border-top:3px solid #6a4a2a;border-bottom:3px solid #6a4a2a;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:#1b1512;clip-path:inset(0 50% 0 50%);animation:unrollOpen .8s .1s cubic-bezier(.3,.8,.3,1) forwards;}
+.unroll-title{font-size:34px;font-weight:900;letter-spacing:.2em;}
+.unroll-sub{font-size:13px;font-weight:800;color:#a8222a;letter-spacing:.3em;}
+.unroll-rod{position:absolute;top:-10px;bottom:-10px;width:16px;border-radius:8px;background:linear-gradient(90deg,#3a2410,#9a6a3a,#3a2410);border:2px solid #1b1512;left:calc(50% - 8px);}
+.unroll-rod.l{animation:rodL .8s .1s cubic-bezier(.3,.8,.3,1) forwards;} .unroll-rod.r{animation:rodR .8s .1s cubic-bezier(.3,.8,.3,1) forwards;}
+@keyframes unrollOpen{to{clip-path:inset(0 0 0 0)}}
+@keyframes rodL{to{left:-8px}} @keyframes rodR{to{left:calc(100% - 8px)}}
+@keyframes unrollFade{0%,80%{opacity:1}100%{opacity:0}}
+.beams{position:absolute;inset:0;pointer-events:none;z-index:85;}
+.beams .beam{stroke-dasharray:6 10;animation:beamFlow .8s linear infinite;}
+.beams svg{animation:beamFade 1.5s forwards;filter:drop-shadow(0 0 6px #fff2c0);}
+.beam-ring{animation:ringGrow 1.2s ease-out forwards;transform-box:fill-box;transform-origin:center;}
+@keyframes beamFlow{to{stroke-dashoffset:-32}} @keyframes beamFade{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}
+@keyframes ringGrow{from{transform:scale(.4)}to{transform:scale(1.3)}}
+.card .seal-tag.stick{animation:sealSlap .38s cubic-bezier(.2,1.6,.4,1);}
+@keyframes sealSlap{0%{transform:translate(-50%,-50%) rotate(-28deg) scale(2.8);opacity:0}55%{transform:translate(-50%,-50%) rotate(-4deg) scale(.86);opacity:1}100%{transform:translate(-50%,-50%) rotate(-8deg) scale(1)}}
+.dlg-narr{font-size:13.5px;line-height:1.7;color:#d8cbb0;text-align:center;padding:6px 10px;word-break:keep-all;font-style:italic;animation:fadeIn .4s;}
+.screen > .lanterns-rise{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.lanterns-rise span{position:absolute;bottom:-30px;width:12px;height:16px;border-radius:4px;background:var(--c);box-shadow:0 0 14px 4px var(--c);opacity:.8;animation:riseUp 7s linear infinite;}
+@keyframes riseUp{from{transform:translateY(0)}to{transform:translateY(-110vh)}}
+input.vol{width:150px;accent-color:#e8572a;}
+.unlocks{width:100%;max-width:320px;background:rgba(232,87,42,.12);border:1px solid #e8572a;border-radius:8px;padding:8px 12px;font-size:12.5px;line-height:1.55;color:#ffd9a0;word-break:keep-all;}
+
+/* 탭 */
+.tabs{display:flex;gap:4px;padding:6px 10px;flex:none;}
+.tab{flex:1;padding:8px 0;border-radius:6px 6px 0 0;background:#241a14;border:1.5px solid #4a3426;border-bottom:none;font-size:13px;font-weight:800;color:var(--muted);white-space:nowrap;}
+.tab.on{background:#3a2a20;color:#ffe2b0;}
+/* 높이가 낮은 화면(예: 360×640): 필드와 손패를 압축 */
+@media (max-height:720px){
+  .b-spirits{height:98px;gap:6px;}
+  .unit.spirit .u-art{width:40px;height:40px;}
+  .sp-intent{height:15px;font-size:9.5px;}
+  .unit.spirit .u-name{font-size:10px;}
+  .b-leader{height:62px;}
+  .leader-portrait,.leader-portrait .u-art{width:56px;height:56px;}
+  .tails{left:-20px;top:-22px;width:96px;height:96px;}
+  .orb{width:20px;height:20px;}
+  .b-hand{height:122px;}
+  .b-hand .card{font-size:8.6px;bottom:6px;}
+  .syn-badges{min-height:18px;padding:0 8px;}
+  .syn-badge{font-size:10px;padding:1px 7px;}
+  .unit.enemy .u-art{width:min(80px,22vw,11vh);height:min(80px,22vw,11vh);}
+  .unit.enemy.single .u-art,.unit.enemy.boss .u-art{width:min(100px,28vw,14vh);height:min(100px,28vw,14vh);}
+  .intent{height:22px;font-size:14px;}
+  .intent svg{width:22px;height:22px;}
+  .statuses{min-height:14px;}
+  .b-bottom{padding:4px 8px calc(6px + var(--safe-b));}
+  .pile{padding:4px 7px;font-size:12px;}
+  .topbar{min-height:42px;padding-top:calc(4px + var(--safe-t));padding-bottom:4px;}
+}
+@media (max-height:600px){
+  .b-spirits{height:84px;}
+  .unit.spirit .hpbar{height:10px;}
+  .b-hand{height:110px;}
+  .b-hand .card{font-size:7.8px;}
+}
+
 /* ---------- FX ---------- */
 #fx{position:absolute;inset:0;pointer-events:none;z-index:80;overflow:hidden;}
 .ftext{position:absolute;font-size:24px;font-weight:900;color:#ff5a4a;text-shadow:-2px -2px 0 #1b1512,2px -2px 0 #1b1512,-2px 2px 0 #1b1512,2px 2px 0 #1b1512;
@@ -394,7 +485,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 <script>
 'use strict';
 /* =====================================================================
-   백귀야행 (百鬼夜行) — 4단계: 1~3막 완주 (2·3막 · 최종 보스 천명 · 카드 90 · 보물 30 · 사건 15)
+   백귀야행 (百鬼夜行) — 5단계 완성본: 대장 3 · 요기/도감/진엔딩 · 야행 단계 0~10 · 국악풍 사운드 · 연출
    구조: 데이터(CARDS·ENEMIES·RELICS·EVENTS·LEADERS) / 공용 실행기 executeEffects()
          / 턴 단계 훅 전투 엔진 / 상태 머신 / 시드 난수 / localStorage(런·메타 분리)
    ===================================================================== */
@@ -402,7 +493,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 /* ---------------------------------------------------------------
    0. 기본 수치 (런 단위로 유지될 값은 변수로 분리)
 ---------------------------------------------------------------- */
-const VERSION = 4;
+const VERSION = 5;
 const PLAYER_MAX_HP = 75;      // 대장 최대 생명력 (런 동안 유지 예정)
 const ENERGY_PER_TURN = 3;     // 턴마다 충전되는 혼력
 const DRAW_PER_TURN = 5;       // 턴마다 뽑는 카드 수
@@ -419,7 +510,7 @@ const BOSS_HEAL = 0.25;        // 막 보스 처치 시 최대 생명력 대비 
 const ACT_SCALE = {
   1:{hp:1.00, dmg:0.95, bossHp:0.75, bossDmg:0.75},
   2:{hp:0.80, dmg:0.75, bossHp:0.65, bossDmg:0.65},
-  3:{hp:0.65, dmg:0.60, bossHp:0.55, bossDmg:0.55},
+  3:{hp:0.68, dmg:0.62, bossHp:0.58, bossDmg:0.58},
 };
 const MAP_COLS = 6;            // 지도 칸 수
 const RARE_CHANCE = {battle:0.10, elite:0.30, boss:0.50};   // 카드 보상의 희귀 확률
@@ -475,8 +566,8 @@ const $ = s => document.querySelector(s);
 /* ---------------------------------------------------------------
    2. 저장소 — 모든 localStorage 접근은 try/catch
 ---------------------------------------------------------------- */
-const SAVE_RUN = 'baekgwi_run_v4';
-const SAVE_META = 'baekgwi_meta_v4';
+const SAVE_RUN = 'baekgwi_run_v5';
+const SAVE_META = 'baekgwi_meta_v5';
 function storeGet(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
 function storeSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
 function storeDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
@@ -505,7 +596,7 @@ const STATUS_INFO = {
   ward:{name:'결계', cls:'ward', color:'#5fb8c8', icon:'hex', enemyOnly:true,
     desc:'적 전용. 스택만큼 다음 공격의 피해를 통째로 무효로 한다. 막을 때마다 1 줄어든다. 다시 치면 더해지지 않고 그 수치로 새로 친다. 불씨 피해는 막지 못한다.'},
   seal:{name:'봉인', cls:'seal', color:'#e8c94a', icon:'talisman', enemyOnly:true,
-    desc:'적 전용. 플레이어 손패의 카드 1장에 노란 부적이 붙는다. 그 카드는 이번 전투 동안 사용할 수 없다. 봉인을 건 적이 쓰러지면 그 적이 건 봉인은 풀린다.'},
+    desc:'적 전용. 플레이어 손패의 카드 1장에 노란 부적이 붙는다. 그 카드는 이번 전투 동안 사용할 수 없다. 봉인을 건 적이 쓰러지면 그 적이 건 봉인은 풀린다. 한 전투에서 덱의 절반까지만 봉인된다.'},
   charm:{name:'홀림', cls:'charm', color:'#b45fa8', icon:'swirl',
     desc:'공격 피해가 25% 줄고, 50% 확률로 공격 대상이 무작위가 된다(같은 편 포함). 턴마다 1 감소.'},
   wet:{name:'젖음', cls:'wet', color:'#3f7fd0', icon:'drop',
@@ -611,7 +702,7 @@ const CARDS = {
     effects:[{type:'summon', spirit:'mulgwisin'}], up:{cost:1}},
   /* 소리 */
   heungnae:{name:'흉내 소리', family:'sound', type:'skill', cost:1, rarity:'common', target:'none', art:'echo',
-    effects:[{type:'copyLastCard'}], up:{cost:0}},
+    effects:[{type:'copyLastCard'}], up:{cost:0}, text:'이번 턴 마지막에 쓴 카드 1장을 <b class="kw">복제</b>해 손에 추가 (흉내 소리 제외)'},
   c_eoduksini:{name:'어둑시니', family:'sound', type:'spirit', cost:2, rarity:'rare', target:'none', art:'eoduksini',
     effects:[{type:'summon', spirit:'eoduksini'}], up:{cost:1}},
   jangsanbeom:{name:'장산범 울음', family:'sound', type:'skill', cost:1, rarity:'rare', target:'enemy', art:'jangsanbeom',
@@ -1167,10 +1258,215 @@ const EVENTS = {
       {label:'엽전 꾸러미를 슬쩍한다', desc:'엽전 50 · 저주 「부정」 1장', effects:[{type:'gold', value:50},{type:'addCurse', id:'bujeong', value:1}], result:'주머니는 묵직해졌는데, 등 뒤가 자꾸 서늘하다.'},
       {label:'조용히 지나간다', desc:'아무 일도 없다', effects:[], result:'행렬은 조용히 고개를 넘었다.'}]},
 };
+/* ===== 5단계: 대장 3명 (고유 능력 + 시작 보물) ===== */
 const LEADERS = {
-  bangmangi:{name:'방망이', title:'도깨비 대장', family:'fire', hp:PLAYER_MAX_HP, art:'L_bangmangi', relics:[],
-    deck:STARTER_DECK, desc:'씨름과 불장난을 좋아하는 도깨비 대장. 방망이 한 자루로 백귀를 이끈다.'},
+  bangmangi:{name:'방망이', title:'도깨비 대장', family:'fire', hp:PLAYER_MAX_HP, art:'L_bangmangi', relic:'bulssijumeoni',
+    deck:STARTER_DECK, unlock:null,
+    ability:'전투 시작 시 「도깨비불」 1장을 손에 추가한다 (그 전투에만 쓰는 카드).',
+    desc:'씨름과 불장난을 좋아하는 도깨비 대장. 방망이 한 자루로 백귀를 이끈다.'},
+  yeohwi:{name:'여휘', title:'구미호', family:'charm', hp:70, art:'L_yeohwi', relic:'yeoubangul',
+    deck:['bangmang','bangmang','bangmang','bangmang','bawi','bawi','bawi','bawi','yeounun','yeounun'],
+    unlock:{key:'yeohwi', text:'방망이로 1막을 돌파하면 합류'},
+    ability:'홀림 걸린 적을 처치하면 꼬리 +1 (런 동안 유지). 꼬리가 9개가 되면 변신 — 그 전투 동안 모든 카드 비용 -1, 꼬리는 다시 하나부터.',
+    desc:'천 년을 산 여우. 사람의 눈을 홀려 길을 잃게 하고, 그 틈에 간을 노린다.'},
+  heenuleum:{name:'흰울음', title:'장산범', family:'sound', hp:80, art:'L_heenuleum', relic:'heengalgi',
+    deck:['bangmang','bangmang','bangmang','bangmang','bawi','bawi','bawi','bawi','heungnae','heungnae'],
+    unlock:{key:'heenuleum', text:'아무 대장으로 2막을 돌파하면 합류'},
+    ability:'매 턴 처음 쓰는 술법 카드를 1장 복제해 손에 추가한다.',
+    desc:'흰 털의 산짐승. 들은 목소리를 그대로 흉내 내어 사람을 산속으로 꾀어낸다.'},
 };
+/* 대장 시작 보물 (보상·장터에는 나오지 않음) */
+Object.assign(RELICS, {
+  bulssijumeoni:{name:'불씨 주머니', tier:'starter', art:'r_firepouch', desc:'방망이의 시작 보물. 전투에서 이기면 엽전 +8.',
+    triggers:[{on:'battleWin', effects:[{type:'gold', value:8}]}]},
+  yeoubangul:{name:'여우 방울', tier:'starter', art:'r_foxbell', desc:'여휘의 시작 보물. 전투 시작 시 무작위 적에게 홀림 2.',
+    triggers:[{on:'battleStart', effects:[{type:'charm', value:2, target:'randomEnemy'}]}]},
+  heengalgi:{name:'흰 갈기', tier:'starter', art:'r_mane', desc:'흰울음의 시작 보물. 전투에서 이기면 생명력 3 회복.',
+    triggers:[{on:'battleWin', effects:[{type:'heal', value:3}]}]},
+});
+RELIC_TIER_NAME.starter = '시작';
+
+/* ===== 메타: 요기 · 카드 잠금 ===== */
+/* 요기 누적량이 단계에 닿을 때마다 계열 하나씩, 잠긴 카드 4장이 보상 풀에 추가된다 */
+const YOGI_STEPS = [40, 100, 180, 280, 400];
+const LOCK_BATCHES = [
+  {family:'fire',   cards:['c_dueoksini','eophwa','janchi','bulchum']},
+  {family:'charm',  cards:['c_gumiho','neokppaegi','kkodeugi','hyeonhok']},
+  {family:'grudge', cards:['c_janghwa','sangyeo','hanbyeok','inhyeong']},
+  {family:'water',  cards:['c_gangcheol','yongwang','soyongdori','sseolmul']},
+  {family:'sound',  cards:['c_sanbeom','doeullim','jangdan','chuimsae']},
+];
+function isCardUnlocked(id){
+  const bi = LOCK_BATCHES.findIndex(b => b.cards.includes(id));
+  if(bi < 0) return true;
+  return !!(G.meta && G.meta.yogiBatches > bi);
+}
+/* 요기 계산: 도달 층 · 처치 수 · 보스 처치 · 클리어 */
+function yogiOf(run, win){
+  const floors = (run.act - 1) * ACT1_FLOORS + run.floor;
+  return floors * 2 + run.stats.kills + (run.stats.bosses || 0) * 12 + (win ? 30 : 0) + (run.ascension || 0) * 3;
+}
+
+/* ===== 야행 단계 0~10 (조건 누적) ===== */
+const ASCENSION = [
+  {lv:0,  desc:'기본 야행'},
+  {lv:1,  desc:'정예 체력 +10%'},
+  {lv:2,  desc:'시작 엽전 0'},
+  {lv:3,  desc:'주막 회복 30% → 20%'},
+  {lv:4,  desc:'일반 적도 낮은 확률(15%)로 손패를 봉인'},
+  {lv:5,  desc:'시작 덱에 저주 「부정」 1장'},
+  {lv:6,  desc:'보스 체력 +15%'},
+  {lv:7,  desc:'장터 가격 +20%'},
+  {lv:8,  desc:'요괴 칸 기본 2칸'},
+  {lv:9,  desc:'막 보스 직전 주막이 사라진다'},
+  {lv:10, desc:'최종 보스 2연전 (천명 → 판관)'},
+];
+function asc(){ return (G.run && G.run.ascension) || 0; }
+
+/* ===== 진엔딩: 봉요사 기록고 ===== */
+ENEMIES.sijo = {name:'봉요 시조의 그림자', boss:true, hp:260, spiritTarget:0.35, art:{kind:'sijo'},
+  moves:{
+    douse:{name:'등불 끄기', intent:'seal', effects:[{type:'sealCard', value:2},{type:'ward', value:3}]},
+    gate:{name:'문 너머의 손', intent:'attack', effects:[{type:'damage', value:9, hits:2}]},
+    name:{name:'이름 지우기', intent:'attack', effects:[{type:'damage', value:18},{type:'addCurse', id:'bujeong', value:1}]}},
+  ai:{type:'cycle', seq:['gate','douse','name']},
+  phases:[{below:130, name:'첫 봉인의 기억', effects:[{type:'strength', value:3},{type:'cleanse'}], seq:['name','gate','gate','douse']}]};
+const ARCHIVE_DIALOGUE = [
+  {who:'narr', text:'천명이 쓰러진 자리 뒤로, 대봉인진의 잔해가 걷히자 낡은 문 하나가 드러났다. 봉요사 기록고.'},
+  {who:'narr', text:'먼지 쌓인 서가에는 백 년마다 한 권씩, 같은 손글씨로 쓴 기록이 꽂혀 있다. 첫 권의 표지에는 뿔 달린 도깨비가 그려져 있다.'},
+  {who:'book', text:'「나 봉요(封妖)는 적는다. 백귀야행의 밤, 요괴들의 등불을 보고 저편의 것이 문을 두드린다. 그것은 이름을 먹는다.」'},
+  {who:'book', text:'「이름을 먹힌 요괴는 처음부터 없었던 것이 된다. 설화도, 두려움도, 웃음도 함께 지워진다.」'},
+  {who:'book', text:'「그래서 나는 형제들을 봉인한다. 가두려는 것이 아니다. 저편의 것이 찾지 못하도록, 백 년 동안 이름을 숨겨 두는 것이다.」'},
+  {who:'book', text:'「사람들에게 이 일을 맡긴다. 그들은 곧 이유를 잊고 우리를 미워하겠지. 그래도 괜찮다. 미움도 이름을 지켜 준다.」'},
+  {who:'me', text:'…우리를 지키려고, 백 년마다 우리를 가둬 왔다는 건가.'},
+  {who:'narr', text:'그때 서가 사이의 그림자가 일어선다. 뿔 달린 그림자 — 첫 봉인을 친 자의 남은 넋이다.'},
+  {who:'sijo', text:'등불을 든 자여. 봉인 없이 저편의 것을 막을 수 있다고 믿느냐. 그렇다면 그 등불로 나를 넘어 보아라.'},
+];
+const TRUE_ENDING = [
+  {who:'sijo', text:'…그래. 이만큼 밝은 등불이라면, 숨지 않아도 되겠구나.'},
+  {who:'narr', text:'그림자가 흩어지며 마지막 기록을 남긴다. 「문은 등불이 꺼질 때 열린다. 이름을 불러 줄 이가 있는 한, 아무것도 지워지지 않는다.」'},
+  {who:'me', text:'봉인은 이제 필요 없다. 요괴의 이름은 우리가 부르고, 사람들이 이야기하면 된다.'},
+  {who:'narr', text:'그날 새벽, 백귀의 행렬은 산으로 돌아가지 않았다. 등불을 든 채 마을 어귀마다 하나씩 남아, 아이들에게 제 이름을 들려주었다.'},
+  {who:'narr', text:'봉요사의 마지막 기록은 이렇게 끝난다. 「이번 백 년은 봉인 대신 이야기로 지킨다.」'},
+];
+
+/* ===== 요괴 도감: 설화 한 줄 + 숨은 대사 한 줄 ===== */
+const CODEX_TEXT = {
+  bangmang:['도깨비 방망이는 원래 금 나와라 은 나와라 하던 물건이다. 요즘은 주로 때린다.','"금은 안 나와도 혹은 나오지."'],
+  bawi:['바위로 둔갑한 도깨비를 밟고 지나간 선비가 사흘을 앓았다는 이야기가 있다.','"…무겁다고 했지, 밟으라곤 안 했다."'],
+  jeonghwapulgi:['봉인 부적은 침 묻은 손톱으로 살살 긁으면 떨어진다. 요괴들만 아는 비법이다.','"부적 장수 손재주가 영 별로야."'],
+  dokkaebibul:['비 오는 밤 공동묘지에 떠다니는 푸른 불. 쫓아가면 멀어지고 멈추면 다가온다.','"따라오지 마, 부끄러워."'],
+  bulti:['도깨비가 재채기를 하면 불티가 날린다는 말이 있다. 그래서 초가집 근처에선 재채기를 참는다.','"에, 에… 에취!"'],
+  bulkkot:['불붙은 방망이로 씨름판을 휘젓던 도깨비 이야기는 아직도 장터에서 회자된다.','"반칙 아니야. 그냥 뜨거울 뿐이야."'],
+  hwalhwal:['작은 불씨도 부채질하면 산을 태운다. 도깨비들은 그걸 잘 알아서 부채를 늘 들고 다닌다.','"더, 더, 더!"'],
+  hwatot:['밤길 화톳불 곁에 앉아 있던 나그네가 사실 도깨비였다는 이야기는 흔하다.','"불 쬐러 왔으면 장작 하나는 넣고 가."'],
+  jangnan:['도깨비 장난에 걸리면 같은 고개를 밤새 넘는다. 아침이 되면 제자리다.','"한 바퀴만 더 돌자."'],
+  hwaetbul:['봉요사가 횃불로 요괴를 몰던 밤, 도깨비들은 그 횃불을 빼앗아 되돌려 주었다.','"빌려 간 건 돌려줘야지."'],
+  yeopjeon:['도깨비는 엽전을 좋아하지만 셈을 못 한다. 한 냥을 빌려주면 매일 한 냥씩 갚는다.','"어제 갚았나? 또 갚을게."'],
+  c_kkoma:['꼬마 도깨비는 메밀묵을 좋아한다. 문 앞에 한 그릇 두면 밤새 장작을 패 준다.','"묵 한 그릇에 장작 한 짐. 공정하지?"'],
+  yeounun:['여우와 눈이 마주친 나무꾼은 자기 이름을 잊었다고 한다.','"너, 이름이 뭐였더라?"'],
+  c_yeoubul:['여우불은 새색시 가마 뒤를 따라다니다 혼례가 끝나면 사라진다.','"축하해. 근데 좀 부럽다."'],
+  c_geuseundae:['그슨대는 밤길에 점점 커지는 그림자 요괴다. 올려다보면 커지고 내려다보면 작아진다.','"고개 숙여. 그게 예의야."'],
+  seoreoun:['밤마다 우는 소리가 들리는 집에는 억울한 넋이 산다. 들어 주면 조금 덜 운다.','"들어 줘서… 고마워."'],
+  wonhanpokbal:['오뉴월에 서리가 내리면 누군가의 한이 터진 것이다.','"참고, 참고, 또 참았는데."'],
+  c_songaksi:['혼례를 못 치르고 죽은 처녀의 넋. 족두리를 쓴 채 새벽 우물가를 서성인다.','"가마는 언제 오나요?"'],
+  mulgwison:['물귀신은 혼자 가기 싫어 함께 갈 이를 찾는다. 그래서 손이 길다.','"같이 가자. 물이 차가워."'],
+  c_imugi:['천 년을 물속에서 기다린 이무기는 여의주만 얻으면 용이 된다. 대부분 얻지 못한다.','"내년엔 꼭."'],
+  c_mulgwisin:['깊은 소에는 물귀신이 산다. 젖은 발자국이 물가에서 끊기면 그쪽을 보지 마라.','"뒤돌아봤지?"'],
+  heungnae:['산에서 이름을 부르는 소리가 나면 대답하지 마라. 그건 네 목소리를 흉내 내는 것이다.','"…야. …야. 나야, 나."'],
+  c_eoduksini:['어둑시니는 쳐다볼수록 커지는 어둠이다. 무시하면 슬그머니 작아진다.','"봐 줘. 나 좀 봐 줘."'],
+  jangsanbeom:['장산범은 흰 털을 휘날리며 아는 사람의 목소리로 문밖에서 부른다.','"문 열어. 엄마야."'],
+  bongin:['봉요사의 봉인 부적은 생각보다 얇다. 화가 나면 찢어진다.','"종이 한 장에 백 년이라니."'],
+  halkwi:['요괴의 발톱은 함부로 깎지 않는다. 깎은 발톱으로 사람이 둔갑한다는 말이 있어서다.','"손톱 깎은 거 아무 데나 버리지 마."'],
+  yogiheup:['요기는 밤공기에 섞여 흐른다. 깊게 들이마시면 상처가 아문다.','"아, 좋은 밤이다."'],
+  cheolbyeok:['도깨비가 쇠를 먹으면 몸이 쇠처럼 단단해진다. 대신 사흘간 배가 아프다.','"끄윽."'],
+  hamseong:['백귀가 한꺼번에 소리를 지르면 산이 울리고 별이 떨어진다.','"하나, 둘, 셋에 같이!"'],
+  haengryeol:['백 년에 한 번, 요괴들이 등불을 들고 밤길을 행진한다. 그 행렬을 본 사람은 문을 꼭 닫는다.','"줄 서. 새치기하지 말고."'],
+  deungbul:['청사초롱은 요괴에게도 길을 밝혀 준다. 그래서 행렬의 맨 앞은 늘 등불이다.','"앞에 누구 있어?"'],
+  c_hwaseo:['불 속에서도 타지 않는 쥐. 그 털로 짠 옷은 불에 넣으면 오히려 깨끗해진다.','"찍찍. 뜨거운 게 좋아."'],
+  c_bulgasari:['쇠를 먹고 자라는 괴물. 불로도 죽일 수 없다 하여 불가살이라 불렸다.','"숟가락 하나만…"'],
+  c_dueoksini:['두억시니는 도깨비 중에서도 가장 사나운 무리. 그 대장이 웃으면 마을 굴뚝이 전부 연기를 뿜는다.','"오늘 밤은 다 같이 타오르자."'],
+  buldeongi:['도깨비 씨름판에서 진 쪽은 불덩이를 받아 안아야 한다는 규칙이 있다.','"받아!"'],
+  eophwa:['업화는 지은 죄만큼 뜨겁게 탄다. 봉요사 수장도 이 불 앞에선 땀을 흘린다.','"네 몫이야. 다 가져가."'],
+  bulchum:['불 둘레를 돌며 추는 도깨비 춤. 한 바퀴 돌 때마다 불길이 높아진다.','"얼쑤, 덩실!"'],
+  janchi:['도깨비 잔치에 초대받은 나무꾼은 금덩이를 얻어 왔고, 따라간 욕심쟁이는 혹을 얻어 왔다.','"너는 노래를 잘하니?"'],
+  c_dungapyeou:['여우는 사람 해골을 머리에 쓰고 재주를 넘어 사람으로 둔갑한다.','"어때, 사람 같아?"'],
+  c_nabi:['꽃밭에 앉은 나비가 유독 오래 쳐다보면 여우의 사자다.','"팔랑. 따라와 봐."'],
+  c_gumiho:['천 년을 산 여우는 꼬리가 아홉. 사람의 간을 천 개 먹으면 사람이 된다고 했다.','"사람이 되는 건 이제 관심 없어. 재미없잖아."'],
+  yeoubaljop:['여우 발톱에 긁힌 자리는 홀린 동안엔 아프지 않다. 정신이 들면 그제야 쓰리다.','"아직 안 아프지?"'],
+  ganppaemeok:['구미호 설화의 가장 무서운 대목. 대개 사람이 먼저 꾀를 내어 살아난다.','"오늘은 한 번만 봐줄게."'],
+  kkoritchigi:['여우 꼬리에 맞으면 사흘 동안 웃음이 멈추지 않는다는 말이 있다.','"간지럽지?"'],
+  hwanyeong:['여우가 만든 환영은 진짜보다 조금 더 아름답다. 그래서 들킨다.','"너무 예쁘면 의심해."'],
+  yeoudungap:['여우 둔갑은 꼬리 끝까지 숨기기가 가장 어렵다.','"꼬리 보여?"'],
+  holimnorae:['고갯마루에서 들리는 노랫소리를 따라가면 날이 밝을 때 엉뚱한 산에 있다.','"한 소절만 더 들어."'],
+  neokppaegi:['넋이 빠진 사람은 이름을 세 번 불러 주면 돌아온다.','"불러 줄 사람, 있어?"'],
+  yeoubi:['맑은 날 비가 오면 여우가 시집가는 날이다.','"축의금은 받는다."'],
+  hyeonhok:['여우의 눈빛에 현혹된 자는 자기 손에 든 칼조차 잊는다.','"손에 뭘 들고 있었지?"'],
+  kkodeugi:['여우의 꼬드김에 넘어가지 않은 자는 설화에 셋뿐이다.','"넷째가 되고 싶어?"'],
+  c_dalgyal:['얼굴이 없는 달걀귀신. 눈도 코도 입도 없지만 우는 소리는 들린다.','"…"'],
+  c_mongdal:['장가를 못 가고 죽은 총각 귀신. 혼례 잔치에 몰래 끼어 국수를 먹고 간다.','"국수 한 그릇만."'],
+  c_janghwa:['억울하게 죽은 두 자매의 넋이 고을 원님 앞에 나타나 한을 풀었다.','"우리 이야기, 끝까지 들어 줄래요?"'],
+  wongwison:['원귀의 손은 차갑고, 한 번 잡으면 놓지 않는다.','"놓으면 또 잊을 거잖아."'],
+  hanpuri:['굿판에서 무당이 넋의 한을 대신 말해 주면 귀신은 비로소 떠난다.','"다 말했어. 이제 갈래."'],
+  goksonal:['상여 나가는 길에 낫을 들고 곡하는 귀신이 있다. 길을 비켜 주면 아무 일 없다.','"길 비켜. 바빠."'],
+  pinunmul:['피눈물을 흘리는 원귀는 그 눈물이 마를 때까지 이승을 떠나지 못한다.','"닦아 줄 사람이 없어서."'],
+  suui:['수의를 입은 넋은 밤마다 그것을 벗으려 애쓴다.','"이 옷, 너무 커."'],
+  hanbyeok:['한이 쌓이면 벽이 된다. 그 벽은 사람도 요괴도 넘기 어렵다.','"넘어오지 마."'],
+  inhyeong:['짚인형에 이름을 써서 못을 박으면 저주가 된다고 했다. 대개는 짚만 아깝다.','"이름 철자 틀렸어."'],
+  jesa:['제사상에 올린 음식은 넋이 먼저 맛을 본다. 그래서 제삿밥은 싱겁다.','"간이 좀 약하네."'],
+  neokduri:['넋두리는 들어 주는 이가 있을 때만 끝이 난다.','"그래서 내가 그때 말이야…"'],
+  sangyeo:['상여 행렬의 요령 소리가 밤에 들리면 아무도 죽지 않았어도 문을 닫는다.','"딸랑. 딸랑."'],
+  c_geobuk:['별주부는 토끼의 간을 구하러 뭍에 올랐다가 빈손으로 돌아갔다.','"이번엔 꼭 구해 간다."'],
+  c_gangcheol:['강철이가 지나간 자리는 가뭄이 든다. 쇠처럼 단단한 비늘을 가진 용의 일족.','"물은 내가 다 가져간다."'],
+  c_mulyeou:['물여우는 물속에서 모래를 쏘아 사람의 그림자를 맞힌다. 맞은 사람은 앓아눕는다.','"퉤."'],
+  haeil:['용왕이 화가 나면 바다가 일어선다. 화가 풀리면 조개를 잔뜩 두고 간다.','"미안해서 놓고 간 거야."'],
+  mulbyeorak:['물귀신은 장난삼아 빨래하는 아낙들에게 물을 끼얹는다.','"시원하지?"'],
+  soyongdori:['깊은 소의 소용돌이는 물귀신이 춤추는 자리다.','"빙글빙글."'],
+  mulsal:['뱃사공들은 물살 가르는 노 끝에서 물귀신의 손을 본 적이 있다고 한다.','"노 젓는 거 도와줄게."'],
+  mulangae:['새벽 물안개 속에서는 요괴와 사람이 서로를 알아보지 못한다.','"누구세요?" "그쪽은요?"'],
+  padodungap:['조개로 둔갑한 요괴를 줍지 마라. 집에 가져가면 밤새 파도 소리가 난다.','"쏴아—"'],
+  ongdalsaem:['깊은 산 옹달샘은 다친 요괴들이 몰래 목을 축이는 곳이다.','"토끼가 먼저 마셨어."'],
+  jangmabi:['장마철에는 요괴들도 외출을 삼간다. 털이 젖으면 마르지 않으니까.','"오늘은 쉬자."'],
+  sseolmul:['썰물 때 드러난 갯벌에는 용궁으로 가는 길이 잠깐 열린다.','"지금이야, 뛰어!"'],
+  yongwang:['용왕은 아픈 신하를 위해 토끼 간까지 구하려 했던 다정한 임금이다.','"짐의 백성은 짐이 지킨다."'],
+  c_bukdokkaebi:['북을 치는 도깨비가 있는 마을엔 밤마다 장단이 들린다. 아무도 북을 본 적은 없다.','"둥. 둥. 둥."'],
+  c_bangul:['방울 소리가 나면 도깨비가 지나간 것이다. 소리가 멈추면 가까이 있는 것이다.','"딸랑… (뚝)"'],
+  c_sanbeom:['장산범 어미는 새끼에게 사람의 목소리를 하나씩 가르쳐 준다.','"이건 할머니 목소리야. 따라 해 봐."'],
+  talchum:['탈을 쓰면 양반도 상놈도 없다. 그래서 요괴들도 탈춤판엔 몰래 낀다.','"이 탈, 내 얼굴인데."'],
+  jingsori:['징 소리는 산 너머까지 퍼진다. 요괴들은 그 소리에 맞춰 길을 정한다.','"징— 저쪽이다."'],
+  kkwaeng:['꽹과리는 귀신을 쫓는다지만, 시끄러운 걸 좋아하는 도깨비는 오히려 모여든다.','"더 크게!"'],
+  sorijangmak:['소리꾼의 소리는 장막처럼 둘러싸 귀신의 접근을 막는다.','"한 대목만 들어."'],
+  chuimsae:['판소리 한가운데 "얼쑤!" 하는 추임새는 사실 요괴가 넣은 것이라는 말이 있다.','"얼쑤!"'],
+  buksori:['전쟁터의 북소리에 맞춰 요괴들도 발을 맞춘다.','"둥! 앞으로!"'],
+  pirisori:['피리 부는 소년을 따라간 쥐 이야기는 바다 건너 설화지만, 요괴들도 들어 알고 있다.','"우리 동네에도 있었어."'],
+  doeullim:['산은 말을 되돌려 준다. 좋은 말을 하면 좋은 말이 돌아온다.','"…좋은 밤. …좋은 밤."'],
+  daegeum:['대금 소리는 바람과 닮아 요괴가 따라 부르기 쉽다.','"휘이—"'],
+  jangdan:['장단이 맞으면 모르는 요괴끼리도 금세 친해진다.','"덩 기덕 쿵 더러러러."'],
+  bujeong:['부정을 타면 잔치가 엎어지고 제사가 꼬인다. 소금을 뿌려도 잘 안 떨어진다.','"…나도 떨어지고 싶어."'],
+  bujeokjogak:['봉요사의 부적은 찢어져도 조각마다 힘이 남는다. 그래서 더 성가시다.','"찢지 말고 떼어 내라니까."'],
+  /* 적 */
+  jangjeong:['마을 장정들은 봉요사 포고문을 보고 처음으로 요괴 사냥에 나섰다. 대부분 겁에 질려 있다.','"우, 우리 마을엔 오지 마!"'],
+  sanyanggae:['봉요사가 기르는 사냥개는 요괴 냄새를 맡도록 길들여졌다.','"(꼬리를 조금 흔든다)"'],
+  mudang:['떠돌이 무당은 굿판마다 요괴를 몰아내 주고 쌀을 받는다. 사실 요괴들과 안면이 있다.','"오늘만 좀 비켜 줘. 먹고살아야지."'],
+  dongja:['봉요사 동자승은 매일 목탁을 두드리며 정화 주문을 외운다. 무슨 뜻인지는 모른다.','"스님이 외우라고 해서…"'],
+  baksu:['남자 무당 박수는 신칼을 들고 요괴의 넋을 씻는다고 한다.','"씻기는 게 아니야. 숨기는 거지."'],
+  cheonha:['마을 어귀의 천하대장군. 수백 년 동안 마을을 지켜 온 장승이다.','"지나가거든 인사는 하고 가라."'],
+  jiha:['천하대장군의 짝 지하여장군. 둘은 한 번도 떨어져 선 적이 없다.','"혼자 남는 건 싫어."'],
+  pojol:['한양 포졸은 밤마다 순찰을 돈다. 요괴보다 야근이 더 무섭다.','"퇴근하고 싶다…"'],
+  gungsu:['부적 화살은 요괴만 맞힌다. 그래서 궁수들은 과녁 연습을 안 한다.','"알아서 날아가."'],
+  gyeonseupdosa:['도사가 되려면 십 년 수행이 필요하다. 견습 도사는 삼 년째다.','"칠 년 남았다…"'],
+  sunra:['순라꾼은 등롱 하나로 밤 골목을 지킨다. 그 등롱 빛은 요괴를 비춘다.','"거기 누구냐! …고양이냐."'],
+  toemaseungryeo:['퇴마 승려는 백 일 동안 독경하여 봉인의 힘을 얻는다.','"나무… 미안하다."'],
+  haetae:['광화문 앞 해태는 옳고 그름을 가려 그른 쪽을 뿔로 받는다. 불을 먹는 짐승이라 화재를 막는다.','"불을 가져오는 자, 그 불에 데리라."'],
+  gyeolgyesa:['결계사는 평생 같은 부적만 수천 장 그린다. 손목이 성할 날이 없다.','"팔 아파."'],
+  sinjang:['봉요사 본진을 지키는 신장 인형. 나무에 갑옷을 입히고 주문을 새겼다.','"…(삐걱)"'],
+  seogi:['봉인 서기는 봉인한 요괴의 이름을 장부에 적는다. 장부는 백 권이 넘는다.','"이름은 남겨 둬야 하니까."'],
+  pangwan:['봉요사 판관은 요괴의 죄를 따져 봉인할 햇수를 정한다.','"무죄 판결은… 한 번도 내 본 적이 없다."'],
+  cheonmyeong:['봉요사 수장 천명. 대봉인진을 직접 그리는 유일한 사람.','"가두려던 것이 아니다."'],
+  thrall:['천명에게 빼앗긴 요괴는 옛 주인을 알아보면서도 할퀸다.','"미안. 몸이 말을 안 들어."'],
+  sijo:['봉요사의 첫 기록을 남긴 뿔 달린 그림자. 이름은 봉요.','"이름을 지키는 방법이 하나뿐이라고 믿었다."'],
+};
+
 
 /* ---------------------------------------------------------------
    7. 아트 — 인라인 SVG (굵은 먹선 + 평면 채색)
@@ -1914,6 +2210,7 @@ function enemyArtSvg(id, unit){
   if(a.kind === 'jangseung') return svgWrap(jangseungArt(a.male));
   if(a.kind === 'haetae') return svgWrap(haetaeArt());
   if(a.kind === 'sinjang') return svgWrap(sinjangArt());
+  if(a.kind === 'sijo') return svgWrap(sijoArt());
   if(a.kind === 'thrall'){
     const sp = unit && unit.spiritId ? SPIRITS[unit.spiritId] : SPIRITS.kkoma;
     const f = ART[sp.art];
@@ -2184,15 +2481,15 @@ function titleBackground(){
 const G = {screen:'title', meta:null, run:null, battle:null, ui:{}, sim:false};
 
 function defaultMeta(){
-  return {version:VERSION, codex:{cards:{}, enemies:{}, relics:{}}, unlocks:{}, ascension:{max:0, selected:0},
-    stats:{battles:0, wins:0, losses:0, runs:0, clears:0, bestFloor:0, bestAct:0, fullClears:0}, settings:{sfx:true, bgm:true, fast:false}};
+  return metaDefaults({version:VERSION, codex:{cards:{}, enemies:{}, relics:{}}, unlocks:{}, ascension:{max:0, selected:0},
+    stats:{battles:0, wins:0, losses:0, runs:0, clears:0, bestFloor:0, bestAct:0, fullClears:0}, settings:{sfx:true, bgm:true, fast:false}});
 }
 function loadMeta(){
   const m = storeGet(SAVE_META), d = defaultMeta();
-  if(!m || typeof m !== 'object') return d;
-  return {version:VERSION, codex:Object.assign(d.codex, m.codex || {}), unlocks:Object.assign(d.unlocks, m.unlocks || {}),
+  if(!m || typeof m !== 'object') return metaDefaults(d);
+  return metaDefaults({version:VERSION, codex:Object.assign(d.codex, m.codex || {}), unlocks:Object.assign(d.unlocks, m.unlocks || {}),
     ascension:Object.assign(d.ascension, m.ascension || {}), stats:Object.assign(d.stats, m.stats || {}),
-    settings:Object.assign(d.settings, m.settings || {})};
+    settings:Object.assign(d.settings, m.settings || {}), yogi:m.yogi, yogiBatches:m.yogiBatches, leaderClears:m.leaderClears, flags:m.flags});
 }
 function saveMeta(){ storeSet(SAVE_META, G.meta); }
 /* 런 저장은 실제 런(mode:'run')만. 시험 전투는 저장하지 않는다 */
@@ -2203,18 +2500,22 @@ function loadRun(){
   return r;
 }
 function clearRun(){ storeDel(SAVE_RUN); }
-function codexSee(kind, id){ if(!G.meta.codex[kind][id]){ G.meta.codex[kind][id] = 1; saveMeta(); } }
+/* 도감 기록: 1 = 만남, 2 = 행렬에 들임(카드) / 쓰러뜨림(적) */
+function codexSee(kind, id, lv){ lv = lv || 1; if((G.meta.codex[kind][id] || 0) < lv){ G.meta.codex[kind][id] = lv; if(!G.sim) saveMeta(); } }
 
 /* 런: 덱·생명력·엽전·보물·지도·위치·시드를 담는다 */
-function newRun(deckIds, seed, mode){
-  const L = LEADERS.bangmangi;
-  const run = {version:VERSION, mode:mode || 'test', seed:seed || randomSeedString(), leader:'bangmangi',
-    maxHp:L.hp, hp:L.hp, gold:mode === 'run' ? STARTING_GOLD : 0, deck:[], relics:L.relics.slice(), uid:0,
+function newRun(deckIds, seed, mode, leaderId, ascLv){
+  leaderId = leaderId || 'bangmangi';
+  const L = LEADERS[leaderId];
+  ascLv = ascLv || 0;
+  const run = {version:VERSION, mode:mode || 'test', seed:seed || randomSeedString(), leader:leaderId, ascension:ascLv, tails:0,
+    maxHp:L.hp, hp:L.hp, gold:mode === 'run' ? (ascLv >= 2 ? 0 : STARTING_GOLD) : 0, deck:[], relics:[L.relic], uid:0,
     act:1, map:null, path:[], floor:0, pendingNode:null, nodeState:null, rewardState:null,
-    removeCost:PRICE.remove, flags:{}, seenEvents:[], actBattles:0,
+    removeCost:Math.round(PRICE.remove * (ascLv >= 7 ? 1.2 : 1)), flags:{}, seenEvents:[], actBattles:0,
     stats:{kills:0, elites:0, battles:0, startTime:Date.now(), playTime:0, lastTick:Date.now()}};
+  if(mode === 'run' && ascLv >= 5) deckIds = deckIds.concat(['bujeong']);   // 야행 5: 시작 덱에 저주
   run.deck = deckIds.map(id => newCardInst(run, id, false));
-  deckIds.forEach(id => codexSee('cards', id));
+  deckIds.forEach(id => codexSee('cards', id, 2));
   return run;
 }
 function newCardInst(run, id, up){ run.uid++; return {uid:'c' + run.uid, id, up:!!up}; }
@@ -2224,7 +2525,7 @@ function relicMod(key){
   if(G.run) for(const id of G.run.relics){ const r = RELICS[id]; if(r && r.mods && r.mods[key]) n += r.mods[key]; }
   return n;
 }
-function spiritSlots(){ return SPIRIT_SLOTS + relicMod('slots'); }
+function spiritSlots(){ return (asc() >= 8 ? 2 : SPIRIT_SLOTS) + relicMod('slots'); }
 function hasRelic(id){ return !!(G.run && G.run.relics.includes(id)); }
 function updatePlayTime(){
   const run = G.run;
@@ -2237,99 +2538,166 @@ function healRun(n){ const before = G.run.hp; G.run.hp = Math.min(G.run.maxHp, G
 
 /* ---------------------------------------------------------------
    9. 사운드 (Web Audio 합성)
+   지도: 대금풍 단음 선율 루프 / 전투: 장구·북 장단 (적 체력이 줄수록 빨라짐) / 보스: 꽹과리 추가
+   설정: 음악·효과음 음량 각각, 음소거
 ---------------------------------------------------------------- */
 const Sound = {
-  ctx:null, master:null, bgmGain:null, bgmTimer:null, bgmMode:null, step:0, noiseBuf:null,
+  ctx:null, master:null, musicGain:null, sfxGain:null, noiseBuf:null, bgmMode:null, bgmTimer:null, step:0, phrase:0,
   init(){
     if(this.ctx) return;
     try{
       const AC = window.AudioContext || window.webkitAudioContext;
       if(!AC) return;
       this.ctx = new AC();
-      this.master = this.ctx.createGain(); this.master.gain.value = 0.55; this.master.connect(this.ctx.destination);
-      this.bgmGain = this.ctx.createGain(); this.bgmGain.gain.value = 0.16; this.bgmGain.connect(this.master);
-      const len = this.ctx.sampleRate * 0.6;
+      this.master = this.ctx.createGain(); this.master.connect(this.ctx.destination);
+      this.musicGain = this.ctx.createGain(); this.musicGain.connect(this.master);
+      this.sfxGain = this.ctx.createGain(); this.sfxGain.connect(this.master);
+      const len = this.ctx.sampleRate * 1.0;
       this.noiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
       const data = this.noiseBuf.getChannelData(0);
       for(let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+      this.applyVolumes();
     }catch(e){ this.ctx = null; }
   },
   resume(){ try{ if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); }catch(e){} },
-  tone(freq, dur, type, vol, when, dest, slideTo){
+  applyVolumes(){
+    if(!this.ctx || !G.meta) return;
+    const s = G.meta.settings;
+    const t = this.ctx.currentTime;
+    this.master.gain.setTargetAtTime(s.mute ? 0 : 0.8, t, 0.05);
+    this.musicGain.gain.setTargetAtTime((s.musicVol === undefined ? 0.6 : s.musicVol) * 0.5, t, 0.05);
+    this.sfxGain.gain.setTargetAtTime(s.sfxVol === undefined ? 0.8 : s.sfxVol, t, 0.05);
+  },
+  /* 기본 소리: 오실레이터 */
+  tone(freq, dur, type, vol, when, dest, slideTo, attack){
     if(!this.ctx) return;
     const t = this.ctx.currentTime + (when || 0);
     const o = this.ctx.createOscillator(), g = this.ctx.createGain();
     o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t);
     if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol || 0.2, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(vol || 0.2, t + (attack || 0.008));
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(dest || this.master);
+    o.connect(g); g.connect(dest || this.sfxGain);
     o.start(t); o.stop(t + dur + 0.05);
   },
-  noise(dur, vol, freq, when, q, dest){
+  /* 기본 소리: 걸러 낸 잡음 (sweep: 필터 주파수를 끝값까지 이동) */
+  noise(dur, vol, freq, when, q, dest, type, sweepTo){
     if(!this.ctx || !this.noiseBuf) return;
     const t = this.ctx.currentTime + (when || 0);
     const s = this.ctx.createBufferSource(); s.buffer = this.noiseBuf;
-    const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq || 1000; f.Q.value = q || 1;
+    const f = this.ctx.createBiquadFilter(); f.type = type || 'bandpass'; f.frequency.setValueAtTime(freq || 1000, t); f.Q.value = q || 1;
+    if(sweepTo) f.frequency.exponentialRampToValueAtTime(sweepTo, t + dur);
     const g = this.ctx.createGain();
-    g.gain.setValueAtTime(vol || 0.2, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    s.connect(f); f.connect(g); g.connect(dest || this.master);
-    s.start(t); s.stop(t + dur + 0.05);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.2, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(dest || this.sfxGain);
+    s.start(t, Math.random() * 0.3); s.stop(t + dur + 0.05);
+  },
+  /* 징: 비조화 배음이 길게 울리며 살짝 내려간다 */
+  gong(when, vol, dest){
+    [110, 167, 231, 296].forEach((f, i) => this.tone(f, 2.2 - i * 0.3, 'sine', (vol || 0.25) / (i + 1), when, dest, f * 0.97, 0.02));
+    this.noise(0.12, (vol || 0.25) * 0.6, 400, when, 1, dest);
+  },
+  /* 장구·북 */
+  deong(when, dest){ this.tone(80, 0.35, 'sine', 0.42, when, dest, 52); this.noise(0.06, 0.22, 2600, when, 2, dest); },
+  kung(when, dest){ this.tone(70, 0.4, 'sine', 0.38, when, dest, 48); },
+  deok(when, dest){ this.noise(0.05, 0.24, 3000, when, 2.5, dest); this.tone(320, 0.05, 'triangle', 0.06, when, dest); },
+  buk(when, dest){ this.tone(58, 0.5, 'sine', 0.5, when, dest, 40); this.noise(0.1, 0.12, 300, when, 1, dest); },
+  kkwaeng(when, dest){ [1480, 2210, 3020].forEach(f => this.tone(f, 0.12, 'square', 0.025, when, dest)); this.noise(0.1, 0.1, 5200, when, 4, dest); },
+  /* 대금풍 음: 숨소리 + 떨림(비브라토) */
+  daegeum(freq, dur, when, dest){
+    if(!this.ctx) return;
+    const t = this.ctx.currentTime + (when || 0);
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    const lfo = this.ctx.createOscillator(), lg = this.ctx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(freq * 0.985, t); o.frequency.linearRampToValueAtTime(freq, t + 0.18);
+    lfo.frequency.value = 5.2; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(freq * 0.012, t + dur * 0.6);
+    lfo.connect(lg); lg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.2, t + 0.25);
+    g.gain.setValueAtTime(0.2, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(dest);
+    o.start(t); lfo.start(t); o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
+    this.noise(dur * 0.8, 0.025, freq * 2, when, 6, dest);
+    this.tone(freq * 2, dur * 0.8, 'sine', 0.03, when, dest, null, 0.2);
   },
   play(name){
-    if(!this.ctx || !G.meta || !G.meta.settings.sfx) return;
+    if(!this.ctx || !G.meta || G.meta.settings.mute) return;
     switch(name){
-      case 'tap': this.tone(880, 0.06, 'triangle', 0.08); break;
-      case 'card': this.noise(0.12, 0.18, 2400, 0, 0.8); this.tone(520, 0.1, 'triangle', 0.08, 0.02, null, 780); break;
-      case 'draw': this.noise(0.06, 0.1, 3000, 0, 1.5); break;
-      case 'hit': this.noise(0.16, 0.35, 700, 0, 0.7); this.tone(140, 0.16, 'square', 0.12, 0, null, 60); break;
-      case 'block': this.tone(300, 0.12, 'triangle', 0.15); this.noise(0.08, 0.15, 3000, 0, 2); break;
-      case 'burn': this.noise(0.35, 0.22, 500, 0, 0.5); this.tone(220, 0.25, 'sawtooth', 0.05, 0, null, 110); break;
-      case 'ward': [988, 1319].forEach((f, i)=>this.tone(f, 0.3, 'sine', 0.09, i * 0.05)); this.noise(0.15, 0.1, 5000, 0, 3); break;
-      case 'seal': this.noise(0.25, 0.2, 1800, 0, 1); this.tone(660, 0.2, 'square', 0.05, 0.25, null, 330); break;
-      case 'coin': this.tone(1320, 0.08, 'square', 0.06); this.tone(1760, 0.14, 'square', 0.05, 0.06); break;
-      case 'death': this.tone(300, 0.5, 'sawtooth', 0.08, 0, null, 60); this.noise(0.5, 0.15, 400, 0, 0.5); break;
-      case 'turn': this.tone(294, 0.4, 'triangle', 0.1); this.tone(440, 0.5, 'triangle', 0.08, 0.1); break;
-      case 'enemyturn': this.tone(196, 0.35, 'sawtooth', 0.06); this.noise(0.2, 0.15, 200, 0, 1); break;
-      case 'summon': [392, 523, 659, 784].forEach((f, i)=>this.tone(f, 0.22, 'triangle', 0.1, i * 0.06)); this.noise(0.4, 0.08, 1800, 0, 0.6); break;
-      case 'spirit': this.tone(620, 0.1, 'triangle', 0.08, 0, null, 900); break;
-      case 'charm': [660, 880, 990].forEach((f, i)=>this.tone(f, 0.25, 'sine', 0.08, i * 0.05)); break;
-      case 'wet': this.noise(0.3, 0.18, 900, 0, 0.6); this.tone(500, 0.25, 'sine', 0.06, 0, null, 250); break;
-      case 'grudge': this.tone(330, 0.5, 'sine', 0.1, 0, null, 250); this.tone(336, 0.5, 'sine', 0.08); break;
-      case 'synergy': [523, 659, 784, 1047].forEach((f, i)=>this.tone(f, 0.35, 'sine', 0.08, i * 0.08)); break;
-      case 'heal': [523, 659, 784].forEach((f, i)=>this.tone(f, 0.3, 'sine', 0.08, i * 0.07)); break;
-      case 'relic': [784, 988, 1175, 1568].forEach((f, i)=>this.tone(f, 0.3, 'sine', 0.07, i * 0.05)); break;
+      case 'tap': this.tone(880, 0.05, 'triangle', 0.06); break;
+      case 'card': this.noise(0.14, 0.22, 1500, 0, 1.2, null, 'bandpass', 5200); break;             // 종이 스침
+      case 'draw': this.noise(0.07, 0.12, 2800, 0, 1.4, null, 'bandpass', 4200); break;
+      case 'hit': this.noise(0.16, 0.35, 700, 0, 0.7); this.tone(140, 0.16, 'square', 0.1, 0, null, 60); break;
+      case 'block': this.tone(300, 0.12, 'triangle', 0.14); this.noise(0.08, 0.14, 3000, 0, 2); break;
+      case 'burn': for(let i = 0; i < 7; i++) this.noise(0.03, 0.18 + Math.random() * 0.15, 3000 + Math.random() * 2500, Math.random() * 0.32, 3, null, 'highpass'); this.noise(0.35, 0.08, 600, 0, 0.6); break;   // 타닥
+      case 'charm': [1320, 2664, 3970].forEach((f, i) => this.tone(f, 0.7 - i * 0.15, 'sine', 0.08 / (i + 1))); this.tone(1980, 0.4, 'sine', 0.04, 0.09); break;   // 방울
+      case 'seal': this.gong(0, 0.28); break;                                                        // 징 한 번
+      case 'summon': this.noise(0.7, 0.2, 260, 0, 0.8, null, 'lowpass', 90); this.tone(96, 0.8, 'sine', 0.3, 0, null, 46, 0.12); break;   // 먹물 번지는 저음
+      case 'ward': [988, 1319].forEach((f, i) => this.tone(f, 0.3, 'sine', 0.08, i * 0.05)); this.noise(0.15, 0.08, 5000, 0, 3); break;
+      case 'wet': this.noise(0.3, 0.16, 900, 0, 0.6, null, 'bandpass', 300); break;
+      case 'grudge': this.tone(330, 0.6, 'sine', 0.1, 0, null, 250); this.tone(336, 0.6, 'sine', 0.08); break;
+      case 'spirit': this.tone(620, 0.1, 'triangle', 0.07, 0, null, 900); break;
+      case 'synergy': [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.4, 'sine', 0.07, i * 0.07)); break;
+      case 'coin': this.tone(1320, 0.08, 'square', 0.05); this.tone(1760, 0.14, 'square', 0.04, 0.06); break;
+      case 'heal': [523, 659, 784].forEach((f, i) => this.tone(f, 0.3, 'sine', 0.07, i * 0.07)); break;
+      case 'relic': [784, 988, 1175, 1568].forEach((f, i) => this.tone(f, 0.3, 'sine', 0.06, i * 0.05)); break;
+      case 'death': this.tone(300, 0.5, 'sawtooth', 0.07, 0, null, 60); this.noise(0.5, 0.14, 400, 0, 0.5); break;
+      case 'turn': this.deok(0); this.deok(0.12); break;
+      case 'enemyturn': this.buk(0); break;
+      case 'error': this.tone(180, 0.15, 'square', 0.06); break;
       case 'yut': for(let i = 0; i < 8; i++) this.noise(0.05, 0.16, 2600, i * 0.15, 2); break;
-      case 'error': this.tone(180, 0.15, 'square', 0.07); break;
-      case 'victory': [392, 440, 523, 587, 784].forEach((f, i)=>this.tone(f, 0.45, 'triangle', 0.1, i * 0.12)); break;
-      case 'defeat': [392, 349, 294, 262].forEach((f, i)=>this.tone(f, 0.6, 'sine', 0.1, i * 0.22)); break;
+      case 'boss': this.gong(0, 0.35); this.buk(0.5); this.buk(0.8); break;
+      case 'victory': this.gong(0, 0.3); this.buk(0.15); this.buk(0.45); this.deong(0.75); this.buk(1.0); break;   // 징 + 북
+      case 'defeat': [392, 349, 294, 262].forEach((f, i) => this.tone(f, 0.7, 'sine', 0.09, i * 0.25)); this.gong(1.0, 0.2); break;
     }
   },
-  /* 배경음: 계면조 5음계 뜯기 + 전투 시 장구 */
+  /* 배경 음악 */
   bgm(mode){
-    if(!this.ctx || this.bgmMode === mode) return;
+    if(!this.ctx) return;
+    if(mode === 'battle' && G.battle && (G.battle.kind === 'boss' || G.battle.kind === 'boss2' || G.battle.kind === 'archive')) mode = 'boss';
+    if(this.bgmMode === mode) return;
     this.bgmMode = mode;
-    if(this.bgmTimer){ clearInterval(this.bgmTimer); this.bgmTimer = null; }
+    if(this.bgmTimer){ clearTimeout(this.bgmTimer); this.bgmTimer = null; }
     if(!mode) return;
-    const scale = [146.8, 174.6, 196, 220, 261.6, 293.7, 349.2, 392, 440];
-    let last = 4;
-    const beat = mode === 'battle' ? 330 : 520;
     this.step = 0;
-    this.bgmTimer = setInterval(()=>{
-      if(!G.meta.settings.bgm || !this.ctx || this.ctx.state !== 'running') return;
-      const s = this.step++;
-      if(Math.random() < (mode === 'battle' ? 0.55 : 0.42)){
-        last = clamp(last + pick(Math.random, [-2,-1,-1,1,1,2,0]), 0, scale.length - 1);
-        this.tone(scale[last], 1.4, 'triangle', 0.22, 0, this.bgmGain);
-        this.tone(scale[last] * 2, 0.5, 'sine', 0.06, 0, this.bgmGain);
+    const self = this;
+    // 지도: 계면조(라·도·레·미·솔) 느린 선율 루프
+    const MELODY = [[440,2],[392,1],[440,1],[523,2],[440,2],[392,1],[349,1],[392,2],[0,2],
+                    [330,2],[392,1],[440,1],[392,2],[349,1],[330,1],[294,3],[0,1],
+                    [440,1],[523,1],[587,2],[523,1],[440,1],[392,2],[440,3],[0,3]];
+    // 전투 장단: 자진모리풍 (덩 · 덕 · 쿵 · 기덕)
+    const JANGDAN = ['deong', null, 'deok', 'kung', null, 'deok', 'deong', 'deok', 'deok', 'kung', null, 'deok'];
+    let mi = 0;
+    function loop(){
+      if(self.bgmMode !== mode) return;
+      let next = 500;
+      const playing = self.ctx && self.ctx.state === 'running' && !G.meta.settings.mute;
+      if(mode === 'map'){
+        const [f, len] = MELODY[mi % MELODY.length]; mi++;
+        const beat = 520;
+        if(playing && f) self.daegeum(f, len * beat / 1000 * 1.05, 0, self.musicGain);
+        if(playing && mi % 9 === 1) self.tone(110, 3.2, 'sine', 0.08, 0, self.musicGain, null, 0.4);
+        next = len * beat;
+      }else{
+        // 적 체력이 줄수록 장단이 빨라진다
+        const b = G.battle;
+        let ratio = 1;
+        if(b){
+          const tot = b.enemies.reduce((s, e) => s + e.maxHp, 0) || 1;
+          ratio = b.enemies.reduce((s, e) => s + Math.max(0, e.hp), 0) / tot;
+        }
+        next = 170 + 110 * ratio;
+        const hit = JANGDAN[self.step % JANGDAN.length];
+        if(playing){
+          if(hit) self[hit](0, self.musicGain);
+          if(self.step % 12 === 0) self.buk(0, self.musicGain);
+          if(mode === 'boss' && self.step % 3 === 0) self.kkwaeng(0, self.musicGain);
+          if(mode === 'boss' && self.step % 24 === 0) self.gong(0, 0.12, self.musicGain);
+        }
+        self.step++;
       }
-      if(s % 8 === 0) this.tone(73.4, 2.2, 'sine', 0.18, 0, this.bgmGain);
-      if(mode === 'battle'){
-        if([1,0,0,1,0,1,0,0][s % 8]) this.tone(90, 0.25, 'sine', 0.35, 0, this.bgmGain, 55);
-        if(s % 4 === 2) this.noise(0.08, 0.18, 3200, 0, 3, this.bgmGain);
-      }
-    }, beat);
+      self.bgmTimer = setTimeout(loop, next);
+    }
+    loop();
   },
 };
 
@@ -2368,7 +2736,8 @@ function cardCost(inst){
   if(inst.copy && hasSyn('sound')) c = 0;
   const b = G.battle;
   if(b && b.sealed.has(inst.uid) && relicMod('sealedPlayable')) c += 1;
-  return c;
+  c += LeaderAbility.costMod(b);   // 여휘 변신: 비용 -1
+  return Math.max(0, c);
 }
 function isAllySide(u){ return u && (u.kind === 'player' || u.kind === 'spirit'); }
 function aliveEnemies(){ const b = G.battle; return b ? b.enemies.filter(e => e.hp > 0) : []; }
@@ -2678,7 +3047,8 @@ EFFECTS.pullFront = async (e, ctx) => {
 /* 흉내 소리: 이번 턴 마지막에 쓴 카드 1장을 복제해 손에 추가 */
 EFFECTS.copyLastCard = async (e, ctx) => {
   const b = ctx.battle; if(!b) return;
-  const last = b.turnPlayed[b.turnPlayed.length - 1];
+  // 흉내 소리는 흉내 소리를 따라 할 수 없다 (복제가 끝없이 이어지는 것을 막는다)
+  const last = b.turnPlayed.slice().reverse().find(x => x.id !== 'heungnae');
   if(!last){ toast('이번 턴에 쓴 카드가 없다'); return; }
   if(b.hand.length >= MAX_HAND){ toast('손패가 가득 찼다'); return; }
   const c = {uid:'cp' + (++b.copyN), id:last.id, up:last.up, copy:true};
@@ -3072,7 +3442,10 @@ function describeCard(def){
 function newEnemyUnit(id, idx){
   const d = ENEMIES[id];
   codexSee('enemies', id);
-  const hp = d.minion ? d.hp : Math.round(d.hp * (d.boss ? actScale().bossHp : actScale().hp));
+  let mul = d.boss ? actScale().bossHp : actScale().hp;
+  if(asc() >= 1 && d.elite) mul *= 1.1;    // 야행 1: 정예 체력 +10%
+  if(asc() >= 6 && d.boss) mul *= 1.15;    // 야행 6: 보스 체력 +15%
+  const hp = d.minion ? d.hp : Math.round(d.hp * mul);
   return {uid:'E' + idx, kind:'enemy', id, name:d.name, hp, maxHp:hp, block:0, status:Object.assign({}, d.startStatus || {}),
     intent:null, intentTarget:'player', spiritRolled:false, aiIdx:0, history:[], seq:null, phaseDone:[], pendingPhases:[]};
 }
@@ -3112,10 +3485,17 @@ function startBattle(enemyIds, kind, nodeId){
   Sound.bgm('battle');
   (async () => {
     await sleep(300);
-    showBanner(b.kind === 'boss' ? '우두머리 출현' : b.kind === 'elite' ? '정예 출현' : '전투 개시');
-    await sleep(650);
+    if(b.kind === 'boss' || b.kind === 'boss2' || b.kind === 'archive'){
+      const bo = ENEMIES[b.enemies[0].id];
+      fxScrollUnroll(bo.name, b.kind === 'archive' ? '기록고의 그림자' : b.kind === 'boss2' ? '최종 보스 2연전' : run.act + '막 우두머리');
+      await sleep(1700);
+    }else{
+      showBanner(b.kind === 'elite' ? '정예 출현' : '전투 개시');
+      await sleep(650);
+    }
     await emit('battleStart');
     if(b.over){ await finishBattle(); return; }
+    if(run.mode === 'run' || run.leader) await LeaderAbility.battleStart(b);
     await beginTurn();
   })();
 }
@@ -3152,7 +3532,7 @@ function refreshSynergies(){
   const cnt = {};
   aliveSpirits().forEach(s => cnt[s.family] = (cnt[s.family] || 0) + 1);
   const prev = b.syn || {};
-  const newly = [];
+  const newly = [], newlyKeys = [];
   b.syn = {};
   for(const key in SYNERGIES){
     const sy = SYNERGIES[key];
@@ -3160,9 +3540,9 @@ function refreshSynergies(){
     if(!on) continue;
     b.syn[key] = true;
     if(sy.triggers) registerTriggers('syn:' + key, sy.triggers);
-    if(!prev[key]) newly.push(sy.name);
+    if(!prev[key]){ newly.push(sy.name); newlyKeys.push(key); }
   }
-  if(newly.length){ toast('시너지 발동 — ' + newly.map(n => '「' + n + '」').join(' ')); Sound.play('synergy'); }
+  if(newly.length){ toast('시너지 발동 — ' + newly.map(n => '「' + n + '」').join(' ')); Sound.play('synergy'); fxSynergyBeams(newlyKeys); }
 }
 function checkBattleEnd(){
   const b = G.battle;
@@ -3176,7 +3556,9 @@ async function onUnitDeath(u){
     u.dead = true;
     Sound.play('death');
     if(G.run) G.run.stats.kills++;
+    codexSee('enemies', u.id, 2);
     const b = G.battle;
+    await LeaderAbility.enemyDeath(b, u);
     const freed = Object.keys(b.sealedBy).filter(cu => b.sealedBy[cu] === u.uid);
     if(freed.length){
       freed.forEach(cu => { b.sealed.delete(cu); delete b.sealedBy[cu]; });
@@ -3243,6 +3625,7 @@ async function summonSpirit(id){
   rollSpiritTargets();
   Sound.play('summon');
   renderBattle();
+  fxInk(sp.uid);
   if(purified) fxText(sp.uid, '정화: 체력 절반', 'st');
   await sleep(420);
   await emit('summon', {spirit:sp});
@@ -3414,6 +3797,9 @@ async function applyPendingSeals(){
   const b = G.battle;
   while(b.pendingSeals.length){
     const fromUid = b.pendingSeals.shift();
+    // 안전장치: 한 전투에서 봉인되는 카드는 덱의 절반까지 (덱 전체가 막혀 이길 수 없게 되는 것을 방지)
+    const total = b.hand.length + b.drawPile.length + b.discard.length;
+    if(b.sealed.size >= Math.floor(total / 2)){ toast('부적이 더 붙을 자리가 없다 (봉인은 덱의 절반까지)'); continue; }
     const cands = b.hand.map((c, i) => i).filter(i => !b.sealed.has(b.hand[i].uid) && CARDS[b.hand[i].id].type !== 'curse');
     if(!cands.length){ toast('봉인 부적이 허공에 흩어졌다'); continue; }
     const idx = pick(b.rng, cands);
@@ -3424,6 +3810,7 @@ async function applyPendingSeals(){
     b.newSeal = card.uid;
     Sound.play('seal');
     renderBattle();
+    fxSlap();
     toast(`「${CARDS[card.id].name}」이(가) 봉인되었다`);
     await sleep(450);
   }
@@ -3587,6 +3974,10 @@ async function enemyAct(e){
   fxText(e.uid, mv.name, 'st');
   await sleep(300);
   await executeEffects(mv.effects, {battle:b, source:e, attackTarget});
+  const ed = ENEMIES[e.id];
+  if(asc() >= 4 && !ed.elite && !ed.boss && !ed.minion && !b.over && b.rng() < 0.15){   // 야행 4
+    b.pendingSeals.push(e.uid); fxText(e.uid, '봉인 부적!', 'st'); Sound.play('seal');
+  }
   if(e.status.dread){ delete e.status.dread; renderBattle(); }
 }
 function cardBlockReason(inst){
@@ -3628,6 +4019,8 @@ async function playCard(idx, target, at){
   else if(!inst.copy) b.discard.push(inst);  // 복제 카드는 사용 후 사라진다
   b.turnPlayed.push({id:inst.id, up:inst.up});
   b.stats.cards++;
+  codexSee('cards', inst.id, 2);
+  await LeaderAbility.cardPlayed(b, inst, def);
   if(!b.over) await emit('cardPlay', {card:def});
   b.busy = false;
   renderBattle();
@@ -3646,7 +4039,7 @@ async function finishBattle(){
   if(win) G.meta.stats.wins++; else G.meta.stats.losses++;
   saveMeta();
   Sound.play(win ? 'victory' : 'defeat');
-  showBanner(win ? (b.kind === 'boss' ? '대장승 격파!' : '승리') : '패배');
+  showBanner(win ? (b.kind === 'boss' ? ENEMIES[b.enemies[0].id].name + ' 격파!' : '승리') : '패배');
   await sleep(1300);
   if(run.mode === 'run'){
     G.battle = null;
@@ -3654,7 +4047,15 @@ async function finishBattle(){
     if(!win){ G.ui.loseReason = b.loseReason || null; endRun(false); return; }
     if(b.kind === 'battle'){ run.stats.battles++; run.actBattles++; }
     if(b.kind === 'elite') run.stats.elites++;
-    if(b.kind === 'boss' && run.act >= ACT_COUNT){ G.ui.endingStep = 0; setScreen('ending'); return; }
+    if(b.kind === 'boss' || b.kind === 'boss2' || b.kind === 'archive') run.stats.bosses = (run.stats.bosses || 0) + 1;
+    if(b.kind === 'archive'){ run.trueEndingPending = true; saveRun(); G.ui.dlgStep = 0; setScreen('trueEnding'); return; }
+    if(b.kind === 'boss' && run.act >= ACT_COUNT && run.ascension >= 10 && !run.secondBoss){
+      run.secondBoss = true; saveRun();   // 야행 10: 판관과 연달아 싸운다 (회복 없음)
+      toast('판관이 천명의 앞을 막아선다 — 2연전!');
+      startBattle(['pangwan'], 'boss2', 'boss2');
+      return;
+    }
+    if((b.kind === 'boss' && run.act >= ACT_COUNT) || b.kind === 'boss2'){ run.endingPending = true; saveRun(); G.ui.endingStep = 0; setScreen('ending'); return; }
     run.rewardState = makeReward(b.kind, b.nodeId);
     saveRun();
     setScreen('reward');
@@ -3973,7 +4374,7 @@ function showPile(key){
 function showSettings(){
   const s = G.meta.settings;
   const tg = (k, label) => `<div class="toggle-row"><span>${label}</span><button class="btn small ${s[k] ? 'primary' : ''}" data-action="toggleSetting" data-key="${k}">${s[k] ? '켜짐' : '꺼짐'}</button></div>`;
-  let body = tg('sfx', '효과음') + tg('bgm', '배경음') + tg('fast', '애니메이션 2배속');
+  let body = settingsVolumeHtml() + tg('fast', '애니메이션 2배속');
   body += `<div class="toggle-row"><span>전투 규칙 · 용어</span><button class="btn small" data-action="rules">보기</button></div>`;
   const inRun = G.run && G.run.mode === 'run' && G.screen !== 'title' && G.screen !== 'result' && G.screen !== 'leaderSelect';
   if(inRun){
@@ -4080,16 +4481,16 @@ SCREENS.title = () => {
       <div class="hanja">百鬼夜行</div>
       <h1>백귀야행</h1>
       <p>백 년에 한 번, 요괴들의 마지막 행렬</p>
-      <div class="stage-tag">4단계 · 1~3막 완주판</div>
+      <div class="stage-tag">완성판 · 요기 ${G.meta.yogi}</div>
     </div>
     <div class="title-wrap">
       <div class="btn-col">
         ${has ? `<button class="btn primary" data-action="continue">이어하기</button>` : ''}
         <button class="btn ${has ? '' : 'primary'}" data-action="newRun">새 행렬</button>
-        <button class="btn ghost" data-action="settings">설정</button>
+        <div style="display:flex;gap:10px"><button class="btn ghost" style="flex:1" data-action="codex">요괴 도감</button><button class="btn ghost" style="flex:1" data-action="settings">설정</button></div>
         <div style="display:flex;gap:10px"><button class="btn ghost small" style="flex:1" data-action="testMenu">시험 전투</button><button class="btn ghost small" style="flex:1" data-action="rules">전투 규칙</button></div>
       </div>
-      <div class="title-foot">행렬 ${G.meta.stats.runs}회 · 대봉인진 파괴 ${G.meta.stats.fullClears}회 · 최고 ${G.meta.stats.bestAct || 1}막 ${G.meta.stats.bestFloor}층</div>
+      <div class="title-foot">행렬 ${G.meta.stats.runs}회 · 천명 처치 ${G.meta.stats.fullClears}회 · 최고 야행 ${G.meta.ascension.max} · ${Object.keys(LEADERS).filter(k => G.meta.leaderClears[k]).length}/3 대장 완주${G.meta.flags.trueSeen ? ' · 진엔딩' : ''}</div>
     </div>
   </div>`;
 };
@@ -4156,16 +4557,18 @@ SCREENS.battle = () => {
   for(let i = 0; i < orbCount; i++) orbs += `<div class="orb ${i < b.energy ? 'on' : ''} ${i >= b.maxEnergy ? 'extra' : ''}"></div>`;
   /* 5. 손패 — 부채꼴 */
   const W = Math.min($('#app').clientWidth || 400, 480);
-  const n = b.hand.length, cw = 88;
-  const spacing = n > 1 ? Math.min(cw - 4, (W - 48 - cw) / (n - 1)) : 0;
+  const short = window.innerHeight <= 600 ? 0.78 : window.innerHeight <= 720 ? 0.86 : 1;
+  const n = b.hand.length, cw = Math.round(88 * short);
+  const tilt = Math.min(3, 22 / Math.max(n, 1));
+  const spacing = n > 1 ? Math.min(cw - 4, (W - 60 - cw) / (n - 1)) : 0;
   const total = spacing * (n - 1) + cw;
   const start = (W - total) / 2;
   const hand = b.hand.map((c, i) => {
     const def = getCardDef(c);
     const off = i - (n - 1) / 2;
     const isSel = b.selected === i;
-    const rot = isSel ? 0 : off * 3;
-    const y = isSel ? -46 : Math.abs(off) * Math.abs(off) * 3;
+    const rot = isSel ? 0 : off * tilt;
+    const y = isSel ? -46 : Math.abs(off) * Math.abs(off) * tilt;
     const scale = isSel ? 1.3 : 1;
     const left = isSel ? clamp(start + i * spacing, 22, W - cw - 22) : start + i * spacing;
     const sealed = b.sealed.has(c.uid);
@@ -4188,8 +4591,10 @@ SCREENS.battle = () => {
     <div class="syn-badges">${badges || '<span class="syn-empty">같은 계열 2마리 · 다른 계열 조합으로 시너지 발동</span>'}</div>
     <div class="b-spirits">${slots}</div>
     <div class="b-leader">
-      <div class="leader-portrait" data-action="unit" data-uid="P">
+      <div class="leader-portrait ${b.transformed ? 'transformed' : ''}" data-action="unit" data-uid="P">
+        ${run.leader === 'yeohwi' ? tailsHtml(run.tails || 0, b.transformed) : ''}
         <div class="u-art">${art(LEADERS[run.leader].art)}</div>
+        ${run.leader === 'yeohwi' && !b.transformed ? `<div class="tail-count">꼬리 ${run.tails || 0}/9</div>` : ''}
         ${b.player.block ? `<div class="blkbadge">${b.player.block}</div>` : ''}
       </div>
       <div class="leader-info">
@@ -4215,8 +4620,9 @@ SCREENS.result = () => {
     return `<div class="screen">
       <div class="bgart">${titleBackground()}</div>
       <div class="panel-body">
-        <div class="result-title serif ${r.win ? '' : 'lose'}">${r.win ? '대봉인진 파괴' : r.reason === 'sealArray' ? '봉인되었다' : '행렬이 흩어졌다'}</div>
-        <div class="story serif">${r.win ? '천명의 지팡이가 부러지고\n하늘을 덮던 대봉인진이 산산이 흩어졌다.\n\n동이 터 오는 하늘 아래\n백귀의 행렬은 산으로 돌아간다.\n…천명의 마지막 말이 자꾸 귓가에 맴돈다.'
+        <div class="result-title serif ${r.win ? '' : 'lose'}">${r.trueEnd ? '진엔딩' : r.win ? '대봉인진 파괴' : r.reason === 'sealArray' ? '봉인되었다' : '행렬이 흩어졌다'}</div>
+        <div class="story serif">${r.trueEnd ? '봉요의 그림자가 등불 속으로 흩어졌다.\n\n백귀의 행렬은 이번에는 산으로 돌아가지 않았다.\n마을 어귀마다 등불 하나씩,\n아이들에게 제 이름을 들려주며 새벽을 맞는다.\n\n「이번 백 년은 봉인 대신 이야기로 지킨다.」'
+          : r.win ? '천명의 지팡이가 부러지고\n하늘을 덮던 대봉인진이 산산이 흩어졌다.\n\n동이 터 오는 하늘 아래\n백귀의 행렬은 산으로 돌아간다.\n…천명의 마지막 말이 자꾸 귓가에 맴돈다.'
           : r.reason === 'sealArray' ? '대봉인진이 완성되었다.\n하늘이 닫히고, 요괴들의 이름이 하나씩 지워진다.\n\n하지만 백 년 뒤, 봉인은 다시 느슨해질 것이다.' : '등불이 하나둘 꺼지고, 봉인 부적이 바람에 나부낀다.\n하지만 요괴는 사라지지 않는다.\n다음 밤길에서 다시 만나자.'}</div>
         <div class="result-stats">
           <div><span>도달</span><b>${r.act}막 · ${r.floor} / ${ACT1_FLOORS}층</b></div>
@@ -4226,7 +4632,11 @@ SCREENS.result = () => {
           <div><span>남은 엽전</span><b>${r.gold}</b></div>
           <div><span>걸린 시간</span><b>${fmtTime(r.time)}</b></div>
           <div><span>시드</span><b>${esc(r.seed)}</b></div>
+          <div><span>우두머리 · 야행 단계</span><b>${LEADERS[r.leader].name} · ${r.asc}</b></div>
+          <div><span>획득 요기</span><b style="color:#ffb24a">+${r.yogi} (누적 ${G.meta.yogi})</b></div>
         </div>
+        ${r.unlocked && r.unlocked.length ? `<div class="unlocks"><b>새로 열린 것</b><br>${r.unlocked.map(esc).join('<br>')}</div>` : ''}
+        <button class="btn small" data-action="shareImage">결과 이미지 저장</button>
       </div>
       <div class="panel-foot">
         <button class="btn ghost" data-action="toTitle">처음으로</button>
@@ -4294,7 +4704,11 @@ ACTIONS.newRun = async () => {
   }
   setScreen('leaderSelect');
 };
-ACTIONS.embark = () => startRun(($('#seedInput') || {}).value || '');
+ACTIONS.embark = () => {
+  const lv = clamp(G.meta.ascension.selected || 0, 0, G.meta.ascension.max);
+  startRun(($('#seedInput') || {}).value || '', G.ui.leader || 'bangmangi', lv);
+  G.ui.seedInput = '';
+};
 ACTIONS.deck = () => showDeck();
 ACTIONS.relicInfo = el => showRelicInfo(el.dataset.id);
 ACTIONS.toggleFast = () => { G.meta.settings.fast = !G.meta.settings.fast; saveMeta(); toast(G.meta.settings.fast ? '애니메이션 2배속' : '애니메이션 보통 속도'); render(); };
@@ -4361,10 +4775,34 @@ ACTIONS.removeService = async () => {
   Sound.play('coin'); toast(`「${getCardDef(c).name}」을(를) 씻어 냈다`); saveRun(); render();
 };
 ACTIONS.leaveNode = () => completeNode();
+ACTIONS.archiveNext = () => {
+  G.ui.dlgStep = (G.ui.dlgStep || 0) + 1;
+  if(G.ui.dlgStep >= ARCHIVE_DIALOGUE.length){ startBattle(['sijo'], 'archive', 'archive'); return; }
+  Sound.play('tap'); render();
+  const sc = document.querySelector('.panel-scroll'); if(sc) sc.scrollTop = sc.scrollHeight;
+};
+ACTIONS.trueNext = () => {
+  G.ui.dlgStep = (G.ui.dlgStep || 0) + 1;
+  if(G.ui.dlgStep >= TRUE_ENDING.length){ G.run.trueEndingPending = false; endRun(true, true); return; }
+  Sound.play('tap'); render();
+  const sc = document.querySelector('.panel-scroll'); if(sc) sc.scrollTop = sc.scrollHeight;
+};
+ACTIONS.codex = () => { G.ui.codexTab = G.ui.codexTab || 'fire'; setScreen('codex'); };
+ACTIONS.codexTab = el => { G.ui.codexTab = el.dataset.tab; render(); };
+ACTIONS.pickLeader = el => { G.ui.seedInput = ($('#seedInput') || {}).value || ''; G.ui.leader = el.dataset.id; Sound.play('tap'); render(); };
+ACTIONS.lockedLeader = el => { toast(LEADERS[el.dataset.id].unlock.text); Sound.play('error'); };
+ACTIONS.ascDown = () => { G.ui.seedInput = ($('#seedInput') || {}).value || ''; G.meta.ascension.selected = Math.max(0, (G.meta.ascension.selected || 0) - 1); saveMeta(); render(); };
+ACTIONS.ascUp = () => { G.ui.seedInput = ($('#seedInput') || {}).value || ''; G.meta.ascension.selected = Math.min(G.meta.ascension.max, (G.meta.ascension.selected || 0) + 1); saveMeta(); render(); };
+ACTIONS.shareImage = () => saveShareImage();
 ACTIONS.actGo = () => { G.run.stats.lastTick = Date.now(); setScreen('map'); toast(`${G.run.act}막 · ${ACTS[G.run.act].name} — 맨 아래 등불에서 출발한다`); };
 ACTIONS.endingNext = () => {
   G.ui.endingStep = (G.ui.endingStep || 0) + 1;
-  if(G.ui.endingStep >= ENDING_DIALOGUE.length){ endRun(true); return; }
+  if(G.ui.endingStep >= ENDING_DIALOGUE.length){
+    // 세 대장으로 모두 천명을 쓰러뜨렸으면 (이번 판 포함) 기록고가 열린다
+    G.meta.leaderClears[G.run.leader] = true; saveMeta();
+    if(trueEndingUnlocked() && G.run.mode === 'run'){ openArchive(); return; }
+    endRun(true); return;
+  }
   Sound.play('tap');
   render();
   const sc = document.querySelector('.panel-scroll'); if(sc) sc.scrollTop = sc.scrollHeight;
@@ -4424,7 +4862,7 @@ ACTIONS.again = () => startTestBattle(G.ui.mode || 'starter');
 ACTIONS.toTitle = () => setScreen('title');
 ACTIONS.rules = () => showRules();
 ACTIONS.settings = () => showSettings();
-ACTIONS.toggleSetting = el => { const k = el.dataset.key; G.meta.settings[k] = !G.meta.settings[k]; saveMeta(); showSettings(); };
+ACTIONS.toggleSetting = el => { const k = el.dataset.key; G.meta.settings[k] = !G.meta.settings[k]; saveMeta(); Sound.applyVolumes(); showSettings(); };
 ACTIONS.closeModal = () => closeModal();
 ACTIONS.confirmYes = () => resolveModal(true);
 ACTIONS.confirmNo = () => resolveModal(false);
@@ -4622,7 +5060,7 @@ function generateMap(seed, act){
   for(const id of ids){
     const n = nodes[id];
     if(n.r === 0) n.type = 'battle';                 // 1층은 전투만
-    else if(n.r === ROWS - 1) n.type = 'inn';         // 14층은 주막 고정
+    else if(n.r === ROWS - 1) n.type = asc() >= 9 ? 'battle' : 'inn';   // 14층은 주막 고정 (야행 9: 주막 제거)
     else{
       const ps = parentsOf(id).map(p => p.type);
       const w = NODE_WEIGHTS.map(([t, v]) => [t, n.r >= 5 && LATE_WEIGHT_BOOST[t] ? v * LATE_WEIGHT_BOOST[t] : v]).filter(([t]) => {
@@ -4654,9 +5092,10 @@ function availableNodes(skip){
 }
 function canUseSandal(){ const run = G.run; return hasRelic('jipsin') && !run.flags.sandalUsed && run.floor < ACT1_FLOORS - 1; }
 
-function startRun(seedStr){
+function startRun(seedStr, leaderId, ascLv){
   const seed = (seedStr && seedStr.trim()) ? seedStr.trim().toUpperCase().slice(0, 16) : randomSeedString();
-  G.run = newRun(STARTER_DECK, seed, 'run');
+  leaderId = leaderId || 'bangmangi';
+  G.run = newRun(LEADERS[leaderId].deck, seed, 'run', leaderId, ascLv || 0);
   G.run.map = generateMap(seed, 1);
   G.meta.stats.runs++;
   saveMeta();
@@ -4667,6 +5106,7 @@ function startRun(seedStr){
 /* 막 전환: 다음 막 지도 생성 (보스 보상에서 생명력 회복·보스 보물은 이미 처리) */
 function nextAct(){
   const run = G.run;
+  checkLeaderUnlock(run, run.act);
   run.act++;
   run.map = generateMap(run.seed, run.act);
   run.path = [];
@@ -4689,7 +5129,7 @@ function enterNode(id){
   }
   Sound.play('tap');
   run.path.push(id);
-  run.floor = node.r + 1;
+  run.floor = Math.min(node.r + 1, ACT1_FLOORS);
   run.pendingNode = id;
   run.nodeState = null;
   run.rewardState = null;
@@ -4709,7 +5149,11 @@ function openNode(node){
       break;
     }
     case 'elite': startBattle(pick(rng, ENCOUNTERS[run.act].elite).slice(), 'elite', node.id); break;
-    case 'boss': startBattle(ENCOUNTERS[run.act].boss[0].slice(), 'boss', node.id); break;
+    case 'boss':
+      if(run.secondBoss){ startBattle(['pangwan'], 'boss2', 'boss2'); break; }   // 야행 10: 천명 다음 판관
+      startBattle(ENCOUNTERS[run.act].boss[0].slice(), 'boss', node.id); break;
+    case 'archive':
+      G.ui.dlgStep = 0; setScreen('archive'); break;
     case 'shop':
       if(!run.nodeState) run.nodeState = makeShop(rng);
       saveRun(); setScreen('shop'); break;
@@ -4745,17 +5189,23 @@ function continueRun(){
   G.run = r;
   r.stats.lastTick = Date.now();
   G.ui.skipMode = false;
-  if(r.rewardState) setScreen('reward');
+  if(r.trueEndingPending){ G.ui.dlgStep = 0; setScreen('trueEnding'); }
+  else if(r.endingPending){ G.ui.endingStep = 0; setScreen('ending'); }
+  else if(r.rewardState) setScreen('reward');
   else if(r.pendingNode) openNode(r.map.nodes[r.pendingNode]);
   else setScreen('map');
 }
-function endRun(win){
+function endRun(win, trueEnd){
   const run = G.run;
   updatePlayTime();
+  const meta = run.mode === 'run' ? settleMeta(run, win) : {gained:0, unlocked:[]};
   G.ui.result = {mode:'run', win, act:run.act, floor:run.floor, kills:run.stats.kills, elites:run.stats.elites,
-    cards:run.deck.length, relics:run.relics.length, gold:run.gold, time:run.stats.playTime, seed:run.seed, reason:G.ui.loseReason || null};
+    cards:run.deck.length, relics:run.relics.length, gold:run.gold, time:run.stats.playTime, seed:run.seed, reason:G.ui.loseReason || null,
+    leader:run.leader, asc:run.ascension || 0, yogi:meta.gained, unlocked:(run.newLeaders || []).map(n => '새 대장: ' + n).concat(meta.unlocked),
+    deck:run.deck.map(c => ({id:c.id, up:c.up})), trueEnd:!!trueEnd};
   G.ui.loseReason = null;
   if(win){ G.meta.stats.clears++; G.meta.stats.fullClears = (G.meta.stats.fullClears || 0) + 1; }
+  if(trueEnd) G.meta.flags.trueSeen = true;
   G.meta.stats.bestAct = Math.max(G.meta.stats.bestAct || 1, run.act);
   G.meta.stats.bestFloor = Math.max(G.meta.stats.bestFloor, run.floor);
   saveMeta();
@@ -4769,6 +5219,7 @@ function rewardPool(rarity){
   return Object.keys(CARDS).filter(id => {
     const c = CARDS[id];
     if(c.rarity !== 'common' && c.rarity !== 'rare') return false;
+    if(!isCardUnlocked(id)) return false;   // 요기로 아직 열리지 않은 카드
     return !rarity || c.rarity === rarity;
   });
 }
@@ -4801,7 +5252,7 @@ function gainRelic(id){
 }
 function addCardToDeck(id, up){
   G.run.deck.push(newCardInst(G.run, id, up));
-  codexSee('cards', id);
+  codexSee('cards', id, 2);
 }
 function makeReward(kind, nodeId){
   const run = G.run;
@@ -4822,9 +5273,10 @@ function makeReward(kind, nodeId){
 function makeShop(rng){
   const commons = shuffle(rng, rewardPool('common')).slice(0, 3);
   const rares = shuffle(rng, rewardPool('rare')).slice(0, 2);
-  const cards = commons.concat(rares).map(id => ({id, price:CARDS[id].rarity === 'rare' ? PRICE.rare : PRICE.common, sold:false}));
+  const pm = asc() >= 7 ? 1.2 : 1;   // 야행 7: 장터 가격 +20%
+  const cards = commons.concat(rares).map(id => ({id, price:Math.round((CARDS[id].rarity === 'rare' ? PRICE.rare : PRICE.common) * pm), sold:false}));
   const relicIds = shuffle(rng, relicPool('common')).slice(0, 1).concat(shuffle(rng, relicPool('rare')).slice(0, 1));
-  const relics = relicIds.map(id => ({id, price:RELICS[id].tier === 'rare' ? rint(rng, 200, PRICE.relicMax) : rint(rng, PRICE.relicMin, 199), sold:false}));
+  const relics = relicIds.map(id => ({id, price:Math.round((RELICS[id].tier === 'rare' ? rint(rng, 200, PRICE.relicMax) : rint(rng, PRICE.relicMin, 199)) * pm), sold:false}));
   return {cards, relics, removed:false};
 }
 
@@ -4881,9 +5333,9 @@ SCREENS.leaderSelect = () => {
 SCREENS.map = () => {
   const run = G.run;
   const m = run.map;
-  const W = 400, RH = 80, TOP = 70;
+  const W = 400, RH = 80, TOP = m.nodes.archive ? 150 : 70;
   const H = TOP + (ACT1_FLOORS - 1) * RH + 70;
-  const pos = n => n.id === 'boss' ? {x:W / 2, y:TOP - 14} : {x:44 + (n.c + 0.5 + (n.jx || 0)) * ((W - 64) / MAP_COLS), y:TOP + (ACT1_FLOORS - 1 - n.r) * RH + (n.jy || 0) * 26};
+  const pos = n => n.id === 'archive' ? {x:W / 2, y:56} : n.id === 'boss' ? {x:W / 2, y:TOP - 14} : {x:44 + (n.c + 0.5 + (n.jx || 0)) * ((W - 64) / MAP_COLS), y:TOP + (ACT1_FLOORS - 1 - n.r) * RH + (n.jy || 0) * 26};
   const avail = new Set(availableNodes(G.ui.skipMode));
   const visited = new Set(run.path);
   const pathEdges = new Set();
@@ -5046,10 +5498,11 @@ SCREENS.ending = () => {
     <div class="panel-foot"><button class="btn primary" data-action="endingNext">${last ? '동이 튼다' : '다음'}</button></div>
   </div>`;
 };
-function innHealAmount(){ return Math.ceil(G.run.maxHp * (INN_HEAL + relicMod('innHeal'))); }
+function innHealRate(){ return (asc() >= 3 ? 0.2 : INN_HEAL) + relicMod('innHeal'); }   // 야행 3: 20%
+function innHealAmount(){ return Math.ceil(G.run.maxHp * innHealRate()); }
 SCREENS.inn = () => {
   const run = G.run, s = run.nodeState || {};
-  const pct = Math.round((INN_HEAL + relicMod('innHeal')) * 100);
+  const pct = Math.round(innHealRate() * 100);
   return `<div class="screen">
     <div class="bgart">${actBackground()}</div>
     ${topbarHtml()}
@@ -5108,6 +5561,394 @@ SCREENS.event = () => {
     <div class="panel-foot">${s.done ? `<button class="btn primary" data-action="leaveNode">길을 계속 간다</button>` : ''}</div>
   </div>`;
 };
+
+/* ---------------------------------------------------------------
+   21. 5단계 — 대장 능력 · 메타(요기·해금·도감) · 야행 단계 · 진엔딩 · 연출 · 공유 이미지
+---------------------------------------------------------------- */
+
+/* ===== 대장 고유 능력 ===== */
+const LeaderAbility = {
+  /* 전투 시작 직후 (battleStart 훅 다음) */
+  async battleStart(b){
+    const lid = G.run.leader;
+    if(lid === 'bangmangi'){
+      const c = {uid:'lb' + (++b.copyN), id:'dokkaebibul', up:false, temp:true};
+      b.hand.push(c); b.newCards.add(c.uid);
+      fxText('P', '도깨비불!', 'burn');
+      Sound.play('burn');
+      renderBattle();
+      await sleep(300);
+    }
+  },
+  /* 적이 쓰러졌을 때 (홀림 상태는 시체에 남아 있다) */
+  async enemyDeath(b, u){
+    if(G.run.leader !== 'yeohwi' || st(u, 'charm') <= 0) return;
+    G.run.tails = (G.run.tails || 0) + 1;
+    fxText('P', '꼬리 ' + G.run.tails, 'charm');
+    Sound.play('charm');
+    if(G.run.tails >= 9 && !b.transformed){
+      b.transformed = true;
+      G.run.tails = 0;
+      showBanner('구미호 변신');
+      fxFlash();
+      toast('아홉 꼬리가 펼쳐졌다 — 이번 전투 동안 모든 카드 비용 -1');
+    }
+    renderBattle();
+  },
+  /* 카드 사용 후 */
+  async cardPlayed(b, inst, def){
+    if(G.run.leader !== 'heenuleum' || def.type !== 'skill' || inst.copy || b.heenTurn === b.turn || b.over) return;
+    b.heenTurn = b.turn;
+    if(b.hand.length >= MAX_HAND) return;
+    const c = {uid:'cp' + (++b.copyN), id:inst.id, up:inst.up, copy:true};
+    b.hand.push(c); b.newCards.add(c.uid);
+    fxText('P', '흉내!', 'st');
+    Sound.play('charm');
+    renderBattle();
+  },
+  costMod(b){ return b && b.transformed ? -1 : 0; },
+};
+
+/* ===== 메타: 요기 · 해금 · 도감 단계 ===== */
+function metaDefaults(m){
+  m.yogi = m.yogi || 0;                 // 누적 요기
+  m.yogiBatches = m.yogiBatches || 0;   // 해금된 카드 묶음 수
+  m.leaderClears = m.leaderClears || {};
+  m.flags = m.flags || {};
+  const s = m.settings;
+  if(s.musicVol === undefined) s.musicVol = s.bgm === false ? 0 : 0.6;
+  if(s.sfxVol === undefined) s.sfxVol = s.sfx === false ? 0 : 0.8;
+  if(s.mute === undefined) s.mute = false;
+  return m;
+}
+function trueEndingUnlocked(){ return Object.keys(LEADERS).every(k => G.meta.leaderClears[k]); }
+/* 런이 끝났을 때 메타 정산. 새로 열린 것들을 돌려준다 */
+function settleMeta(run, win){
+  const unlocked = [];
+  const gained = yogiOf(run, win);
+  G.meta.yogi += gained;
+  while(G.meta.yogiBatches < YOGI_STEPS.length && G.meta.yogi >= YOGI_STEPS[G.meta.yogiBatches]){
+    const bt = LOCK_BATCHES[G.meta.yogiBatches];
+    G.meta.yogiBatches++;
+    unlocked.push(`${FAMILIES[bt.family].name} 계열 카드 4장: ${bt.cards.map(id => '「' + CARDS[id].name + '」').join(' ')}`);
+  }
+  if(win){
+    const wasTrue = trueEndingUnlocked();
+    G.meta.leaderClears[run.leader] = true;
+    if(!wasTrue && trueEndingUnlocked()) unlocked.push('봉요사 기록고 — 3막 지도에 숨겨진 길이 열린다');
+    if(run.ascension >= G.meta.ascension.max && G.meta.ascension.max < ASCENSION.length - 1){
+      G.meta.ascension.max = Math.min(ASCENSION.length - 1, run.ascension + 1);
+      unlocked.push(`야행 단계 ${G.meta.ascension.max} — ${ASCENSION[G.meta.ascension.max].desc}`);
+    }
+  }
+  saveMeta();
+  return {gained, unlocked};
+}
+/* 대장 해금: 막을 돌파할 때 확인 */
+function checkLeaderUnlock(run, clearedAct){
+  const out = [];
+  if(clearedAct >= 1 && run.leader === 'bangmangi' && !G.meta.unlocks.yeohwi){ G.meta.unlocks.yeohwi = true; out.push('구미호 여휘'); }
+  if(clearedAct >= 2 && !G.meta.unlocks.heenuleum){ G.meta.unlocks.heenuleum = true; out.push('장산범 흰울음'); }
+  if(out.length){ saveMeta(); toast('새 대장 합류 — ' + out.join(', ')); (run.newLeaders = run.newLeaders || []).push(...out); }
+}
+function leaderUnlocked(id){ const L = LEADERS[id]; return !L.unlock || !!G.meta.unlocks[L.unlock.key]; }
+
+/* ===== 도감 화면 ===== */
+const CODEX_TABS = [['fire','불'],['charm','홀림'],['grudge','원한'],['water','물'],['sound','소리'],['neutral','공용'],['enemy','봉요사']];
+SCREENS.codex = () => {
+  const tab = G.ui.codexTab || 'fire';
+  const cx = G.meta.codex;
+  let entries;
+  if(tab === 'enemy'){
+    entries = Object.keys(ENEMIES).map(id => {
+      const lv = cx.enemies[id] || 0, d = ENEMIES[id], t = CODEX_TEXT[id] || ['', ''];
+      return `<div class="codex-ent ${lv ? '' : 'unseen'}"><div class="ce-art">${enemyArtSvg(id)}</div>
+        <b>${lv ? d.name : '???'}</b><p>${lv ? t[0] : '아직 만나지 못했다.'}</p>
+        <p class="hid">${lv >= 2 ? '“' + t[1].replace(/^"|"$/g, '') + '”' : '숨은 대사 — 쓰러뜨리면 들린다'}</p></div>`;
+    });
+  }else{
+    entries = Object.keys(CARDS).filter(id => CARDS[id].family === tab).map(id => {
+      const lv = cx.cards[id] || 0, d = CARDS[id], t = CODEX_TEXT[id] || ['', ''];
+      const locked = !isCardUnlocked(id);
+      return `<div class="codex-ent ${lv ? '' : 'unseen'}"><div class="ce-art card-frame fam-${d.family}">${art(d.art)}</div>
+        <b>${lv ? d.name : '???'}</b><p>${locked ? '요기를 모으면 풀린다.' : lv ? t[0] : '아직 만나지 못했다.'}</p>
+        <p class="hid">${lv >= 2 ? '“' + t[1].replace(/^"|"$/g, '') + '”' : '숨은 대사 — 행렬에 들이면 들린다'}</p></div>`;
+    });
+  }
+  const seenCards = Object.keys(CARDS).filter(id => cx.cards[id]).length, seenEn = Object.keys(ENEMIES).filter(id => cx.enemies[id]).length;
+  const nextStep = YOGI_STEPS[G.meta.yogiBatches];
+  return `<div class="screen">
+    <div class="panel-head serif"><h2>요괴 도감</h2><p>카드 ${seenCards}/${Object.keys(CARDS).length} · 봉요사 ${seenEn}/${Object.keys(ENEMIES).length} · 요기 ${G.meta.yogi}${nextStep ? ` (다음 해금 ${nextStep})` : ' (모두 해금)'}</p></div>
+    <div class="tabs codex-tabs">${CODEX_TABS.map(([k, n]) => `<button class="tab ${tab === k ? 'on' : ''}" data-action="codexTab" data-tab="${k}" ${k !== 'enemy' && k !== 'neutral' ? `style="border-top:3px solid ${FAMILIES[k].color}"` : ''}>${n}</button>`).join('')}</div>
+    <div class="panel-scroll" style="background:rgba(0,0,0,.25)"><div class="codex-grid">${entries.join('')}</div></div>
+    <div class="panel-foot"><button class="btn" data-action="toTitle">돌아가기</button></div>
+  </div>`;
+};
+
+/* ===== 대장 선택 (야행 단계 선택 포함) ===== */
+SCREENS.leaderSelect = () => {
+  const sel = G.ui.leader && leaderUnlocked(G.ui.leader) ? G.ui.leader : 'bangmangi';
+  G.ui.leader = sel;
+  const maxA = G.meta.ascension.max;
+  const a = clamp(G.meta.ascension.selected || 0, 0, maxA);
+  const descs = ASCENSION.slice(1, a + 1).map(x => x.lv + '. ' + x.desc).join(' / ');
+  return `<div class="screen">
+    <div class="bgart">${titleBackground()}</div>
+    <div class="panel-head serif"><h2>행렬의 우두머리</h2><p>누가 오늘 밤 백귀를 이끌 것인가</p></div>
+    <div class="panel-scroll">
+      ${Object.keys(LEADERS).map(id => {
+        const L = LEADERS[id], ok = leaderUnlocked(id), R = RELICS[L.relic];
+        const cleared = G.meta.leaderClears[id];
+        return `<div class="leader-card ${sel === id ? 'sel' : ''} ${ok ? '' : 'locked'}" style="border-color:${FAMILIES[L.family].color}" data-action="${ok ? 'pickLeader' : 'lockedLeader'}" data-id="${id}">
+          <div class="lc-art">${ok ? art(L.art) : ''}</div>
+          <div>
+            <h3>${ok ? L.name : '???'}<small>${L.title}</small>${cleared ? '<small style="color:#a8222a">· 천명 처치</small>' : ''}</h3>
+            ${ok ? `<div class="lc-meta"><span style="color:#a8222a">생명력 ${L.hp}</span> · <span style="color:${FAMILIES[L.family].color}">${FAMILIES[L.family].name} 계열</span></div>
+            <div class="lc-desc">${L.ability}</div>
+            <div class="lc-relic"><b>${R.name}</b> — ${R.desc.replace(/^[^.]+\. /, '')}</div>` : `<div class="lc-desc">${L.unlock.text}</div>`}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="panel-foot" style="flex-direction:column;gap:8px">
+      <div class="asc-row"><span>야행 단계</span>
+        <div class="asc-ctrl"><button class="btn small" data-action="ascDown" ${a <= 0 ? 'disabled' : ''}>◀</button><span class="asc-num">${a}</span><button class="btn small" data-action="ascUp" ${a >= maxA ? 'disabled' : ''}>▶</button><small style="color:var(--muted)">최대 ${maxA}</small></div>
+      </div>
+      <div class="asc-desc">${a ? descs : '기본 야행 — 천명을 쓰러뜨릴 때마다 다음 단계가 열린다'}</div>
+      <div class="seed-row">시드 <input id="seedInput" maxlength="16" placeholder="비우면 무작위" value="${esc(G.ui.seedInput || '')}"></div>
+      <div style="display:flex;gap:8px"><button class="btn ghost" data-action="toTitle">돌아가기</button><button class="btn primary" style="flex:1" data-action="embark">출정</button></div>
+    </div>
+  </div>`;
+};
+
+/* ===== 진엔딩: 기록고 ===== */
+function openArchive(){
+  const run = G.run;
+  const m = run.map;
+  if(!m.nodes.archive){
+    m.nodes.archive = {id:'archive', r:ACT1_FLOORS, c:(MAP_COLS - 1) / 2, type:'archive'};
+    m.edges.push('boss>archive');
+  }
+  run.archiveOpen = true;
+  run.endingPending = false;
+  saveRun();
+  setScreen('map');
+  toast('대봉인진이 걷힌 자리에 낡은 문이 보인다 — 봉요사 기록고');
+}
+function dialogueHtml(lines, n){
+  return lines.slice(0, n + 1).map(l => {
+    const me = l.who === 'me';
+    const face = me ? art(LEADERS[G.run.leader].art) : l.who === 'cheonmyeong' ? enemyArtSvg('cheonmyeong') : l.who === 'sijo' ? enemyArtSvg('sijo') : l.who === 'book' ? art('scroll') : '';
+    const name = me ? LEADERS[G.run.leader].name : l.who === 'cheonmyeong' ? '천명 · 봉요사 수장' : l.who === 'sijo' ? '봉요 시조의 그림자' : l.who === 'book' ? '봉요사 기록 제1권' : '';
+    if(l.who === 'narr') return `<div class="dlg-narr">${esc(l.text)}</div>`;
+    return `<div class="dlg-line ${me ? 'me' : ''}"><div class="dlg-face">${face}</div><div><div class="dlg-name">${name}</div><div class="dlg-text">${esc(l.text)}</div></div></div>`;
+  }).join('');
+}
+SCREENS.archive = () => {
+  const n = Math.min(G.ui.dlgStep || 0, ARCHIVE_DIALOGUE.length - 1);
+  const last = n >= ARCHIVE_DIALOGUE.length - 1;
+  return `<div class="screen">
+    <div class="bgart">${actBackground(3)}</div>
+    <div class="panel-head serif"><h2>봉요사 기록고</h2><p>백 년마다 한 권씩, 같은 손글씨</p></div>
+    <div class="panel-scroll"><div class="dialogue">${dialogueHtml(ARCHIVE_DIALOGUE, n)}</div></div>
+    <div class="panel-foot"><button class="btn primary" data-action="archiveNext">${last ? '그림자와 맞선다' : '다음'}</button></div>
+  </div>`;
+};
+SCREENS.trueEnding = () => {
+  const n = Math.min(G.ui.dlgStep || 0, TRUE_ENDING.length - 1);
+  const last = n >= TRUE_ENDING.length - 1;
+  return `<div class="screen true-ending">
+    <div class="bgart">${titleBackground()}</div>
+    <div class="lanterns-rise">${Array.from({length:14}, (_, i) => `<span style="left:${4 + i * 7}%;animation-delay:${(i % 7) * 0.6}s;--c:${['#e2552b','#b45fa8','#7fbfb2','#3f7fd0','#b8893a'][i % 5]}"></span>`).join('')}</div>
+    <div class="panel-head serif"><h2>이름을 부르는 밤</h2><p>진엔딩</p></div>
+    <div class="panel-scroll"><div class="dialogue">${dialogueHtml(TRUE_ENDING, n)}</div></div>
+    <div class="panel-foot"><button class="btn primary" data-action="trueNext">${last ? '동이 튼다' : '다음'}</button></div>
+  </div>`;
+};
+
+/* ===== 연출 ===== */
+/* 요괴 소환: 먹물이 번지며 나타난다 */
+function fxInk(uid){
+  const c = unitCenter(uid);
+  if(!c) return;
+  for(let i = 0; i < 4; i++){
+    const d = document.createElement('div');
+    d.className = 'ink';
+    d.style.left = (c.x + (i ? (Math.random() - 0.5) * 34 : 0)) + 'px';
+    d.style.top = (c.y + (i ? (Math.random() - 0.3) * 26 : 0)) + 'px';
+    d.style.animationDelay = (i * 0.06) + 's';
+    d.style.setProperty('--s', (i ? 0.7 + Math.random() * 0.5 : 1.5));
+    $('#fx').appendChild(d);
+    setTimeout(() => d.remove(), 1100);
+  }
+}
+/* 봉인: 부적이 철썩 — 화면이 살짝 흔들린다 */
+function fxSlap(){
+  const s = $('#screen');
+  s.classList.remove('slap'); void s.offsetWidth; s.classList.add('slap');
+  setTimeout(() => s.classList.remove('slap'), 300);
+}
+/* 보스 등장: 두루마리가 펼쳐진다 */
+function fxScrollUnroll(title, sub){
+  const d = document.createElement('div');
+  d.className = 'unroll';
+  d.innerHTML = `<div class="unroll-paper"><div class="unroll-sub">${esc(sub)}</div><div class="unroll-title serif">${esc(title)}</div></div><div class="unroll-rod l"></div><div class="unroll-rod r"></div>`;
+  $('#fx').appendChild(d);
+  Sound.play('boss');
+  setTimeout(() => d.remove(), 2300);
+}
+/* 시너지 발동: 계열 색 빛줄기가 해당 요괴들을 잇는다 */
+function fxSynergyBeams(keys){
+  setTimeout(() => {
+    const b = G.battle;
+    if(!b) return;
+    const a = appRect();
+    let lines = '';
+    for(const k of keys){
+      const sy = SYNERGIES[k];
+      const sps = aliveSpirits().filter(s => sy.families.includes(s.family));
+      const pts = sps.map(s => unitCenter(s.uid)).filter(Boolean);
+      const col = FAMILIES[sy.families[0]].color, col2 = FAMILIES[sy.families[sy.families.length - 1]].color;
+      for(let i = 0; i < pts.length - 1; i++){
+        const p = pts[i], q = pts[i + 1];
+        lines += `<line x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" stroke="${i % 2 ? col2 : col}" stroke-width="7" stroke-linecap="round" opacity=".45"/>
+          <line class="beam" x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" stroke="#fff6e0" stroke-width="2.5" stroke-linecap="round"/>`;
+      }
+      pts.forEach(p => { lines += `<circle cx="${p.x}" cy="${p.y}" r="30" fill="none" stroke="${col}" stroke-width="3" opacity=".7" class="beam-ring"/>`; });
+    }
+    if(!lines) return;
+    const d = document.createElement('div');
+    d.className = 'beams';
+    d.innerHTML = `<svg width="${a.width}" height="${a.height}" xmlns="http://www.w3.org/2000/svg">${lines}</svg>`;
+    $('#fx').appendChild(d);
+    setTimeout(() => d.remove(), 1500);
+  }, 80);
+}
+/* 여휘의 꼬리 (초상 뒤) */
+function tailsHtml(n, transformed){
+  const k = transformed ? 9 : Math.min(n, 9);
+  if(!k) return '';
+  let s = '';
+  for(let i = 0; i < k; i++){
+    const ang = -80 + (k === 1 ? 80 : i * 160 / (k - 1));
+    s += `<ellipse cx="50" cy="22" rx="7" ry="22" transform="rotate(${ang} 50 50)" fill="${transformed ? '#ffe2f6' : '#f2e2ee'}" stroke="#1b1512" stroke-width="2"/>`;
+  }
+  return `<div class="tails ${transformed ? 'on' : ''}">${svgWrap(s)}</div>`;
+}
+
+/* ===== 결과 공유 이미지 (canvas → PNG) ===== */
+function drawShareCanvas(r){
+  const W = 720, H = 1000;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  const grd = g.createLinearGradient(0, 0, 0, H);
+  grd.addColorStop(0, '#0e1426'); grd.addColorStop(0.6, '#1c2038'); grd.addColorStop(1, '#120e18');
+  g.fillStyle = grd; g.fillRect(0, 0, W, H);
+  g.fillStyle = 'rgba(246,233,198,.9)'; g.beginPath(); g.arc(590, 120, 56, 0, Math.PI * 2); g.fill();
+  for(let i = 0; i < 60; i++){ g.fillStyle = 'rgba(255,255,255,' + (0.2 + Math.random() * 0.5) + ')'; g.fillRect(Math.random() * W, Math.random() * 400, 2, 2); }
+  const serif = '"Nanum Myeongjo","AppleMyungjo","Batang","Noto Serif KR",serif';
+  const sans = '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif';
+  g.textAlign = 'left';
+  g.fillStyle = '#ffcf8a'; g.font = `700 22px ${serif}`; g.fillText('百鬼夜行', 48, 70);
+  g.fillStyle = '#fff2da'; g.font = `900 56px ${serif}`; g.fillText('백귀야행', 48, 132);
+  const L = LEADERS[r.leader];
+  g.fillStyle = r.win ? '#ffb24a' : '#c9c0d8'; g.font = `900 40px ${serif}`;
+  g.fillText(r.win ? (r.trueEnd ? '진엔딩 — 이름을 부르는 밤' : '대봉인진 파괴') : '행렬이 흩어졌다', 48, 210);
+  g.fillStyle = '#e6d8bc'; g.font = `700 24px ${sans}`;
+  const rows = [
+    ['우두머리', `${L.title} ${L.name}`], ['도달', `${r.act}막 ${r.floor}층`], ['처치', `${r.kills}`],
+    ['획득 요기', `+${r.yogi}`], ['야행 단계', `${r.asc}`], ['시드', r.seed]];
+  rows.forEach(([k, v], i) => { g.fillStyle = '#a59c8a'; g.fillText(k, 48, 270 + i * 40); g.fillStyle = '#fff2da'; g.fillText(v, 230, 270 + i * 40); });
+  g.fillStyle = '#ffd9a0'; g.font = `900 26px ${serif}`; g.fillText(`최종 덱 (${r.deck.length}장)`, 48, 540);
+  g.font = `700 20px ${sans}`;
+  const sorted = r.deck.slice().sort((a, b) => CARDS[a.id].family.localeCompare(CARDS[b.id].family) || CARDS[a.id].name.localeCompare(CARDS[b.id].name));
+  const per = Math.ceil(sorted.length / 2), lh = Math.min(30, 400 / Math.max(per, 1));
+  sorted.forEach((c, i) => {
+    const col = i < per ? 0 : 1, row = i < per ? i : i - per;
+    const x = 48 + col * 320, y = 580 + row * lh;
+    g.fillStyle = FAMILIES[CARDS[c.id].family].color; g.fillRect(x, y - 14, 10, 16);
+    g.fillStyle = '#efe6d2'; g.fillText(CARDS[c.id].name + (c.up ? '+' : ''), x + 18, y);
+  });
+  g.fillStyle = 'rgba(255,214,150,.5)'; g.font = `600 16px ${sans}`; g.textAlign = 'right';
+  g.fillText(new Date().toLocaleDateString('ko-KR') + ' · 백귀야행', W - 40, H - 30);
+  return cv;
+}
+function saveShareImage(){
+  const r = G.ui.result;
+  if(!r) return;
+  const cv = drawShareCanvas(r);
+  const url = cv.toDataURL('image/png');
+  showModal(modalFrame('결과 이미지', `<img src="${url}" style="width:100%;border-radius:8px;border:2px solid #4a3426" alt="결과 이미지">
+    <p style="font-size:12px;color:var(--muted);margin-top:6px;text-align:center">저장이 안 되면 이미지를 길게 눌러 저장하세요.</p>`,
+    `<a class="btn small primary" href="${url}" download="baekgwi_${esc(r.seed)}.png">PNG 저장</a>`));
+}
+
+/* ===== 설정: 음량 ===== */
+function settingsVolumeHtml(){
+  const s = G.meta.settings;
+  const sl = (k, label) => `<div class="toggle-row"><span>${label}</span><input type="range" class="vol" min="0" max="100" value="${Math.round((s[k] || 0) * 100)}" data-setting="${k}"></div>`;
+  return sl('musicVol', '음악 음량') + sl('sfxVol', '효과음 음량')
+    + `<div class="toggle-row"><span>음소거</span><button class="btn small ${s.mute ? 'primary' : ''}" data-action="toggleSetting" data-key="mute">${s.mute ? '켜짐' : '꺼짐'}</button></div>`;
+}
+document.addEventListener('input', ev => {
+  const el = ev.target.closest && ev.target.closest('[data-setting]');
+  if(!el) return;
+  G.meta.settings[el.dataset.setting] = (+el.value) / 100;
+  saveMeta();
+  Sound.init(); Sound.applyVolumes();
+});
+
+/* ===== 새 그림: 대장 2명 · 시작 보물 · 기록고 · 시조 ===== */
+Object.assign(ART, {
+  L_yeohwi:()=>`
+    ${[-50,-25,0,25,50].map(a=>`<ellipse cx="50" cy="40" rx="9" ry="30" transform="rotate(${a} 50 78)" fill="#f2e2ee" stroke="${INK}" stroke-width="2"/><ellipse cx="50" cy="14" rx="5" ry="7" transform="rotate(${a} 50 78)" fill="#fff"/>`).join('')}
+    <path d="M22 100 Q24 70 50 66 Q76 70 78 100Z" fill="#c779bb" ${SK}/>
+    <path d="M40 66 L50 82 L60 66" fill="#f6eadf" ${SK2}/>
+    <path d="M50 82 L42 96 M50 82 L58 94" stroke="#c8323a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M32 46 Q28 80 36 92 L40 60Z M68 46 Q72 80 64 92 L60 60Z" fill="${INK}"/>
+    <ellipse cx="50" cy="45" rx="15" ry="17" fill="#f6e7d8" ${SK}/>
+    <path d="M33 47 Q30 22 50 22 Q70 22 67 47 Q64 32 50 31 Q36 32 33 47Z" fill="${INK}"/>
+    <path d="M35 29 L30 8 L46 22Z" fill="${INK}"/><path d="M65 29 L70 8 L54 22Z" fill="${INK}"/>
+    <path d="M35 24 L33 14 L41 21Z M65 24 L67 14 L59 21Z" fill="#c779bb"/>
+    <path d="M39 46 Q43 43 47 46 M53 46 Q57 43 61 46" fill="none" ${SK2}/>
+    <path d="M38 44 l-4 -2 M62 44 l4 -2" stroke="#c8323a" stroke-width="2"/>
+    <path d="M46 55 Q50 57 54 55" fill="none" stroke="#c8323a" stroke-width="2.5" stroke-linecap="round"/>`,
+  L_heenuleum:()=>`
+    <path d="M4 74 Q0 24 50 8 Q100 24 96 74 Q88 100 50 100 Q12 100 4 74Z" fill="#f6f2ea" ${SK}/>
+    <path d="M16 34 Q10 64 20 92 M28 22 Q22 60 30 96 M84 34 Q90 64 80 92 M72 22 Q78 60 70 96" fill="none" stroke="#c9b48e" stroke-width="2"/>
+    <ellipse cx="50" cy="56" rx="21" ry="19" fill="#e8dcc8" ${SK}/>
+    <circle cx="41" cy="52" r="5" fill="#7fbfe8" ${SK2}/><circle cx="59" cy="52" r="5" fill="#7fbfe8" ${SK2}/>
+    <circle cx="41" cy="52" r="2" fill="${INK}"/><circle cx="59" cy="52" r="2" fill="${INK}"/>
+    <path d="M34 45 L45 49 M66 45 L55 49" ${SK2}/>
+    <path d="M40 66 Q50 75 60 66" fill="#7a2a2a" ${SK2}/>
+    <path d="M43 67 l1.5 5 l1.5 -4.5 M55 67 l1.5 4.5 l1.5 -5" fill="#fff" stroke="${INK}" stroke-width="1.2"/>
+    <path d="M30 12 L24 0 L38 8 M70 12 L76 0 L62 8" fill="#f6f2ea" ${SK2}/>
+    <path d="M0 46 q-3 10 0 20 M100 46 q3 10 0 20" fill="none" stroke="#b8893a" stroke-width="3" stroke-linecap="round"/>`,
+  r_firepouch:()=>`<path d="M30 40 Q16 70 30 88 L70 88 Q84 70 70 40Z" fill="#a8301e" ${SK}/><path d="M32 40 L68 40 L62 28 L38 28Z" fill="#e2552b" ${SK}/>
+    <path d="M50 76 C42 66 46 56 50 48 C54 56 60 66 50 76Z" fill="#ffc15e" ${SK2}/><path d="M44 18 C40 10 46 6 48 2 C50 8 54 12 50 18Z" fill="#e2552b" ${SK2}/>`,
+  r_foxbell:()=>`<path d="M50 8 L50 20" ${SK}/><path d="M30 66 Q28 30 50 22 Q72 30 70 66 L78 74 L22 74Z" fill="#e8c6e2" ${SK}/>
+    <circle cx="50" cy="82" r="7" fill="#d9a93f" ${SK}/><path d="M36 52 L64 52" stroke="#b45fa8" stroke-width="3"/>
+    <path d="M30 30 L24 16 L38 24 M70 30 L76 16 L62 24" fill="#b45fa8" ${SK2}/>`,
+  r_mane:()=>`<path d="M20 86 Q14 40 50 14 Q86 40 80 86" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round"/>
+    <path d="M20 86 Q14 40 50 14 Q86 40 80 86" fill="none" stroke="#f6f2ea" stroke-width="6" stroke-linecap="round"/>
+    <path d="M30 80 Q28 50 50 30 M70 80 Q72 50 50 30 M50 30 L50 86" fill="none" stroke="#c9b48e" stroke-width="3"/>`,
+});
+NODE_ICON.archive = (k = 1)=>`<g transform="scale(${k})"><circle r="13" fill="#7fbfb2" opacity=".35"/><rect x="-9" y="-11" width="18" height="22" rx="2" fill="#efe4c8" stroke="${INK}" stroke-width="1.8"/>
+  <path d="M-5 -6 L5 -6 M-5 -1 L5 -1 M-5 4 L2 4" stroke="#6a4a2a" stroke-width="1.6"/><circle cx="5" cy="7" r="3.5" fill="#c8323a" stroke="${INK}" stroke-width="1"/></g>`;
+NODE_NAME.archive = '기록고';
+function sijoArt(){
+  return `<circle cx="50" cy="50" r="46" fill="#7fbfb2" opacity=".12"/>
+    <path d="M14 100 Q16 64 50 58 Q84 64 86 100Z" fill="#141220" ${SK}/>
+    <path d="M30 78 l8 8 l-8 8 M70 78 l-8 8 l8 8" fill="none" stroke="#7fbfb2" stroke-width="2.5"/>
+    <circle cx="50" cy="40" r="21" fill="#221c30" ${SK}/>
+    <path d="M38 24 L32 4 L46 20 M62 24 L68 4 L54 20" fill="#3a3448" ${SK2}/>
+    <circle cx="41" cy="40" r="5" fill="#9ff0e0"/><circle cx="59" cy="40" r="5" fill="#9ff0e0"/>
+    <circle cx="41" cy="40" r="2" fill="#141220"/><circle cx="59" cy="40" r="2" fill="#141220"/>
+    <path d="M40 52 Q50 58 60 52" fill="none" stroke="#7fbfb2" stroke-width="2"/>
+    <path d="M78 96 L84 30" stroke="#3a3448" stroke-width="5" stroke-linecap="round"/><rect x="78" y="18" width="12" height="16" rx="2" fill="#efe4c8" ${SK2}/>
+    <path d="M8 40 q-4 -10 4 -18 M92 40 q4 -10 -4 -18" fill="none" stroke="#7fbfb2" stroke-width="2"/>`;
+}
 
 /* ---------------------------------------------------------------
    20. 시작
