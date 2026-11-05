@@ -193,7 +193,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .orbs-wrap span{font-size:10px;color:var(--muted);}
 
 .b-hand{position:relative;height:150px;flex:none;}
-.b-hand .card{position:absolute;bottom:8px;transform-origin:50% 100%;touch-action:none;cursor:grab;}
+.b-hand .card{position:absolute;bottom:8px;transform-origin:50% 100%;touch-action:none;cursor:grab;transition:transform .18s ease,left .2s ease,filter .2s,box-shadow .15s;}
 .b-hand .card.sel{filter:drop-shadow(0 0 10px rgba(255,190,90,.95));}
 .b-hand .card.dragging{transition:none!important;z-index:200!important;pointer-events:none;cursor:grabbing;}
 .b-hand .card.ready{box-shadow:0 0 0 .15em var(--ink) inset,0 0 0 .12em var(--ink),0 0 22px 6px rgba(255,140,50,.9);}
@@ -473,6 +473,105 @@ input.vol{width:150px;accent-color:#e8572a;}
 .story{font-size:15px;line-height:1.8;color:#efe2c6;text-align:center;word-break:keep-all;white-space:pre-line;padding:10px 14px;background:rgba(8,10,20,.62);border-radius:8px;}
 .result-stats{width:100%;max-width:320px;background:rgba(0,0,0,.4);border:1px solid #4a3426;border-radius:8px;padding:10px 14px;font-size:14px;}
 .result-stats div{display:flex;justify-content:space-between;padding:3px 0;}
+
+/* ===== 7단계: 그래픽 강화 ===== */
+/* 배경 분위기 층: 안개 · 떠다니는 빛 · 한지 결 · 가장자리 어둠 (transform/opacity 만 움직여 가볍다) */
+.bgart .amb{position:absolute;inset:0;pointer-events:none;}
+.amb.mist{background:radial-gradient(ellipse 60% 7% at 28% 70%,rgba(190,200,235,.11),transparent 70%),radial-gradient(ellipse 50% 6% at 78% 62%,rgba(190,200,235,.09),transparent 70%),radial-gradient(ellipse 70% 8% at 50% 84%,rgba(190,200,235,.08),transparent 70%);
+  animation:mistDrift 24s ease-in-out infinite alternate;will-change:transform;}
+@keyframes mistDrift{from{transform:translateX(-7%)}to{transform:translateX(7%)}}
+.amb.motes i{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--mc);box-shadow:0 0 6px 2px var(--mc);opacity:0;
+  animation:moteFloat var(--d,10s) ease-in-out var(--dl,0s) infinite;will-change:transform,opacity;}
+@keyframes moteFloat{0%{opacity:0;transform:translate(0,0) scale(.6)}20%{opacity:.85;transform:translate(calc(var(--dx) * .3),-14px) scale(1)}
+  60%{opacity:.55;transform:translate(calc(var(--dx) * -.4),-40px) scale(.85)}100%{opacity:0;transform:translate(var(--dx),-70px) scale(.5)}}
+.amb.grain{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .92 0 0 0 0 .86 0 0 0 0 .72 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:160px;opacity:.08;}
+.amb.vig{background:radial-gradient(ellipse 90% 75% at 50% 42%,transparent 55%,rgba(2,2,8,.6) 100%);}
+.bgart .tw{animation:twinkle 4s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.9}50%{opacity:.25}}
+.bgart .bg-cloud{animation:cloudDrift 40s ease-in-out infinite alternate;}
+@keyframes cloudDrift{from{transform:translateX(-8px)}to{transform:translateX(10px)}}
+.bgart{container-type:size;}
+/* 봉인진: 배경 SVG 와 같은 비율(가로 맞춤·아래 정렬)로 놓은 별도 층 — 1단위 = max(1cqw, .5cqh) */
+.amb.seal{inset:auto;left:50%;top:calc(100% - 154 * max(1cqw, .5cqh));width:calc(64 * max(1cqw, .5cqh));height:calc(64 * max(1cqw, .5cqh));transform:translate(-50%,-50%);opacity:.75;}
+.amb.seal svg{animation:spin 120s linear infinite;will-change:transform;}
+.bgart .lglow{animation:lampFlicker 2.4s ease-in-out infinite;}
+@keyframes lampFlicker{0%,100%{opacity:.9}35%{opacity:.6}55%{opacity:1}75%{opacity:.7}}
+.bgart .bg-swing{transform-box:fill-box;transform-origin:50% 0;animation:swing 3.2s ease-in-out infinite;}
+@keyframes swing{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.bgart .walk{animation:walkBob .9s ease-in-out infinite;}
+@keyframes walkBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.2px)}}
+
+/* 유닛: 발밑 그림자 · 숨쉬기 · 피격 번쩍임 · 우두머리 기운 */
+.unit.enemy .u-art,.unit.spirit .u-art{background:radial-gradient(ellipse 38% 8% at 50% 95%,rgba(0,0,0,.6),transparent 72%);}
+.unit.enemy .u-art svg,.unit.spirit .u-art svg{animation:breathe 3.4s ease-in-out infinite;transform-origin:50% 96%;will-change:transform;}
+.unit.enemy:nth-child(2) .u-art svg{animation-delay:-1.1s;} .unit.enemy:nth-child(3) .u-art svg{animation-delay:-2.3s;} .unit.enemy:nth-child(4) .u-art svg{animation-delay:-.6s;}
+.unit.spirit .u-art svg{animation-duration:2.8s;}
+.slot:nth-child(2) .unit.spirit .u-art svg{animation-delay:-.9s;} .slot:nth-child(3) .unit.spirit .u-art svg{animation-delay:-1.8s;}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.012,1.03) translateY(-.5px)}}
+.unit.dead .u-art svg,.unit.gone .u-art svg,.unit.dying .u-art svg{animation:none;}
+.u-art.shake{animation:shake .35s,hitFlash .32s;}
+@keyframes hitFlash{0%{filter:brightness(2.6) saturate(.2)}100%{filter:none}}
+.unit.boss .u-art::before,.unit.elite .u-art::before{content:"";position:absolute;inset:-16%;border-radius:50%;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle,rgba(200,60,70,.32),rgba(200,60,70,.08) 45%,transparent 68%);animation:auraPulse 2.6s ease-in-out infinite;}
+.unit.elite .u-art::before{background:radial-gradient(circle,rgba(232,180,90,.26),rgba(232,180,90,.06) 45%,transparent 68%);}
+#app.act3 .unit.boss .u-art::before{background:radial-gradient(circle,rgba(127,191,178,.36),rgba(127,191,178,.08) 45%,transparent 68%);}
+@keyframes auraPulse{0%,100%{transform:scale(.94);opacity:.75}50%{transform:scale(1.06);opacity:1}}
+.u-name{letter-spacing:.02em;}
+.unit.enemy .u-name{padding:0 6px;border-radius:7px;background:linear-gradient(90deg,transparent,rgba(0,0,0,.45) 20%,rgba(0,0,0,.45) 80%,transparent);}
+
+/* 체력바: 광택 · 잔상 · 아군은 푸른빛 */
+.hpbar{background:linear-gradient(180deg,#150606,#2c0e10);box-shadow:inset 0 1px 3px rgba(0,0,0,.8),0 1px 0 rgba(255,230,190,.08);}
+.hpbar .trail{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:linear-gradient(180deg,#fff2d0,#e8b880);opacity:.8;transition:width .55s ease .38s;}
+.hpbar .fill{background:linear-gradient(180deg,#ff8a6e 0%,#e2463c 42%,#a81e26 72%,#7e1420 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(0,0,0,.3);}
+.hpbar .fill::after{content:"";position:absolute;left:3px;right:3px;top:2px;height:3px;border-radius:2px;background:rgba(255,255,255,.28);}
+.unit.spirit .hpbar .fill{background:linear-gradient(180deg,#9ff0b0 0%,#46b86a 45%,#24804a 75%,#17603a 100%);}
+.hpbar .num{z-index:1;}
+
+/* 카드: 안쪽 테두리 · 이름띠 · 그림창 음영 · 희귀 카드의 금빛 윤기 */
+.card::before{content:"";position:absolute;inset:.3em;border:.09em solid color-mix(in srgb,var(--fc) 55%,#7a5a30);border-radius:.42em;pointer-events:none;opacity:.75;}
+.card .c-name{border-radius:.3em;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--fc) 24%,transparent) 22%,color-mix(in srgb,var(--fc) 24%,transparent) 82%,transparent);}
+.card .c-art{position:relative;box-shadow:0 .08em 0 rgba(255,255,255,.55);}
+.card .c-art::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 .8em rgba(40,18,0,.42);}
+.card.rar-rare{border-color:color-mix(in srgb,var(--fc) 62%,#f0cc5a);}
+.card.rar-rare::after{content:"";position:absolute;inset:0;border-radius:.45em;pointer-events:none;z-index:2;
+  background:linear-gradient(112deg,transparent 38%,rgba(255,244,200,.5) 48%,rgba(255,255,255,.18) 52%,transparent 62%) no-repeat;background-size:260% 100%;
+  animation:sheen 4.2s ease-in-out infinite;}
+@keyframes sheen{0%,55%{background-position:140% 0}100%{background-position:-60% 0}}
+.card.type-spirit .c-art{border-color:color-mix(in srgb,var(--fc) 70%,#1b1512);}
+.card.upg{box-shadow:0 0 0 .15em var(--ink) inset,0 0 0 .12em var(--ink),0 .3em .6em rgba(0,0,0,.55),0 0 .9em rgba(110,230,140,.35);}
+.b-hand .card.ready{box-shadow:0 0 0 .15em var(--ink) inset,0 0 0 .12em var(--ink),0 0 22px 6px rgba(255,140,50,.9);}
+
+/* 혼력 구슬: 일렁이는 불꽃 */
+.orb.on{position:relative;animation:orbGlow 1.8s ease-in-out infinite;}
+.orb.on::after{content:"";position:absolute;left:22%;top:14%;width:34%;height:26%;border-radius:50%;background:rgba(255,255,240,.75);filter:blur(.5px);}
+.orb:nth-child(2).on{animation-delay:-.6s;} .orb:nth-child(3).on{animation-delay:-1.2s;}
+@keyframes orbGlow{0%,100%{box-shadow:0 0 8px rgba(255,150,60,.75)}50%{box-shadow:0 0 16px 3px rgba(255,160,70,.95)}}
+
+/* 대장 띠 · 초상 */
+.b-leader{position:relative;background:linear-gradient(90deg,transparent,rgba(12,9,7,.74) 16%,rgba(12,9,7,.74) 84%,transparent);}
+.b-leader::before,.b-leader::after{content:"";position:absolute;left:6%;right:6%;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(232,180,90,.6),transparent);}
+.b-leader::before{top:0;} .b-leader::after{bottom:0;}
+.leader-portrait .u-art{box-shadow:0 0 0 3px rgba(0,0,0,.55),0 0 16px rgba(255,178,74,.4),inset 0 0 12px rgba(0,0,0,.6);}
+
+/* 빈 요괴 칸: 은은한 자리 표시 */
+.slot.empty{border:1.5px dashed rgba(255,214,150,.2);background:radial-gradient(ellipse 50% 12% at 50% 86%,rgba(255,214,150,.1),transparent 70%),radial-gradient(circle at 50% 42%,rgba(255,214,150,.05),transparent 62%);}
+.slot.filled{background:radial-gradient(ellipse 60% 30% at 50% 90%,rgba(255,214,150,.08),transparent 70%),rgba(0,0,0,.2);}
+
+/* 상단 띠 */
+.topbar{background:linear-gradient(180deg,rgba(8,6,5,.94),rgba(24,17,13,.88));box-shadow:0 2px 0 #5a4030,0 6px 14px rgba(0,0,0,.45);}
+
+/* 떠오르는 숫자: 살짝 더 또렷하게 */
+.ftext{filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));}
+
+/* 지도 두루마리: 가장자리가 바랜 한지 */
+.map-scroll{box-shadow:inset 0 0 26px rgba(110,64,20,.32),inset 0 0 4px rgba(60,30,8,.4);}
+.map-node.avail .core{filter:drop-shadow(0 0 4px rgba(255,140,60,.75));}
+
+/* 움직임 줄이기 설정을 켠 기기에서는 배경 연출을 멈춘다 */
+@media (prefers-reduced-motion: reduce){
+  .amb.mist,.amb.motes i,.bgart .tw,.bgart .bg-cloud,.bgart .bg-rot,.bgart .lglow,.bgart .bg-swing,.bgart .walk,
+  .amb.seal svg,.unit .u-art svg,.card.rar-rare::after,.orb.on,.unit.boss .u-art::before,.unit.elite .u-art::before{animation:none!important;}
+}
 </style>
 </head>
 <body>
@@ -2422,54 +2521,133 @@ const INTENT_ICON = {
   seal:`<rect x="6" y="2" width="12" height="20" fill="#f2d24a" stroke="${INK}" stroke-width="1.6"/><path d="M9 6 L15 6 M12 6 L12 15 M9 11 L15 12" stroke="#c8323a" stroke-width="1.6"/>`,
   special:`<circle cx="12" cy="12" r="10" fill="#6a4a8a" stroke="${INK}" stroke-width="1.6"/><text x="12" y="17" font-size="14" font-weight="900" text-anchor="middle" fill="#fff">?</text>`,
 };
+/* 배경 공용 조각: 별 · 달 · 구름 · 소나무 · 기와지붕 · 떠다니는 빛 */
+const BG_STARS = [[8,10,.5],[19,24,.35],[30,6,.45],[44,18,.3],[57,9,.4],[66,27,.3],[91,14,.45],[96,30,.3],[12,40,.3],[38,34,.35],[52,44,.25],[86,50,.3]];
+function bgStars(c){ return BG_STARS.map(([x, y, r], i) => `<circle class="tw" cx="${x}" cy="${y}" r="${r}" fill="${c || '#fff'}" style="animation-delay:${-(i * 0.73) % 4}s"/>`).join(''); }
+function bgMoon(x, y, r, tint){
+  return `<circle cx="${x}" cy="${y}" r="${r * 3.4}" fill="url(#bgMoonGlow)"/>
+    <circle cx="${x}" cy="${y}" r="${r}" fill="${tint || '#f8ecc8'}"/>
+    <circle cx="${x - r * .3}" cy="${y - r * .2}" r="${r * .22}" fill="#e2cfa0" opacity=".55"/>
+    <circle cx="${x + r * .35}" cy="${y + r * .3}" r="${r * .14}" fill="#e2cfa0" opacity=".5"/>
+    <circle cx="${x + r * .1}" cy="${y - r * .5}" r="${r * .1}" fill="#e2cfa0" opacity=".45"/>`;
+}
+function bgCloud(x, y, w, c, op){
+  return `<path d="M${x} ${y} q${w * .12} ${-w * .16} ${w * .3} ${-w * .06} q${w * .14} ${-w * .14} ${w * .32} ${-w * .02} q${w * .2} ${-w * .02} ${w * .2} ${w * .08} Z" fill="${c}" opacity="${op}"/>`;
+}
+function bgPine(x, y, k, c){
+  return `<path d="M${x} ${y - 15 * k} L${x - 4 * k} ${y - 9 * k} L${x - 2 * k} ${y - 9 * k} L${x - 6.5 * k} ${y - 3.5 * k} L${x - 3 * k} ${y - 3.5 * k} L${x - 8 * k} ${y + 2 * k} L${x + 8 * k} ${y + 2 * k} L${x + 3 * k} ${y - 3.5 * k} L${x + 6.5 * k} ${y - 3.5 * k} L${x + 2 * k} ${y - 9 * k} L${x + 4 * k} ${y - 9 * k}Z M${x - .8 * k} ${y + 2 * k} h${1.6 * k} v${3.5 * k} h${-1.6 * k}Z" fill="${c}"/>`;
+}
+function bgRoof(x, y, w, h, c){
+  return `<path d="M${x - w} ${y} Q${x - w * .62} ${y - h * .18} ${x - w * .5} ${y - h} L${x + w * .5} ${y - h} Q${x + w * .62} ${y - h * .18} ${x + w} ${y} Q${x} ${y - h * .42} ${x - w} ${y}Z" fill="${c}"/>`;
+}
+/* 떠다니는 빛 (반딧불 · 불티 · 혼불). 위치는 고정값이라 다시 그려도 흔들리지 않는다 */
+const BG_MOTES = [[12,62,9,0,14],[26,78,11,-3,-10],[40,58,8,-6,8],[55,82,12,-1.5,-12],[68,66,10,-4.5,10],[82,74,9,-7,-8],[92,56,13,-2.5,6],[6,86,10,-8,12],[48,70,14,-5,-6],[74,88,11,-9,9]];
+function bgAmbient(color, n){
+  const motes = BG_MOTES.slice(0, n || 8).map(([l, t, d, dl, dx]) => `<i style="left:${l}%;top:${t}%;--d:${d}s;--dl:${dl}s;--dx:${dx}px"></i>`).join('');
+  return `<div class="amb mist"></div><div class="amb motes" style="--mc:${color}">${motes}</div><div class="amb grain"></div><div class="amb vig"></div>`;
+}
+const BG_DEFS = `<radialGradient id="bgMoonGlow"><stop offset="0" stop-color="#fff3d0" stop-opacity=".5"/><stop offset=".3" stop-color="#f6dca8" stop-opacity=".16"/><stop offset="1" stop-color="#f6dca8" stop-opacity="0"/></radialGradient>
+  <linearGradient id="bgFog" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8b4d8" stop-opacity="0"/><stop offset=".5" stop-color="#a8b4d8" stop-opacity=".16"/><stop offset="1" stop-color="#a8b4d8" stop-opacity="0"/></linearGradient>`;
 function actBackground(act){
   act = act || (G.run ? G.run.act : 1);
   /* 세로형(100x200) 배경: 하늘은 위, 지형은 아래 */
-  const W = inner => `<svg viewBox="0 0 100 200" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
-  const moon = `<circle cx="80" cy="34" r="16" fill="#f6e9c6" opacity=".08"/><circle cx="80" cy="34" r="9" fill="#f6e9c6" opacity=".85"/>`;
+  const W = (defs, inner, amb) => `<svg viewBox="0 0 100 200" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><defs>${BG_DEFS}${defs}</defs>${inner}</svg>${amb}`;
   if(act === 1){
-    return W(`${moon}
-      <path d="M0 132 L14 118 L26 126 L40 110 L56 124 L70 114 L86 126 L100 116 L100 200 L0 200Z" fill="#1a2238" opacity=".9"/>
-      <path d="M0 150 L18 138 L34 146 L50 134 L66 144 L82 136 L100 144 L100 200 L0 200Z" fill="#141a2c"/>
-      ${[12,30,62,88].map(x=>`<path d="M${x} 146 l-5 12 l10 0Z M${x} 140 l-6 14 l12 0Z" fill="#0e1424"/>`).join('')}
-      <path d="M0 176 Q50 164 100 176 L100 200 L0 200Z" fill="#0d1120"/>`);
+    /* 1막 산골 고갯길: 시린 푸른 달밤, 겹겹의 산과 소나무, 장승이 선 고갯길 */
+    return W(`<linearGradient id="bgSky1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#060a16"/><stop offset=".5" stop-color="#141d36"/><stop offset=".72" stop-color="#252b48"/><stop offset="1" stop-color="#1a1d30"/></linearGradient>
+      <linearGradient id="bgMt1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34405f"/><stop offset="1" stop-color="#18203a"/></linearGradient>
+      <linearGradient id="bgMt1b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1e2742"/><stop offset="1" stop-color="#10162a"/></linearGradient>`,
+      `<rect width="100" height="200" fill="url(#bgSky1)"/>${bgStars()}${bgMoon(78, 34, 9)}
+      <g class="bg-cloud">${bgCloud(46, 44, 30, '#3a4668', .55)}${bgCloud(8, 58, 24, '#2c3758', .5)}</g>
+      <path d="M0 116 L10 106 L18 110 L30 96 L42 108 L52 100 L64 110 L76 98 L88 108 L100 102 L100 200 L0 200Z" fill="url(#bgMt1)"/>
+      <path d="M30 96 L42 108 L52 100 M76 98 L88 108" fill="none" stroke="#6a7aa8" stroke-width=".35" opacity=".55"/>
+      <rect x="0" y="108" width="100" height="26" fill="url(#bgFog)"/>
+      <path d="M0 136 L14 124 L26 130 L40 118 L54 128 L68 120 L84 130 L100 122 L100 200 L0 200Z" fill="url(#bgMt1b)"/>
+      ${[[6,140,.8],[16,137,1],[60,134,.9],[71,138,.75],[94,136,.95]].map(([x, y, k]) => bgPine(x, y, k, '#0e1426')).join('')}
+      <rect x="0" y="138" width="100" height="18" fill="url(#bgFog)" opacity=".7"/>
+      <path d="M0 158 Q30 148 52 154 Q74 160 100 150 L100 200 L0 200Z" fill="#0c111f"/>
+      <path d="M38 200 Q46 176 56 162 Q62 156 70 154" fill="none" stroke="#1c2338" stroke-width="5" stroke-linecap="round"/>
+      <g fill="#080c16"><rect x="78" y="146" width="3.4" height="12" rx="1"/><ellipse cx="79.7" cy="146" rx="2.4" ry="2.8"/><path d="M76.6 144.5 L82.8 144.5 L79.7 141Z"/></g>
+      ${[[26,166,1.3],[88,168,1.2],[8,172,1.1]].map(([x, y, k]) => bgPine(x, y, k, '#070a13')).join('')}
+      <path d="M0 182 Q50 172 100 182 L100 200 L0 200Z" fill="#070a13"/>`,
+      bgAmbient('#d9f28a', 8));
   }
   if(act === 2){
-    return W(`${moon}
-      <path d="M0 130 L100 130 L100 200 L0 200Z" fill="#12182a"/>
-      <path d="M20 130 L20 114 L80 114 L80 130Z" fill="#1a2238"/>
-      <path d="M12 117 Q50 102 88 117 L80 112 Q50 100 20 112Z" fill="#232c46"/>
-      <path d="M40 130 Q50 118 60 130Z" fill="#0b0f1c"/>
-      ${[6,26,46,66,86].map(x=>`<path d="M${x-9} 154 Q${x} 147 ${x+9} 154 L${x+7} 160 L${x-7} 160Z" fill="#0e1424"/><rect x="${x-6}" y="160" width="12" height="10" fill="#0e1424"/><circle cx="${x+3}" cy="165" r="1.2" fill="#ffb24a" opacity=".7"/>`).join('')}
-      <path d="M0 178 L100 178 L100 200 L0 200Z" fill="#0b0f1c"/>`);
+    /* 2막 한양 도성: 따뜻한 등불이 번지는 도성, 기와지붕 너머 성문 */
+    return W(`<linearGradient id="bgSky2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#090a1a"/><stop offset=".45" stop-color="#1a1a36"/><stop offset=".7" stop-color="#3a2a3e"/><stop offset="1" stop-color="#2a1e2a"/></linearGradient>
+      <linearGradient id="bgWall2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2e2a40"/><stop offset="1" stop-color="#1a1828"/></linearGradient>
+      <radialGradient id="bgLamp2"><stop offset="0" stop-color="#ffb24a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb24a" stop-opacity="0"/></radialGradient>`,
+      `<rect width="100" height="200" fill="url(#bgSky2)"/>${bgStars('#ffeedd')}${bgMoon(22, 32, 8, '#fbe6c0')}
+      <g class="bg-cloud">${bgCloud(52, 40, 32, '#4a3a52', .5)}${bgCloud(70, 56, 22, '#3a2e48', .45)}</g>
+      <path d="M0 116 L12 110 L22 114 L36 104 L50 112 L66 106 L80 112 L100 104 L100 200 L0 200Z" fill="#1c1a30"/>
+      <rect x="0" y="104" width="100" height="22" fill="url(#bgFog)" opacity=".8"/>
+      <path d="M0 128 L100 128 L100 200 L0 200Z" fill="url(#bgWall2)"/>
+      ${Array.from({length: 13}, (_, i) => `<rect x="${i * 8}" y="125" width="5" height="3.5" fill="#2e2a40"/>`).join('')}
+      <path d="M0 136 L100 136" stroke="#3e3852" stroke-width=".4"/>
+      <rect x="38" y="118" width="24" height="18" fill="#22203a"/>
+      <path d="M44 136 L44 128 Q50 122 56 128 L56 136Z" fill="#0a0912"/>
+      ${bgRoof(50, 118, 18, 5, '#2c2a46')}<rect x="41" y="110" width="18" height="5" fill="#262440"/>${bgRoof(50, 110, 14, 4.5, '#34324e')}
+      <circle cx="50" cy="132" r="10" fill="url(#bgLamp2)" opacity=".5"/>
+      <path d="M0 150 L100 150 L100 200 L0 200Z" fill="#110f1c"/>
+      ${[[8,152,9],[30,154,11],[56,151,10],[80,153,12],[100,152,8]].map(([x, y, w]) => `${bgRoof(x, y, w, 5, '#0d0c18')}<rect x="${x - w * .62}" y="${y}" width="${w * 1.24}" height="9" fill="#0d0c18"/><rect x="${x - 1.4}" y="${y + 3}" width="2.8" height="2.6" fill="#ffb24a" opacity=".35"/><circle cx="${x}" cy="${y + 4.5}" r="6" fill="url(#bgLamp2)" opacity=".3"/>`).join('')}
+      <path d="M-2 140 Q25 147 50 141 Q75 147 102 140" fill="none" stroke="#2a1a1a" stroke-width=".4"/>
+      ${[[10,143],[24,145.2],[38,143.4],[62,143.4],[76,145.2],[90,143]].map(([x, y], i) => `<line x1="${x}" y1="${y - 1.4}" x2="${x}" y2="${y}" stroke="#2a1a1a" stroke-width=".3"/><circle class="lglow" cx="${x}" cy="${y + 1.6}" r="4.5" fill="url(#bgLamp2)" style="animation-delay:${-i * 0.6}s"/><rect x="${x - 1.3}" y="${y}" width="2.6" height="3.4" rx="1" fill="${i % 2 ? '#e8572a' : '#c8323a'}"/>`).join('')}
+      <path d="M0 176 L100 176 L100 200 L0 200Z" fill="#0a0912"/>`,
+      bgAmbient('#ffb24a', 8));
   }
-  return W(`<circle cx="50" cy="44" r="30" fill="none" stroke="#7fbfb2" stroke-width=".6" opacity=".45"/>
-    <circle cx="50" cy="44" r="23" fill="none" stroke="#e8c94a" stroke-width=".4" opacity=".4"/>
-    <path d="M50 14 L50 74 M20 44 L80 44 M29 23 L71 65 M71 23 L29 65" stroke="#7fbfb2" stroke-width=".3" opacity=".4"/>
-    <path d="M0 140 L100 140 L100 200 L0 200Z" fill="#121424"/>
-    <path d="M28 140 L28 122 L72 122 L72 140Z" fill="#1a1c30"/><path d="M20 125 Q50 110 80 125 L72 120 Q50 108 28 120Z" fill="#26283e"/>
-    ${[10,90].map(x=>`<rect x="${x-3}" y="118" width="6" height="24" fill="#1a1c30"/><circle cx="${x}" cy="116" r="3" fill="#7fbfb2" opacity=".6"/>`).join('')}
-    <path d="M0 176 L100 176 L100 200 L0 200Z" fill="#0b0d18"/>`);
+  /* 3막 봉요사 본진: 하늘에 걸린 대봉인진이 천천히 돌고, 석등에 푸른 혼불이 흔들린다 */
+  return W(`<linearGradient id="bgSky3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#07080f"/><stop offset=".45" stop-color="#121a26"/><stop offset=".72" stop-color="#1a2a30"/><stop offset="1" stop-color="#121820"/></linearGradient>
+    <radialGradient id="bgSeal3"><stop offset="0" stop-color="#7fbfb2" stop-opacity=".18"/><stop offset=".7" stop-color="#7fbfb2" stop-opacity=".05"/><stop offset="1" stop-color="#7fbfb2" stop-opacity="0"/></radialGradient>
+    <radialGradient id="bgWisp3"><stop offset="0" stop-color="#8ff0e0" stop-opacity=".7"/><stop offset="1" stop-color="#8ff0e0" stop-opacity="0"/></radialGradient>`,
+    `<rect width="100" height="200" fill="url(#bgSky3)"/>${bgStars('#cfeee8')}
+    <circle cx="50" cy="46" r="40" fill="url(#bgSeal3)"/>
+    <g class="bg-cloud">${bgCloud(4, 70, 30, '#22323a', .5)}${bgCloud(60, 82, 28, '#1e2c34', .45)}</g>
+    <path d="M0 134 L100 134 L100 200 L0 200Z" fill="#10141e"/>
+    <rect x="0" y="122" width="100" height="20" fill="url(#bgFog)" opacity=".6"/>
+    <rect x="30" y="118" width="40" height="16" fill="#161a28"/>
+    ${[34,42,50,58,66].map(x => `<rect x="${x - .7}" y="119" width="1.4" height="15" fill="#0e1018"/>`).join('')}
+    ${bgRoof(50, 118, 30, 7, '#1c2030')}<rect x="38" y="108" width="24" height="5" fill="#181c2a"/>${bgRoof(50, 108, 19, 6, '#222638')}
+    <rect x="45" y="104" width="10" height="3" fill="#2a2e40"/><path d="M47.5 105.5 h5" stroke="#e8c94a" stroke-width=".5" opacity=".7"/>
+    ${[12,88].map((x, i) => `<rect x="${x - 2.4}" y="128" width="4.8" height="14" fill="#141824"/><rect x="${x - 4}" y="124" width="8" height="4" fill="#1a1e2c"/><path d="M${x - 5} 124 L${x} 120 L${x + 5} 124Z" fill="#1e2232"/>
+      <circle class="lglow" cx="${x}" cy="126" r="7" fill="url(#bgWisp3)" style="animation-delay:${-i * 0.9}s"/><rect x="${x - 1.4}" y="125" width="2.8" height="2.2" fill="#8ff0e0" opacity=".85"/>`).join('')}
+    ${[[4,58],[11,61.5],[89,61.5],[96,58]].map(([x, y], i) => `<g class="bg-swing" style="animation-delay:${-i * 0.7}s"><line x1="${x}" y1="${y - 4}" x2="${x}" y2="${y}" stroke="#3a3a40" stroke-width=".3"/><rect x="${x - 1.3}" y="${y}" width="2.6" height="5.6" fill="#d8b84a" opacity=".75"/><path d="M${x - .6} ${y + 1.4} h1.2 M${x} ${y + 1.4} v3.2" stroke="#a8281a" stroke-width=".35"/></g>`).join('')}
+    <path d="M-2 52 Q8 58 18 56 M82 56 Q92 58 102 52" fill="none" stroke="#3a3a40" stroke-width=".35"/>
+    <path d="M0 160 Q50 150 100 160 L100 200 L0 200Z" fill="#0b0e16"/>
+    <path d="M0 178 L100 178 L100 200 L0 200Z" fill="#07090f"/>`,
+    `<div class="amb seal"><svg viewBox="-32 -32 64 64" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-50 -46)">
+      <circle cx="50" cy="46" r="31" fill="none" stroke="#7fbfb2" stroke-width=".5" opacity=".6"/>
+      <circle cx="50" cy="46" r="28.5" fill="none" stroke="#7fbfb2" stroke-width=".25" stroke-dasharray="1.2 1.6" opacity=".6"/>
+      <circle cx="50" cy="46" r="22" fill="none" stroke="#e8c94a" stroke-width=".4" opacity=".5"/>
+      <path d="M50 15 L76.8 61.5 L23.2 61.5Z M50 77 L23.2 30.5 L76.8 30.5Z" fill="none" stroke="#7fbfb2" stroke-width=".3" opacity=".5"/>
+      ${Array.from({length: 8}, (_, i) => { const a = i * Math.PI / 4, x = 50 + Math.cos(a) * 25.2, y = 46 + Math.sin(a) * 25.2;
+        return `<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${i * 45 + 90})"><path d="M-2 -.9 h4 M-2 0 h1.6 M.4 0 h1.6 M-2 .9 h4" stroke="#e8c94a" stroke-width=".35" opacity=".7"/></g>`; }).join('')}
+    </g>
+</svg></div>` + bgAmbient('#8ff0e0', 7));
 }
 function titleBackground(){
   let walkers = '';
   const cols = ['#e2552b','#b45fa8','#7fbfb2','#2f5d9e','#b8893a','#e2552b','#b45fa8'];
   for(let i = 0; i < 7; i++){
     const x = 8 + i * 13, y = 146 - i * 3.2;
-    walkers += `<g transform="translate(${x} ${y}) scale(${0.8 - i * 0.05})">
+    walkers += `<g transform="translate(${x} ${y}) scale(${0.8 - i * 0.05})"><g class="walk" style="animation-delay:${-i * 0.37}s">
       <path d="M-5 12 Q-6 0 0 -3 Q6 0 5 12Z" fill="#06080f"/><circle cx="0" cy="-5" r="4" fill="#06080f"/>
       ${i % 2 ? '<path d="M-3 -8 L-5 -14 M3 -8 L5 -14" stroke="#06080f" stroke-width="1.5"/>' : '<path d="M0 -9 L0 -14" stroke="#06080f" stroke-width="1.5"/>'}
       <path d="M4 -4 L9 -12" stroke="#06080f" stroke-width="1"/>
-      <circle cx="9" cy="-10" r="2.6" fill="${cols[i]}"/><circle cx="9" cy="-10" r="6" fill="${cols[i]}" opacity=".25"/></g>`;
+      <circle cx="9" cy="-10" r="2.6" fill="${cols[i]}"/><circle class="lglow" cx="9" cy="-10" r="7" fill="${cols[i]}" opacity=".3" style="animation-delay:${-i * 0.5}s"/></g></g>`;
   }
   return `<svg viewBox="0 0 100 200" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-    <defs><radialGradient id="tmoon"><stop offset="0" stop-color="#fff4d6"/><stop offset="1" stop-color="#f0c88a"/></radialGradient></defs>
-    <circle cx="70" cy="62" r="34" fill="#f6d9a0" opacity=".08"/><circle cx="70" cy="62" r="22" fill="url(#tmoon)"/>
+    <defs>${BG_DEFS}<radialGradient id="tmoon"><stop offset="0" stop-color="#fff4d6"/><stop offset="1" stop-color="#f0c88a"/></radialGradient>
+      <linearGradient id="tsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05070f"/><stop offset=".55" stop-color="#141a30"/><stop offset="1" stop-color="#22203a"/></linearGradient></defs>
+    <rect width="100" height="200" fill="url(#tsky)"/>${bgStars()}
+    <circle cx="70" cy="62" r="70" fill="url(#bgMoonGlow)"/><circle cx="70" cy="62" r="22" fill="url(#tmoon)"/>
+    <circle cx="63" cy="56" r="4.5" fill="#e8c890" opacity=".45"/><circle cx="78" cy="68" r="3" fill="#e8c890" opacity=".4"/><circle cx="72" cy="50" r="2" fill="#e8c890" opacity=".35"/>
+    <g class="bg-cloud">${bgCloud(40, 70, 36, '#2a3050', .6)}${bgCloud(70, 84, 26, '#232846', .55)}</g>
     <path d="M0 120 L16 104 L30 112 L46 94 L62 108 L78 96 L100 110 L100 200 L0 200Z" fill="#141a2e"/>
     <path d="M0 140 L22 126 L40 134 L60 122 L80 132 L100 124 L100 200 L0 200Z" fill="#0e1322"/>
     <path d="M0 160 Q40 140 100 128 L100 200 L0 200Z" fill="#090c16"/>
+    <rect x="0" y="118" width="100" height="26" fill="url(#bgFog)"/>
     ${walkers}
-    <path d="M0 168 Q50 150 100 160 L100 200 L0 200Z" fill="#06080f"/></svg>`;
+    <path d="M0 168 Q50 150 100 160 L100 200 L0 200Z" fill="#06080f"/></svg>${bgAmbient('#ffcf8a', 10)}`;
 }
 
 /* ---------------------------------------------------------------
@@ -4419,7 +4597,7 @@ function cardHtml(def, opts){
   const cost = def.cost < 0 ? '' : `<div class="c-cost">${coinSvg()}<b ${costVal < def.cost ? 'style="color:#9fffb0"' : ''}>${costVal}</b></div>`;
   const seal = opts.sealed ? `<div class="seal-tag ${opts.sealNew ? 'stick' : ''}">${svgWrap(ART.talisman(), '0 0 40 60')}</div>` : '';
   const desc = describeCard(def).replace(/<b class="kw">([^<]+)<\/b>/g, (m, k) => KEYWORDS[k] ? `<b class="kw" data-kw="${k}">${k}</b>` : m);
-  return `<div class="card fam-${def.family} type-${def.type} ${def.upgraded ? 'upg' : ''} ${opts.sealed ? 'sealed' : ''} ${opts.cls || ''}" ${opts.attrs || ''} ${opts.style ? `style="${opts.style}"` : ''}>
+  return `<div class="card fam-${def.family} type-${def.type} rar-${def.rarity} ${def.upgraded ? 'upg' : ''} ${opts.sealed ? 'sealed' : ''} ${opts.cls || ''}" ${opts.attrs || ''} ${opts.style ? `style="${opts.style}"` : ''}>
     ${cost}
     ${opts.copy ? '<div class="copy-tag">복제</div>' : ''}
     <div class="c-name">${esc(def.name)}</div>
@@ -4442,7 +4620,8 @@ function statusesHtml(u){
   }).join('')}</div>`;
 }
 function hpbarHtml(u){
-  return `<div class="hpbar"><div class="fill" style="width:${Math.max(0, u.hp / u.maxHp * 100)}%"></div>
+  const pct = Math.max(0, u.hp / u.maxHp * 100);
+  return `<div class="hpbar"><div class="trail" style="width:${pct}%"></div><div class="fill" style="width:${pct}%"></div>
     <div class="num">${u.hp}/${u.maxHp}</div>${u.block && u.kind !== 'player' ? `<div class="blk">${u.block}</div>` : ''}</div>`;
 }
 function topbarHtml(){
@@ -4578,7 +4757,7 @@ SCREENS.battle = () => {
     const baseT = `translateY(${y}px) rotate(${rot}deg) scale(${scale})`;
     return cardHtml(def, {cls:`${dim} ${isSel ? 'sel' : ''} ${isNew ? 'drawin' : ''}`, sealed, sealNew:b.newSeal === c.uid,
       cost:cardCost(c), copy:c.copy,
-      attrs:`data-idx="${i}"`,
+      attrs:`data-idx="${i}" data-key="h${c.uid}"`,
       style:`left:${left}px;transform:${baseT};z-index:${isSel ? 60 : i + 1};${isNew ? `animation-delay:${(i % 5) * 60}ms` : ''}`});
   }).join('');
   b.newCards.clear();
@@ -4668,6 +4847,83 @@ SCREENS.result = () => {
 };
 function fmtTime(ms){ const m = Math.floor(ms / 60000), sec = Math.floor(ms / 1000) % 60; return `${m}분 ${sec}초`; }
 
+/* ---- 화면 갱신 ----
+   같은 화면 안에서 다시 그릴 때는 innerHTML 을 통째로 갈지 않고, 새 HTML 과 비교해 바뀐 노드만 고친다.
+   (통째로 갈면 페이드인·숨쉬기·체력바 애니메이션이 매번 처음부터 다시 시작되어 화면이 깜빡였다)
+   화면이 바뀔 때(또는 새 전투)만 새로 그려서 페이드인을 보여 준다. */
+const _tpl = document.createElement('template');
+let _renderedScreen = null, _renderedBattle = null;
+/* 한 번만 재생되는 연출 클래스: 다음 갱신에서 템플릿에 없더라도 애니메이션이 끝날 때까지 남겨 둔다 */
+const ONE_SHOT_FX = ['shake', 'lunge', 'act', 'flash', 'dying', 'warded', 'drawin', 'summoned', 'stick', 'hitflash'];
+const FX_BY_ANIM = {shake:'shake', lunge:'lunge', act:'act', relicFlash:'flash', wardPulse:'warded', drawIn:'drawin', summonPop:'summoned',
+  sealStick:'stick', sealSlap:'stick', hitFlash:'hitflash'};
+document.addEventListener('animationend', e => {
+  const cls = FX_BY_ANIM[e.animationName];
+  if(!cls || !e.target.closest) return;
+  const el = e.target.classList.contains(cls) ? e.target : e.target.closest('.' + cls);
+  if(el) el.classList.remove(cls);
+});
+function morphKey(n){ return n.nodeType === 1 ? (n.getAttribute('data-key') || n.getAttribute('data-uid')) : null; }
+function morphAttrs(a, b){
+  const liveCls = a.getAttribute('class') || '';
+  for(let i = a.attributes.length - 1; i >= 0; i--){
+    const at = a.attributes[i];
+    if(!b.hasAttributeNS(at.namespaceURI, at.localName)) a.removeAttributeNS(at.namespaceURI, at.localName);
+  }
+  for(let i = 0; i < b.attributes.length; i++){
+    const at = b.attributes[i];
+    let v = at.value;
+    if(at.name === 'class'){
+      const want = v.split(/\s+/).filter(Boolean);
+      const live = liveCls.split(/\s+/);
+      ONE_SHOT_FX.forEach(c => { if(live.includes(c) && !want.includes(c)) want.push(c); });
+      if(live.includes('dead') && want.includes('gone')) want.push('dead');   // 쓰러지는 연출이 끝까지 보이게
+      v = want.join(' ');
+      if(liveCls.trim() === v) continue;
+    }
+    if(at.name === 'style' && a.classList.contains('drawin') && a.style.animationDelay){
+      const d = a.style.animationDelay;
+      if(a.getAttribute('style') !== v) a.setAttribute('style', v);
+      a.style.animationDelay = d;   // 뽑기 연출 중에는 지연 시간을 유지
+      continue;
+    }
+    if(a.getAttributeNS(at.namespaceURI, at.localName) !== v){
+      if(at.namespaceURI) a.setAttributeNS(at.namespaceURI, at.name, v); else a.setAttribute(at.name, v);
+    }
+  }
+  if(a.tagName === 'INPUT' && document.activeElement !== a){
+    if(a.type === 'checkbox' || a.type === 'radio') a.checked = b.hasAttribute('checked');
+    else if(b.hasAttribute('value') && a.value !== b.getAttribute('value')) a.value = b.getAttribute('value');
+  }
+}
+function morphNode(a, b){
+  if(a.nodeType !== 1){ if(a.nodeValue !== b.nodeValue) a.nodeValue = b.nodeValue; return; }
+  morphAttrs(a, b);
+  morphChildren(a, b);
+}
+function morphChildren(a, b){
+  const olds = Array.from(a.childNodes), news = Array.from(b.childNodes);
+  const keyed = new Map();
+  olds.forEach(n => { const k = morphKey(n); if(k) keyed.set(k, n); });
+  const used = new Set();
+  let ptr = 0, ref = a.firstChild;
+  for(const nb of news){
+    const k = morphKey(nb);
+    let m = null;
+    if(k){ const c = keyed.get(k); if(c && !used.has(c) && c.nodeName === nb.nodeName) m = c; }
+    else{
+      while(ptr < olds.length && (used.has(olds[ptr]) || morphKey(olds[ptr]))) ptr++;
+      const c = olds[ptr];
+      if(c && c.nodeType === nb.nodeType && c.nodeName === nb.nodeName){ m = c; ptr++; }
+    }
+    if(m){
+      used.add(m);
+      if(m === ref) ref = ref.nextSibling; else a.insertBefore(m, ref);
+      morphNode(m, nb);
+    }else a.insertBefore(nb, ref);
+  }
+  olds.forEach(n => { if(!used.has(n) && n.parentNode === a) a.removeChild(n); });
+}
 function render(){
   if(G.sim && G.screen === 'battle') return;
   const f = SCREENS[G.screen];
@@ -4676,12 +4932,18 @@ function render(){
   $('#app').classList.toggle('act3', act === 3);
   hideKeyword();
   $('#app').classList.toggle('fast', !!(G.meta && G.meta.settings.fast));
-  $('#screen').innerHTML = f ? f() : '';
-  if(G.screen === 'map') afterMapRender();
+  const html = f ? f() : '';
+  const root = $('#screen');
+  const fresh = _renderedScreen !== G.screen || _renderedBattle !== G.battle || !root.firstElementChild;
+  if(fresh) root.innerHTML = html;
+  else{ _tpl.innerHTML = html; morphChildren(root, _tpl.content); }
+  _renderedScreen = G.screen; _renderedBattle = G.battle;
+  if(G.screen === 'map' && fresh) afterMapRender();
 }
 function renderBattle(){ if(G.screen === 'battle' && G.battle && !drag) render(); }
 function setScreen(name){
   G.screen = name;
+  _renderedScreen = null;   // 화면 전환은 항상 새로 그린다 (페이드인)
   $('#fx').innerHTML = '';
   render();
   if(Sound.ctx && name !== 'battle') Sound.bgm('map');
@@ -4789,7 +5051,7 @@ ACTIONS.trueNext = () => {
   const sc = document.querySelector('.panel-scroll'); if(sc) sc.scrollTop = sc.scrollHeight;
 };
 ACTIONS.codex = () => { G.ui.codexTab = G.ui.codexTab || 'fire'; setScreen('codex'); };
-ACTIONS.codexTab = el => { G.ui.codexTab = el.dataset.tab; render(); };
+ACTIONS.codexTab = el => { G.ui.codexTab = el.dataset.tab; render(); const sc = document.querySelector('#screen .panel-scroll'); if(sc) sc.scrollTop = 0; };
 ACTIONS.pickLeader = el => { G.ui.seedInput = ($('#seedInput') || {}).value || ''; G.ui.leader = el.dataset.id; Sound.play('tap'); render(); };
 ACTIONS.lockedLeader = el => { toast(LEADERS[el.dataset.id].unlock.text); Sound.play('error'); };
 ACTIONS.ascDown = () => { G.ui.seedInput = ($('#seedInput') || {}).value || ''; G.meta.ascension.selected = Math.max(0, (G.meta.ascension.selected || 0) - 1); saveMeta(); render(); };
