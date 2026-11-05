@@ -503,19 +503,18 @@ const DEFAULT_SPIRIT_TARGET = 0.3;  // 적이 공격할 때 요괴를 노릴 기
 const STARTING_GOLD = 99;      // 런 시작 엽전
 const ACT1_FLOORS = 15;        // 막마다 층수 (15층 = 보스)
 const ACT_COUNT = 3;           // 전체 막 수
-const BOSS_HEAL = 0.25;        // 막 보스 처치 시 최대 생명력 대비 회복
 /* 막별 적 보정 (밸런스 조정용). hp·dmg: 일반·정예 배율, bossHp·bossDmg: 보스 배율 */
 /* 아래 값은 시뮬레이션 봇(초보형·숙련형 각 200판)으로 맞춘 결과다.
    목표: 처음 하는 사람 1막 보스 도달 약 50%, 숙련자 3막 클리어 30~40% */
 const ACT_SCALE = {
-  1:{hp:1.00, dmg:0.95, bossHp:0.75, bossDmg:0.75},
-  2:{hp:0.80, dmg:0.75, bossHp:0.65, bossDmg:0.65},
-  3:{hp:0.68, dmg:0.62, bossHp:0.58, bossDmg:0.58},
+  1:{hp:1.30, dmg:1.25, bossHp:1.12, bossDmg:1.10},   // 6단계: 승리마다 완전 회복 → 한 판 한 판을 더 세게
+  2:{hp:1.10, dmg:1.00, bossHp:0.98, bossDmg:0.95},
+  3:{hp:0.98, dmg:0.85, bossHp:1.00, bossDmg:0.95},
 };
 const MAP_COLS = 6;            // 지도 칸 수
 const RARE_CHANCE = {battle:0.10, elite:0.30, boss:0.50};   // 카드 보상의 희귀 확률
 const PRICE = {common:50, rare:120, relicMin:150, relicMax:250, remove:75, removeStep:25};
-const INN_HEAL = 0.30;         // 주막 휴식 회복 비율
+const INN_MAXHP = 6;           // 주막 휴식: 최대 생명력 증가량 (야행 3 이상은 4)
 
 /* ---------------------------------------------------------------
    1. 유틸리티 · 시드 난수 (mulberry32)
@@ -1101,8 +1100,8 @@ const RELICS = {
     onPickup:[{type:'gold', value:100}]},
   daechu:{name:'대추나무 방망이', tier:'common', art:'r_daechu', desc:'첫 턴에 쓰는 공격 카드의 피해 +3.',
     mods:{firstTurnAttack:3}},
-  deungjan:{name:'등잔', tier:'common', art:'r_lamp', desc:'주막에서 쉴 때 회복량 +10%.',
-    mods:{innHeal:0.1}},
+  deungjan:{name:'등잔', tier:'common', art:'r_lamp', desc:'주막에서 쉴 때 최대 생명력 추가 +3.',
+    mods:{innHeal:3}},
   yeouguseul:{name:'여우 구슬', tier:'rare', art:'r_orb', desc:'홀림 걸린 적을 처치하면 생명력 3 회복.',
     triggers:[{on:'enemyDeath', targetStatus:'charm', effects:[{type:'heal', value:3}]}]},
   daenggi:{name:'원귀의 댕기', tier:'rare', art:'r_ribbon', desc:'원한이 20 이상이 되면 자동으로 원한 폭발(원한 ×2 피해).',
@@ -1118,8 +1117,8 @@ const RELICS = {
     triggers:[{on:'battleStart', effects:[{type:'draw', value:1}]}]},
   hobaljop:{name:'호랑이 발톱', tier:'common', art:'r_claw', desc:'전투 시작 시 요기 1.',
     triggers:[{on:'battleStart', effects:[{type:'strength', value:1, target:'player'}]}]},
-  silttarae:{name:'삼신할미 실타래', tier:'common', art:'r_thread', desc:'전투에서 이기면 생명력 5 회복.',
-    triggers:[{on:'battleWin', effects:[{type:'heal', value:5}]}]},
+  silttarae:{name:'삼신할미 실타래', tier:'common', art:'r_thread', desc:'전투에서 이기면 최대 생명력 +1.',
+    triggers:[{on:'battleWin', effects:[{type:'gainMaxHp', value:1}]}]},
   haetaebangul:{name:'해태 방울', tier:'common', art:'r_bell', desc:'요괴를 소환할 때마다 방어 3.',
     triggers:[{on:'summon', effects:[{type:'block', value:3, target:'player'}]}]},
   jangdok:{name:'장독대 정화수', tier:'common', art:'r_jar', desc:'매 턴 시작 시 내 요괴 체력 2 회복.',
@@ -1139,8 +1138,8 @@ const RELICS = {
     triggers:[{on:'battleStart', effects:[{type:'summon', spirit:'kkoma'}]}]},
   horibyeong:{name:'용궁 호리병', tier:'rare', art:'r_gourd', desc:'전투 시작 시 모든 적에게 젖음 2.',
     triggers:[{on:'battleStart', effects:[{type:'wet', value:2, target:'allEnemies'}]}]},
-  hahoetal:{name:'하회탈', tier:'rare', art:'r_hahoe', desc:'전투 시작 시 모든 적에게 홀림 1.',
-    triggers:[{on:'battleStart', effects:[{type:'charm', value:1, target:'allEnemies'}]}]},
+  hahoetal:{name:'하회탈', tier:'rare', art:'r_hahoe', desc:'전투 시작 시 모든 적에게 홀림 2.',
+    triggers:[{on:'battleStart', effects:[{type:'charm', value:2, target:'allEnemies'}]}]},
   ppyeopiri:{name:'원귀의 뼈피리', tier:'rare', art:'r_bone', desc:'내 요괴가 쓰러질 때마다 원한 3.',
     triggers:[{on:'spiritDeath', effects:[{type:'gainGrudge', value:3}]}]},
   sinmyeongbuk:{name:'신명 북', tier:'rare', art:'r_sbuk', desc:'매 턴 처음 쓰는 카드가 한 번 더 발동한다(되울림 1).',
@@ -1190,7 +1189,7 @@ const EVENTS = {
     choices:[
       {label:'엽전 40냥을 낸다', desc:'카드 1장을 다른 계열의 무작위 카드로 바꾼다', req:{gold:40}, effects:[{type:'gold', value:-40},{type:'transformCard'}],
         result:'무당이 카드 위에 소금을 뿌리고 방울을 흔들자, 그림이 스르르 바뀌었다.'},
-      {label:'굿 구경만 한다', desc:'생명력 5 회복', effects:[{type:'healRun', value:5}], result:'신명 나는 장단에 어깨가 들썩였다. 기운이 조금 돌아왔다.'}]},
+      {label:'굿 구경만 한다', desc:'최대 생명력 +2', effects:[{type:'gainMaxHp', value:2}], result:'신명 나는 장단에 어깨가 들썩였다. 기운이 조금 돌아왔다.'}]},
   well:{title:'우물 속 목소리', art:'ev_well', acts:[1,2,3],
     text:'오래된 우물 속에서 젖은 머리채가 올라온다.\n"심심해… 뭐라도 하나 던져 줘…"',
     choices:[
@@ -1201,7 +1200,7 @@ const EVENTS = {
   wish:{title:'장승 앞 소원', art:'ev_wish', acts:[1,2],
     text:'마을 어귀의 늙은 장승이 눈을 끔뻑인다.\n"오늘 밤은 요괴도 소원 하나쯤은 빌어도 되지."',
     choices:[
-      {label:'"오래오래 살게 해 주시오"', desc:'최대 생명력 +6 · 생명력 6 회복', effects:[{type:'gainMaxHp', value:6},{type:'healRun', value:6}], result:'장승이 껄껄 웃자 등줄기에 따뜻한 기운이 흘렀다.'},
+      {label:'"오래오래 살게 해 주시오"', desc:'최대 생명력 +6', effects:[{type:'gainMaxHp', value:6}], result:'장승이 껄껄 웃자 등줄기에 따뜻한 기운이 흘렀다.'},
       {label:'"부자 되게 해 주시오"', desc:'엽전 70 · 저주 「부정」 1장', effects:[{type:'gold', value:70},{type:'addCurse', id:'bujeong', value:1}], result:'엽전이 쏟아졌다. 장승의 눈빛이 조금 서늘해졌다.'},
       {label:'"더 강해지게 해 주시오"', desc:'카드 1장 강화', effects:[{type:'upgradeCard'}], result:'"욕심 없는 놈이로군." 장승이 손끝에 힘을 실어 주었다.'}]},
   seonbi:{title:'과거 보러 가는 선비', art:'ev_seonbi', acts:[2],
@@ -1223,14 +1222,14 @@ const EVENTS = {
   wedding:{title:'달밤 혼례 행렬', art:'ev_wedding', acts:[2,3],
     text:'달빛 아래 가마 하나가 지나간다. 청사초롱을 든 하인들 뒤로 신랑이 말을 타고 간다.\n요괴 행렬과 혼례 행렬이 좁은 길에서 마주쳤다.',
     choices:[
-      {label:'길을 비켜 주고 축하한다', desc:'생명력 15 회복', effects:[{type:'healRun', value:15}], result:'신부가 가마 문을 살짝 열고 떡 한 조각을 건넸다. 달고 따뜻했다.'},
+      {label:'길을 비켜 주고 축하한다', desc:'최대 생명력 +4', effects:[{type:'gainMaxHp', value:4}], result:'신부가 가마 문을 살짝 열고 떡 한 조각을 건넸다. 달고 따뜻했다.'},
       {label:'초롱불을 하나 얻는다', desc:'홀림 계열 카드 1장', effects:[{type:'addCard', family:'charm'}], result:'초롱 속 불빛이 여우 꼬리처럼 일렁였다.'},
       {label:'가마를 턴다', desc:'엽전 80 · 저주 「부정」 1장', effects:[{type:'gold', value:80},{type:'addCurse', id:'bujeong', value:1}], result:'혼수 엽전을 챙겼다. 잔칫날 부정 탄 기분이 영 찜찜하다.'}]},
   drunk:{title:'술 취한 나그네', art:'ev_drunk', acts:[1,2],
     text:'길가에 술 취한 나그네가 대자로 누워 노래를 부른다.\n"어이, 거기 키 큰 양반! 한잔 받으시게!"',
     choices:[
       {label:'왕방울 눈을 부릅떠 놀래 준다', desc:'엽전 35', effects:[{type:'gold', value:35}], result:'나그네는 "으아아 도깨비다!" 하고 달아나며 엽전을 흘렸다.'},
-      {label:'술 한잔 같이 한다', desc:'생명력 12 회복', effects:[{type:'healRun', value:12}], result:'막걸리 맛은 백 년 전과 똑같았다. 기운이 돈다.'},
+      {label:'술 한잔 같이 한다', desc:'최대 생명력 +3', effects:[{type:'gainMaxHp', value:3}], result:'막걸리 맛은 백 년 전과 똑같았다. 기운이 돈다.'},
       {label:'길동무 요괴를 붙여 보낸다', desc:'무작위 요괴 카드 1장', effects:[{type:'addCard', cardType:'spirit'}], result:'나그네 그림자 속에 숨어 있던 작은 요괴가 행렬에 합류했다.'}]},
   fortune:{title:'장터 점쟁이', art:'ev_fortune', acts:[2,3],
     text:'파장한 장터에 점쟁이 하나가 아직 자리를 지키고 있다.\n"허허, 요괴 손님이라. 복채만 내시면 앞날을 봐 드리지."',
@@ -1241,7 +1240,7 @@ const EVENTS = {
   sansin:{title:'산신령의 시험', art:'ev_sansin', acts:[1,2,3],
     text:'호랑이를 탄 노인이 엽전 꾸러미 두 개를 내민다.\n"이 금 꾸러미가 네 것이냐, 이 은 꾸러미가 네 것이냐?"\n…요괴는 원래 엽전을 떨어뜨린 적이 없다.',
     choices:[
-      {label:'"둘 다 제 것이 아닙니다."', desc:'최대 생명력 +6 · 생명력 6 회복', effects:[{type:'gainMaxHp', value:6},{type:'healRun', value:6}], result:'"요괴 중에도 정직한 놈이 있구나!" 산신령이 껄껄 웃으며 기운을 불어넣었다.'},
+      {label:'"둘 다 제 것이 아닙니다."', desc:'최대 생명력 +6', effects:[{type:'gainMaxHp', value:6}], result:'"요괴 중에도 정직한 놈이 있구나!" 산신령이 껄껄 웃으며 기운을 불어넣었다.'},
       {label:'"금 꾸러미가 제 것입니다!"', desc:'엽전 100 · 저주 「부정」 1장', effects:[{type:'gold', value:100},{type:'addCurse', id:'bujeong', value:1}], result:'산신령의 눈이 가늘어졌다. 엽전은 받았지만 무언가 찜찜한 것이 붙었다.'}]},
   checkpoint:{title:'봉요사 검문소', art:'ev_checkpoint', acts:[2,3],
     text:'골목 끝에 봉요사의 검문소가 있다.\n졸고 있는 포졸 하나, 그리고 압수한 요괴 부적이 든 상자.',
@@ -1264,25 +1263,25 @@ const LEADERS = {
     deck:STARTER_DECK, unlock:null,
     ability:'전투 시작 시 「도깨비불」 1장을 손에 추가한다 (그 전투에만 쓰는 카드).',
     desc:'씨름과 불장난을 좋아하는 도깨비 대장. 방망이 한 자루로 백귀를 이끈다.'},
-  yeohwi:{name:'여휘', title:'구미호', family:'charm', hp:70, art:'L_yeohwi', relic:'yeoubangul',
+  yeohwi:{name:'여휘', title:'구미호', family:'charm', hp:80, art:'L_yeohwi', relic:'yeoubangul',
     deck:['bangmang','bangmang','bangmang','bangmang','bawi','bawi','bawi','bawi','yeounun','yeounun'],
     unlock:{key:'yeohwi', text:'방망이로 1막을 돌파하면 합류'},
-    ability:'홀림 걸린 적을 처치하면 꼬리 +1 (런 동안 유지). 꼬리가 9개가 되면 변신 — 그 전투 동안 모든 카드 비용 -1, 꼬리는 다시 하나부터.',
+    ability:'홀림 걸린 적을 처치하면 꼬리 +1 (런 동안 유지, 최대 9). 꼬리 9개로 정예·우두머리와 싸우면 변신 — 그 전투 동안 모든 카드 비용 -1, 꼬리는 다시 하나부터.',
     desc:'천 년을 산 여우. 사람의 눈을 홀려 길을 잃게 하고, 그 틈에 간을 노린다.'},
-  heenuleum:{name:'흰울음', title:'장산범', family:'sound', hp:80, art:'L_heenuleum', relic:'heengalgi',
+  heenuleum:{name:'흰울음', title:'장산범', family:'sound', hp:72, art:'L_heenuleum', relic:'heengalgi',
     deck:['bangmang','bangmang','bangmang','bangmang','bawi','bawi','bawi','bawi','heungnae','heungnae'],
     unlock:{key:'heenuleum', text:'아무 대장으로 2막을 돌파하면 합류'},
-    ability:'매 턴 처음 쓰는 술법 카드를 1장 복제해 손에 추가한다.',
+    ability:'매 턴 처음 쓰는 술법 카드를 1장 복제해 손에 추가한다. (이 복제본에는 메아리의 비용 0이 적용되지 않는다)',
     desc:'흰 털의 산짐승. 들은 목소리를 그대로 흉내 내어 사람을 산속으로 꾀어낸다.'},
 };
 /* 대장 시작 보물 (보상·장터에는 나오지 않음) */
 Object.assign(RELICS, {
   bulssijumeoni:{name:'불씨 주머니', tier:'starter', art:'r_firepouch', desc:'방망이의 시작 보물. 전투에서 이기면 엽전 +8.',
     triggers:[{on:'battleWin', effects:[{type:'gold', value:8}]}]},
-  yeoubangul:{name:'여우 방울', tier:'starter', art:'r_foxbell', desc:'여휘의 시작 보물. 전투 시작 시 무작위 적에게 홀림 2.',
-    triggers:[{on:'battleStart', effects:[{type:'charm', value:2, target:'randomEnemy'}]}]},
-  heengalgi:{name:'흰 갈기', tier:'starter', art:'r_mane', desc:'흰울음의 시작 보물. 전투에서 이기면 생명력 3 회복.',
-    triggers:[{on:'battleWin', effects:[{type:'heal', value:3}]}]},
+  yeoubangul:{name:'여우 방울', tier:'starter', art:'r_foxbell', desc:'여휘의 시작 보물. 전투 시작 시 모든 적에게 홀림 2.',
+    triggers:[{on:'battleStart', effects:[{type:'charm', value:2, target:'allEnemies'}]}]},
+  heengalgi:{name:'흰 갈기', tier:'starter', art:'r_mane', desc:'흰울음의 시작 보물. 전투 시작 시 방어 4.',
+    triggers:[{on:'battleStart', effects:[{type:'block', value:4, target:'player'}]}]},
 });
 RELIC_TIER_NAME.starter = '시작';
 
@@ -1312,7 +1311,7 @@ const ASCENSION = [
   {lv:0,  desc:'기본 야행'},
   {lv:1,  desc:'정예 체력 +10%'},
   {lv:2,  desc:'시작 엽전 0'},
-  {lv:3,  desc:'주막 회복 30% → 20%'},
+  {lv:3,  desc:'주막 휴식 최대 생명력 +6 → +4'},
   {lv:4,  desc:'일반 적도 낮은 확률(15%)로 손패를 봉인'},
   {lv:5,  desc:'시작 덱에 저주 「부정」 1장'},
   {lv:6,  desc:'보스 체력 +15%'},
@@ -2733,7 +2732,7 @@ function canUpgrade(inst){ const d = CARDS[inst.id]; return !!(d && !inst.up && 
 function cardCost(inst){
   const d = getCardDef(inst);
   let c = d.cost;
-  if(inst.copy && hasSyn('sound')) c = 0;
+  if(inst.copy && !inst.heen && hasSyn('sound')) c = 0;   // 흰울음 능력 복제본은 메아리 제외
   const b = G.battle;
   if(b && b.sealed.has(inst.uid) && relicMod('sealedPlayable')) c += 1;
   c += LeaderAbility.costMod(b);   // 여휘 변신: 비용 -1
@@ -4036,6 +4035,8 @@ async function finishBattle(){
   const win = b.over === 'win';
   if(win) await emit('battleWin', {}, true);
   run.hp = Math.max(0, Math.min(b.player.hp, run.maxHp));
+  let restored = 0;
+  if(win && run.mode === 'run'){ restored = run.maxHp - run.hp; run.hp = run.maxHp; run.lastRestored = restored; }   // 전투 승리: 생명력 완전 회복
   if(win) G.meta.stats.wins++; else G.meta.stats.losses++;
   saveMeta();
   Sound.play(win ? 'victory' : 'defeat');
@@ -4401,7 +4402,7 @@ function showRules(){
     <div class="info-row"><div><b style="color:#ffd9a0">시너지</b><p>필드 요괴 구성에 따라 발동한다. 발동 중인 칸은 계열 색으로 빛나고, 위쪽에 이름 배지가 뜬다.</p></div></div>
     ${synergyRowsHtml(false)}
     <div class="info-row"><div><b>승패</b><p>적을 모두 쓰러뜨리면 승리, 대장의 생명력이 0이 되면 패배. 런에서는 생명력이 전투 사이에 이어진다.</p></div></div>
-    <div class="info-row"><div><b>지도와 막</b><p>막마다 15층. 아래에서 위로 올라간다. 15층의 우두머리를 쓰러뜨리면 생명력 최대치의 25%를 회복하고 보스 보물 3개 중 하나를 골라 다음 막으로 간다. 1막 산골 고갯길(대장승) → 2막 한양 도성(해태 석상) → 3막 봉요사 본진(천명).</p></div></div>
+    <div class="info-row"><div><b>지도와 막</b><p>막마다 15층. 아래에서 위로 올라간다. 전투에서 이길 때마다 생명력이 모두 회복된다. 15층의 우두머리를 쓰러뜨리면 보스 보물 3개 중 하나를 골라 다음 막으로 간다. 1막 산골 고갯길(대장승) → 2막 한양 도성(해태 석상) → 3막 봉요사 본진(천명).</p></div></div>
     <div class="info-row"><div><b style="color:#e2552b">해태 석상</b><p>불 계열 피해를 받을 때마다 「정의의 불」이 쌓이고 그만큼 반격한다. 체력 절반 이하에서 요괴 칸 1칸을 봉쇄하고 더 세게 친다.</p></div></div>
     <div class="info-row"><div><b style="color:#7fbfb2">천명</b><p>1페이즈: 매 턴 손패 2장 봉인 + 공격. 2페이즈(체력 200 이하): 내 요괴 하나를 빼앗아 자기 편으로. 3페이즈(100 이하): 대봉인진 카운트다운 5턴 — 0이 되면 패배.</p></div></div>
     <div class="info-row"><div><b style="color:#c8622a">대장승</b><p>천하대장군과 지하여장군 한 쌍. 하나가 쓰러지면 남은 쪽이 ${REVIVE_TURNS}턴 뒤 짝을 최대 체력 절반으로 되살린다. 같은 턴에 둘 다 쓰러뜨리거나, 카운트다운 안에 남은 쪽을 처치하면 승리.</p></div></div>`;
@@ -4812,9 +4813,10 @@ ACTIONS.innRest = () => {
   const run = G.run;
   if(run.nodeState.done) return;
   if(relicMod('noRest')){ toast('산군 호랑이 가죽이 들썩여 도무지 잠이 오지 않는다'); Sound.play('error'); return; }
-  const got = healRun(innHealAmount());
+  const gain = innMaxHpGain();
+  run.maxHp += gain; run.hp = run.maxHp;
   Sound.play('heal');
-  run.nodeState = {done:true, msg:`막걸리 한 사발에 곤히 잤다.\n생명력 ${got} 회복.`};
+  run.nodeState = {done:true, msg:`막걸리 한 사발에 곤히 잤다.\n최대 생명력 +${gain}, 생명력이 가득 찼다.`};
   saveRun(); render();
 };
 ACTIONS.innTrain = async () => {
@@ -5263,9 +5265,9 @@ function makeReward(kind, nodeId){
   else if(kind === 'boss'){
     r.gold = rint(rng, 60, 80); r.cards = rollCardChoices(rng, RARE_CHANCE.boss, n);
     r.bossRelics = shuffle(rng, relicPool('boss')).slice(0, 3); r.relicTaken = !r.bossRelics.length;
-    r.healed = healRun(Math.ceil(run.maxHp * BOSS_HEAL));   // 막 보스 처치: 최대 생명력의 25% 회복
   }
   else{ r.gold = rint(rng, 10, 20); r.cards = rollCardChoices(rng, RARE_CHANCE.battle, n); }
+  r.healed = run.lastRestored || 0;   // 전투 승리 후 완전 회복량 (표시용)
   if(!r.relic && kind === 'elite'){ r.relicTaken = true; }
   r.cards.forEach(id => codexSee('cards', id));
   return r;
@@ -5412,7 +5414,7 @@ function afterMapRender(){
 SCREENS.reward = () => {
   const r = G.run.rewardState;
   const items = [];
-  if(r.healed !== undefined) items.push(`<div class="reward-item" style="cursor:default">${art('heart')}<div>숨을 돌렸다 <small>최대 생명력의 25% — 생명력 ${r.healed} 회복</small></div></div>`);
+  if(r.healed) items.push(`<div class="reward-item" style="cursor:default">${art('heart')}<div>숨을 돌렸다 <small>생명력 모두 회복 (+${r.healed})</small></div></div>`);
   items.push(`<button class="reward-item ${r.goldTaken ? 'taken' : ''}" data-action="takeGold">${coinSvg()}<div>엽전 ${r.gold}냥</div></button>`);
   if(r.relic) items.push(`<button class="reward-item ${r.relicTaken ? 'taken' : ''}" data-action="takeRelic">${art(RELICS[r.relic].art)}<div>${RELICS[r.relic].name} <small>${RELIC_TIER_NAME[RELICS[r.relic].tier]} 보물 · ${RELICS[r.relic].desc}</small></div></button>`);
   let boss = '';
@@ -5498,11 +5500,9 @@ SCREENS.ending = () => {
     <div class="panel-foot"><button class="btn primary" data-action="endingNext">${last ? '동이 튼다' : '다음'}</button></div>
   </div>`;
 };
-function innHealRate(){ return (asc() >= 3 ? 0.2 : INN_HEAL) + relicMod('innHeal'); }   // 야행 3: 20%
-function innHealAmount(){ return Math.ceil(G.run.maxHp * innHealRate()); }
+function innMaxHpGain(){ return (asc() >= 3 ? INN_MAXHP - 2 : INN_MAXHP) + relicMod('innHeal'); }   // 야행 3: +4
 SCREENS.inn = () => {
   const run = G.run, s = run.nodeState || {};
-  const pct = Math.round(innHealRate() * 100);
   return `<div class="screen">
     <div class="bgart">${actBackground()}</div>
     ${topbarHtml()}
@@ -5511,7 +5511,7 @@ SCREENS.inn = () => {
       <div class="npc"><div class="npc-art">${art('innkeeper')}</div><p>"오늘 같은 밤엔 다들 바쁘구먼. 쉬어 가든 몸을 풀든, 한 가지만 하시게."</p></div>
       ${s.done ? `<div class="story" style="margin-top:12px">${s.msg}</div>${s.cardId ? `<div style="margin-top:6px">${cardHtml(getCardDef({id:s.cardId, up:true}), {cls:'md'})}</div>` : ''}` : `
       <div class="inn-opts">
-        <button class="inn-opt ${relicMod('noRest') ? 'disabled' : ''}" data-action="innRest">${art('rest')}<b>쉬어 간다</b><small>${relicMod('noRest') ? '호랑이 가죽 때문에 쉴 수 없다' : `생명력 ${pct}% (${innHealAmount()}) 회복`}</small></button>
+        <button class="inn-opt ${relicMod('noRest') ? 'disabled' : ''}" data-action="innRest">${art('rest')}<b>쉬어 간다</b><small>${relicMod('noRest') ? '호랑이 가죽 때문에 쉴 수 없다' : `최대 생명력 +${innMaxHpGain()} · 모두 회복`}</small></button>
         <button class="inn-opt ${run.deck.some(canUpgrade) ? '' : 'disabled'}" data-action="innTrain">${art('train')}<b>수련한다</b><small>카드 1장 강화</small></button>
       </div>`}
     </div>
@@ -5579,20 +5579,30 @@ const LeaderAbility = {
       renderBattle();
       await sleep(300);
     }
+    if(lid === 'yeohwi') await this.tryTransform(b);
+  },
+  /* 여휘 변신: 꼬리 9개가 모인 상태로 정예·우두머리 전투에 들어서면 (또는 그 전투 중 9개가 되면) 변신.
+     일반 전투에서 꼬리가 낭비되지 않도록 꼬리는 9개에서 멈추고 큰 싸움을 기다린다. */
+  isBigFight(b){ return ['elite', 'boss', 'boss2', 'archive'].includes(b.kind); },
+  async tryTransform(b){
+    if((G.run.tails || 0) < 9 || b.transformed || !this.isBigFight(b) || b.over) return;
+    b.transformed = true;
+    G.run.tails = 0;
+    showBanner('구미호 변신');
+    fxFlash();
+    toast('아홉 꼬리가 펼쳐졌다 — 이번 전투 동안 모든 카드 비용 -1');
+    renderBattle();
+    await sleep(300);
   },
   /* 적이 쓰러졌을 때 (홀림 상태는 시체에 남아 있다) */
   async enemyDeath(b, u){
     if(G.run.leader !== 'yeohwi' || st(u, 'charm') <= 0) return;
+    if((G.run.tails || 0) >= 9) return;
     G.run.tails = (G.run.tails || 0) + 1;
     fxText('P', '꼬리 ' + G.run.tails, 'charm');
     Sound.play('charm');
-    if(G.run.tails >= 9 && !b.transformed){
-      b.transformed = true;
-      G.run.tails = 0;
-      showBanner('구미호 변신');
-      fxFlash();
-      toast('아홉 꼬리가 펼쳐졌다 — 이번 전투 동안 모든 카드 비용 -1');
-    }
+    if(G.run.tails >= 9 && !this.isBigFight(b)) toast('아홉 꼬리가 모였다 — 다음 정예·우두머리 전투에서 변신한다');
+    await this.tryTransform(b);
     renderBattle();
   },
   /* 카드 사용 후 */
@@ -5600,7 +5610,7 @@ const LeaderAbility = {
     if(G.run.leader !== 'heenuleum' || def.type !== 'skill' || inst.copy || b.heenTurn === b.turn || b.over) return;
     b.heenTurn = b.turn;
     if(b.hand.length >= MAX_HAND) return;
-    const c = {uid:'cp' + (++b.copyN), id:inst.id, up:inst.up, copy:true};
+    const c = {uid:'cp' + (++b.copyN), id:inst.id, up:inst.up, copy:true, heen:true};
     b.hand.push(c); b.newCards.add(c.uid);
     fxText('P', '흉내!', 'st');
     Sound.play('charm');
