@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3a8c"/>
+      <stop offset="0.45" stop-color="#c06c9e"/>
+      <stop offset="0.75" stop-color="#ffb37a"/>
+      <stop offset="1" stop-color="#ffe2a8"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbe8"/>
+      <stop offset="0.25" stop-color="#ffe9a0" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#ffb37a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="m1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b77fb0"/><stop offset="1" stop-color="#e8a99a"/></linearGradient>
+    <linearGradient id="m2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4f8f"/><stop offset="1" stop-color="#a8688e"/></linearGradient>
+    <linearGradient id="m3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3f2d63"/><stop offset="1" stop-color="#5a3a6e"/></linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd16a"/><stop offset="1" stop-color="#4e9a4a"/></linearGradient>
+    <linearGradient id="rock" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a5a6e"/><stop offset="1" stop-color="#3d2848"/></linearGradient>
+    <linearGradient id="fall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fbff"/><stop offset="1" stop-color="#e6fbff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1c45"/><stop offset="1" stop-color="#160e28"/></linearGradient>
+    <filter id="haze"><feGaussianBlur stdDeviation="2"/></filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <circle cx="1180" cy="640" r="380" fill="url(#sun)"/>
+  <circle cx="1180" cy="640" r="90" fill="#fff6d6"/>
+
+  <!-- clouds -->
+  <g fill="#ffe6d6" opacity=".55">
+    <ellipse cx="300" cy="260" rx="220" ry="34"/><ellipse cx="420" cy="235" rx="140" ry="30"/>
+    <ellipse cx="1550" cy="200" rx="260" ry="36"/><ellipse cx="1680" cy="175" rx="150" ry="28"/>
+    <ellipse cx="900" cy="380" rx="200" ry="22" opacity=".7"/>
+  </g>
+
+  <!-- far mountains (layer 1) -->
+  <path fill="url(#m1)" filter="url(#haze)" d="M0 720 L160 560 L300 640 L460 500 L640 650 L820 540 L980 660 L1150 560 L1340 670 L1520 520 L1700 640 L1920 560 L1920 1080 L0 1080Z"/>
+  <!-- mid mountains (layer 2) -->
+  <path fill="url(#m2)" d="M0 800 L220 640 L380 740 L560 610 L760 780 L940 680 L1120 790 L1320 660 L1500 780 L1700 650 L1920 760 L1920 1080 L0 1080Z"/>
+  <path fill="#d9a6c4" opacity=".35" d="M560 610 L600 650 L580 660 L540 640Z M1320 660 L1360 700 L1335 708 L1300 690Z M220 640 L255 670 L235 678 L205 662Z"/>
+
+  <!-- floating island big -->
+  <g transform="translate(560 330)">
+    <path d="M-40 -10 Q-210 0 -240 10 L-120 160 L-60 290 L-10 180 L40 330 L90 170 L160 230 L230 10 Q140 -5 40 -10Z" fill="url(#rock)"/>
+    <path d="M-240 10 Q0 -40 230 10 Q0 30 -240 10Z" fill="url(#grass)"/>
+    <path d="M-250 12 Q0 -50 240 12" stroke="#b6ec8a" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <!-- waterfall -->
+    <rect x="150" y="10" width="34" height="300" fill="url(#fall)" opacity=".8"/>
+    <!-- trees -->
+    <g>
+      <rect x="-128" y="-60" width="12" height="50" fill="#5a3a2a"/><circle cx="-122" cy="-80" r="40" fill="#5fb85a"/><circle cx="-140" cy="-60" r="26" fill="#4f9f4c"/>
+      <rect x="-30" y="-80" width="14" height="70" fill="#5a3a2a"/><circle cx="-23" cy="-110" r="52" fill="#6cc463"/><circle cx="-2" cy="-88" r="30" fill="#55a650"/>
+      <rect x="70" y="-50" width="10" height="40" fill="#5a3a2a"/><circle cx="75" cy="-66" r="30" fill="#5fb85a"/>
+    </g>
+  </g>
+
+  <!-- floating island small -->
+  <g transform="translate(1500 380)">
+    <path d="M-120 0 L-60 110 L-20 170 L20 90 L70 130 L120 0Z" fill="url(#rock)"/>
+    <path d="M-125 2 Q0 -30 125 2 Q0 18 -125 2Z" fill="url(#grass)"/>
+    <!-- tiny ruin -->
+    <rect x="-40" y="-70" width="18" height="70" fill="#e8d8c8"/><rect x="20" y="-70" width="18" height="70" fill="#e8d8c8"/>
+    <rect x="-48" y="-82" width="94" height="16" fill="#f3e6d6"/>
+  </g>
+  <g transform="translate(1180 250)">
+    <path d="M-55 0 L-20 60 L10 90 L30 45 L55 0Z" fill="url(#rock)"/>
+    <path d="M-58 2 Q0 -16 58 2 Q0 10 -58 2Z" fill="url(#grass)"/>
+  </g>
+
+  <!-- birds -->
+  <g stroke="#3a2450" stroke-width="4" fill="none" stroke-linecap="round">
+    <path d="M900 300 q12 -12 24 0 q12 -12 24 0"/><path d="M960 270 q9 -9 18 0 q9 -9 18 0"/><path d="M1010 320 q8 -8 16 0 q8 -8 16 0"/>
+  </g>
+
+  <!-- near hills (layer 3) -->
+  <path fill="url(#m3)" d="M0 900 Q240 800 480 870 T960 860 T1440 880 T1920 840 L1920 1080 L0 1080Z"/>
+  <!-- foreground ground strip (gameplay floor) -->
+  <path fill="url(#fg)" d="M0 980 Q480 950 960 975 T1920 965 L1920 1080 L0 1080Z"/>
+  <g fill="#2a1c45">
+    <path d="M80 985 l10 -40 10 40Z M120 982 l8 -28 8 28Z M1700 970 l12 -46 12 46Z M1745 972 l8 -30 8 30Z"/>
+  </g>
+</svg>

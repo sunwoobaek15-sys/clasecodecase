@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a1c71"/>
+      <stop offset="0.55" stop-color="#5b2a9e"/>
+      <stop offset="1" stop-color="#1b0f3d"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.45" r="0.5">
+      <stop offset="0" stop-color="#7cf3ff" stop-opacity="0.65"/>
+      <stop offset="0.5" stop-color="#7cf3ff" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#7cf3ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bladeL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8fdff"/>
+      <stop offset="1" stop-color="#7ee0f5"/>
+    </linearGradient>
+    <linearGradient id="bladeR" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2fa9d6"/>
+      <stop offset="1" stop-color="#1b5fa8"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff2a8"/>
+      <stop offset="0.5" stop-color="#f5b52e"/>
+      <stop offset="1" stop-color="#a8641a"/>
+    </linearGradient>
+    <linearGradient id="grip" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6b2f1f"/>
+      <stop offset="0.5" stop-color="#9c4a2c"/>
+      <stop offset="1" stop-color="#4a1f14"/>
+    </linearGradient>
+    <radialGradient id="gem" cx="0.35" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#ffd1e8"/>
+      <stop offset="0.4" stop-color="#ff3d8b"/>
+      <stop offset="1" stop-color="#8a0b45"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="14"/></filter>
+    <clipPath id="tile"><rect x="64" y="64" width="896" height="896" rx="200"/></clipPath>
+  </defs>
+
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#bg)"/>
+  <g clip-path="url(#tile)">
+    <circle cx="512" cy="460" r="460" fill="url(#halo)"/>
+    <g stroke="#b388ff" stroke-opacity=".18" stroke-width="3">
+      <path d="M512 100 L512 920 M100 512 L920 512 M220 220 L804 804 M804 220 L220 804"/>
+    </g>
+    <g fill="#e0f7ff">
+      <path d="M250 300 l10 26 26 10 -26 10 -10 26 -10 -26 -26 -10 26 -10z"/>
+      <path d="M780 360 l7 18 18 7 -18 7 -7 18 -7 -18 -18 -7 18 -7z"/>
+      <path d="M300 740 l9 22 22 9 -22 9 -9 22 -9 -22 -22 -9 22 -9z" opacity=".8"/>
+    </g>
+  </g>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="none" stroke="#ffffff" stroke-opacity=".12" stroke-width="6"/>
+
+  <!-- sword, diagonal -->
+  <g transform="rotate(-40 512 512)">
+    <!-- glow -->
+    <path d="M512 150 L570 260 L570 620 L454 620 L454 260Z" fill="#7cf3ff" opacity=".55" filter="url(#soft)"/>
+    <!-- blade -->
+    <path d="M512 150 L566 262 L566 620 L512 640Z" fill="url(#bladeR)"/>
+    <path d="M512 150 L458 262 L458 620 L512 640Z" fill="url(#bladeL)"/>
+    <path d="M512 175 L512 615" stroke="#ffffff" stroke-width="6" opacity=".8"/>
+    <path d="M478 290 L478 590" stroke="#ffffff" stroke-width="4" opacity=".5"/>
+    <!-- crossguard -->
+    <path d="M360 630 Q512 590 664 630 L680 660 Q512 640 344 660Z" fill="url(#gold)" stroke="#6b3a10" stroke-width="5"/>
+    <circle cx="350" cy="650" r="20" fill="url(#gold)" stroke="#6b3a10" stroke-width="5"/>
+    <circle cx="674" cy="650" r="20" fill="url(#gold)" stroke="#6b3a10" stroke-width="5"/>
+    <circle cx="512" cy="636" r="30" fill="url(#gem)" stroke="#6b3a10" stroke-width="6"/>
+    <circle cx="502" cy="626" r="8" fill="#fff" opacity=".85"/>
+    <!-- grip -->
+    <rect x="486" y="665" width="52" height="150" rx="14" fill="url(#grip)" stroke="#2e120a" stroke-width="5"/>
+    <g stroke="#2e120a" stroke-width="5" opacity=".7">
+      <path d="M488 690 L536 710 M488 725 L536 745 M488 760 L536 780"/>
+    </g>
+    <!-- pommel -->
+    <circle cx="512" cy="840" r="34" fill="url(#gold)" stroke="#6b3a10" stroke-width="6"/>
+    <circle cx="500" cy="828" r="9" fill="#fff8d0" opacity=".9"/>
+  </g>
+</svg>

@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1030"/>
+      <stop offset="0.55" stop-color="#1c2a5e"/>
+      <stop offset="1" stop-color="#2a1a3a"/>
+    </linearGradient>
+    <radialGradient id="fireGlow" cx="560" cy="590" r="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffb347" stop-opacity="0.85"/>
+      <stop offset="0.35" stop-color="#ff6a1a" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ff6a1a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="moon" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbe6"/>
+      <stop offset="0.7" stop-color="#ffe9a8"/>
+      <stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ff3d00"/>
+      <stop offset="0.5" stop-color="#ff9100"/>
+      <stop offset="1" stop-color="#ffe082"/>
+    </linearGradient>
+    <linearGradient id="flameIn" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffd54f"/>
+      <stop offset="1" stop-color="#fffde7"/>
+    </linearGradient>
+    <radialGradient id="eyes" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ff1744"/>
+      <stop offset="1" stop-color="#ff1744" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffb347"/>
+      <stop offset="1" stop-color="#ffb347" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+    <filter id="blur3"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#sky)"/>
+  <!-- stars -->
+  <g fill="#ffffff">
+    <circle cx="90" cy="60" r="1.6" opacity=".8"/><circle cx="210" cy="120" r="1.2" opacity=".6"/>
+    <circle cx="340" cy="40" r="1.8" opacity=".9"/><circle cx="520" cy="90" r="1.1" opacity=".5"/>
+    <circle cx="640" cy="30" r="1.5" opacity=".8"/><circle cx="760" cy="150" r="1.2" opacity=".6"/>
+    <circle cx="880" cy="70" r="1.7" opacity=".9"/><circle cx="1010" cy="40" r="1.2" opacity=".6"/>
+    <circle cx="1130" cy="110" r="1.6" opacity=".8"/><circle cx="1220" cy="50" r="1.1" opacity=".5"/>
+    <circle cx="430" cy="160" r="1.1" opacity=".5"/><circle cx="1060" cy="200" r="1.3" opacity=".6"/>
+  </g>
+  <!-- moon -->
+  <circle cx="300" cy="150" r="110" fill="url(#moon)" opacity=".35"/>
+  <circle cx="300" cy="150" r="58" fill="#fff4cc"/>
+  <circle cx="282" cy="138" r="10" fill="#ead9a0" opacity=".7"/>
+  <circle cx="318" cy="168" r="7" fill="#ead9a0" opacity=".6"/>
+
+  <!-- far trees -->
+  <path fill="#141c40" d="M0 470 L40 360 L80 470 L110 330 L150 470 L190 380 L230 470 L270 340 L310 470 L350 390 L390 470 L430 350 L470 470 L520 380 L560 470 L600 340 L640 470 L690 370 L730 470 L780 330 L820 470 L860 380 L900 470 L950 340 L990 470 L1040 370 L1080 470 L1130 330 L1170 470 L1220 380 L1280 470 L1280 720 L0 720Z"/>
+  <!-- near trees -->
+  <path fill="#0a0f26" d="M-20 560 L60 300 L140 560 L190 360 L250 560Z M820 560 L900 280 L980 560 L1020 340 L1090 560 L1140 260 L1230 560 L1260 330 L1320 560Z"/>
+
+  <!-- ground -->
+  <path fill="#0d0b1c" d="M0 560 Q320 520 640 545 T1280 540 L1280 720 L0 720Z"/>
+  <rect width="1280" height="720" fill="url(#fireGlow)"/>
+
+  <!-- glowing eyes in the dark (right side, kept low so title area stays clean) -->
+  <g>
+    <circle cx="1045" cy="470" r="18" fill="url(#eyes)"/><circle cx="1075" cy="470" r="18" fill="url(#eyes)"/>
+    <ellipse cx="1045" cy="470" rx="5" ry="3" fill="#ff8a80"/><ellipse cx="1075" cy="470" rx="5" ry="3" fill="#ff8a80"/>
+    <circle cx="1175" cy="505" r="14" fill="url(#eyes)" opacity=".8"/><circle cx="1199" cy="505" r="14" fill="url(#eyes)" opacity=".8"/>
+    <ellipse cx="1175" cy="505" rx="4" ry="2.5" fill="#ff8a80"/><ellipse cx="1199" cy="505" rx="4" ry="2.5" fill="#ff8a80"/>
+  </g>
+
+  <!-- campfire -->
+  <g transform="translate(560 600)">
+    <ellipse cx="0" cy="18" rx="90" ry="16" fill="#000" opacity=".5"/>
+    <rect x="-80" y="0" width="160" height="22" rx="11" fill="#5d3a1a" transform="rotate(14)"/>
+    <rect x="-80" y="0" width="160" height="22" rx="11" fill="#6d4420" transform="rotate(-14)"/>
+    <g filter="url(#blur3)" opacity=".7"><path d="M-60 0 C-70 -80 -20 -110 0 -190 C20 -110 75 -80 60 0Z" fill="#ff6d00"/></g>
+    <path d="M-55 0 C-65 -70 -25 -100 -5 -175 C5 -130 30 -120 25 -80 C45 -100 50 -130 45 -150 C80 -100 70 -40 55 0Z" fill="url(#flame)"/>
+    <path d="M-28 0 C-35 -45 -10 -65 0 -110 C12 -70 35 -50 28 0Z" fill="url(#flameIn)"/>
+    <g fill="#ffcc80"><circle cx="-30" cy="-210" r="3"/><circle cx="25" cy="-240" r="2.5"/><circle cx="5" cy="-280" r="2"/><circle cx="-50" cy="-260" r="1.8"/></g>
+  </g>
+
+  <!-- survivor character (big, left), lit from the fire on the right side -->
+  <g transform="translate(250 330)">
+    <ellipse cx="40" cy="300" rx="150" ry="22" fill="#000" opacity=".55"/>
+    <!-- backpack -->
+    <rect x="-70" y="40" width="80" height="140" rx="22" fill="#2b2140"/>
+    <rect x="-62" y="60" width="64" height="40" rx="10" fill="#3a2d55"/>
+    <!-- legs -->
+    <path d="M-20 200 L-45 300 L-10 300 L15 215Z" fill="#1d1730"/>
+    <path d="M40 200 L80 300 L115 300 L75 205Z" fill="#241c3a"/>
+    <!-- body / jacket -->
+    <path d="M-30 30 Q40 0 110 35 L120 210 L-35 210Z" fill="#3b2a52"/>
+    <path d="M110 35 L120 210 L80 210 L85 40Z" fill="url(#rim)" opacity=".6"/>
+    <!-- arm holding torch toward fire -->
+    <path d="M95 60 Q170 90 205 70 L215 92 Q160 125 90 105Z" fill="#33254a"/>
+    <path d="M150 90 Q185 92 210 78" stroke="#ff9e40" stroke-width="5" fill="none" opacity=".7"/>
+    <!-- head + hood -->
+    <circle cx="45" cy="-10" r="52" fill="#2e2244"/>
+    <path d="M0 -20 Q45 -80 95 -20 L95 10 Q45 -20 0 10Z" fill="#3b2a52"/>
+    <!-- face, warm lit -->
+    <ellipse cx="60" cy="5" rx="30" ry="34" fill="#e0a77a"/>
+    <path d="M78 -15 Q90 5 80 35" stroke="#ffcc80" stroke-width="5" fill="none" opacity=".8"/>
+    <!-- surprised eyes & mouth -->
+    <circle cx="52" cy="0" r="6" fill="#fff"/><circle cx="72" cy="0" r="6" fill="#fff"/>
+    <circle cx="54" cy="1" r="3" fill="#1a1a1a"/><circle cx="74" cy="1" r="3" fill="#1a1a1a"/>
+    <ellipse cx="64" cy="24" rx="6" ry="8" fill="#5a2a1a"/>
+    <path d="M44 -12 Q51 -20 58 -14 M66 -14 Q73 -20 80 -12" stroke="#3a2416" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- vignette -->
+  <radialGradient id="vig" cx="0.5" cy="0.5" r="0.75">
+    <stop offset="0.6" stop-color="#000" stop-opacity="0"/>
+    <stop offset="1" stop-color="#000" stop-opacity="0.55"/>
+  </radialGradient>
+  <rect width="1280" height="720" fill="url(#vig)"/>
+</svg>
