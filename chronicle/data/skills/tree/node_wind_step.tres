@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SkillNodeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/skill_node_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/dodge.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"node_wind_step"
+display_name = "바람 걸음"
+description = "회피 재사용 대기시간이 줄고 무적 시간이 늘어난다."
+icon = ExtResource("2_icon")
+max_level = 3
+cost = 1
+required_level = 2
+order = 4
+per_level = {"dodge_cooldown": 0.06, "dodge_iframes": 0.03}

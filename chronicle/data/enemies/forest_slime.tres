@@ -19,3 +19,6 @@ attack_cooldown = 1.7
 knockback_resist = 0.0
 poise = 0.0
 heal_drop_chance = 0.4
+exp_reward = 8
+gold_reward = 3
+drops = [{"id": &"item_slime_gel", "chance": 0.5, "count": 1}, {"id": &"item_potion_small", "chance": 0.08, "count": 1}]

@@ -66,6 +66,9 @@ var _charge_fx: Sprite2D
 var _knock: Vector2 = Vector2.ZERO
 var _death_reported: bool = false
 var _last_mp_emit: float = -1.0
+var base_stats: PlayerStats
+var _potion_cd: float = 0.0
+var _skill_cd_total: float = 1.0
 var _front_query: PhysicsShapeQueryParameters2D
 
 @onready var attack_hitbox: Hitbox = $Visual/AttackHitbox
@@ -75,9 +78,17 @@ func _ready() -> void:
 	is_player = true
 	if stats == null:
 		stats = PlayerStats.new()
+	# Phase 2: level, equipment and skills from the Profile.
+	base_stats = stats
+	stats = Profile.build_stats(base_stats)
+	var equipped := Profile.equipped_weapon()
+	if equipped != null:
+		weapon = equipped
 	max_hp = stats.max_hp
 	super._ready()
 	mp = stats.max_mp
+	Profile.changed.connect(refresh_stats)
+	Profile.leveled_up.connect(_on_level_up)
 	if weapon != null:
 		combo_attacks = weapon.combo()
 	add_to_group(&"player")
@@ -115,6 +126,64 @@ func _unhandled_input(event: InputEvent) -> void:
 	for a in BUFFERED_ACTIONS:
 		if event.is_action_pressed(a):
 			_buffer[a] = stats.jump_buffer if a == &"jump" else ACTION_BUFFER
+	if event.is_action_pressed(&"use_potion"):
+		use_potion()
+
+
+## Quick-slot potion (touch button / Q). Returns true if one was drunk.
+func use_potion() -> bool:
+	if is_dead or _potion_cd > 0.0:
+		return false
+	if Profile.inventory.count(Profile.POTION_ID) <= 0:
+		Events.toast.emit("회복 물약이 없어요.")
+		return false
+	if not Profile.use_consumable(Profile.POTION_ID, self):
+		Events.toast.emit("HP가 이미 가득 찼어요.")
+		return false
+	_potion_cd = 0.8
+	FX.spark(global_position + Vector2(0, -30), Color(1.0, 0.5, 0.5), true)
+	return true
+
+
+## Re-applies Profile stats (level up, equipment or skill change) keeping
+## the current HP/MP; extra max HP is added to the current HP.
+func refresh_stats() -> void:
+	if base_stats == null:
+		return
+	var fresh := Profile.build_stats(base_stats)
+	var hp_gain := maxi(0, fresh.max_hp - max_hp)
+	stats = fresh
+	max_hp = fresh.max_hp
+	if not is_dead:
+		hp = clampi(hp + hp_gain, 1, max_hp)
+	mp = minf(mp, stats.max_mp)
+	var w := Profile.equipped_weapon()
+	if w != null and w != weapon:
+		weapon = w
+		combo_attacks = weapon.combo()
+	emit_all_stats()
+
+
+func _on_level_up(_level: int) -> void:
+	if is_dead:
+		return
+	refresh_stats()
+	hp = max_hp
+	mp = stats.max_mp
+	emit_all_stats()
+	FX.burst(PILLAR_TEX, global_position + Vector2(0, -30), 0.7, 0.8, 1.6, true, false, 5)
+	FX.floating_text("LEVEL UP!", global_position + Vector2(0, -body_height - 20), Color(1.0, 0.9, 0.4), 16)
+
+
+## Armour and skills reduce incoming damage (falling into pits excluded).
+func take_hit(hit: HitData) -> bool:
+	if is_dead or is_invulnerable():
+		return false
+	var d := Profile.defense()
+	if d > 0.0 and hit.tag != &"fall":
+		hit.damage = maxi(1, roundi(hit.damage * (1.0 - d)))
+	apply_damage(hit)
+	return true
 
 
 func _buffered(action: StringName) -> bool:
@@ -155,6 +224,7 @@ func _physics_process(delta: float) -> void:
 
 func _tick_timers(delta: float) -> void:
 	tick_invulnerability(delta)
+	_potion_cd = maxf(0.0, _potion_cd - delta)
 	for a in _buffer.keys():
 		_buffer[a] = maxf(0.0, float(_buffer[a]) - delta)
 	if _dodge_cd > 0.0:
@@ -162,7 +232,7 @@ func _tick_timers(delta: float) -> void:
 		Events.player_cooldown_changed.emit(&"dodge", _dodge_cd, stats.dodge_cooldown + stats.dodge_time)
 	if _skill_cd > 0.0 and weapon and weapon.skill:
 		_skill_cd = maxf(0.0, _skill_cd - delta)
-		Events.player_cooldown_changed.emit(&"skill", _skill_cd, weapon.skill.cooldown)
+		Events.player_cooldown_changed.emit(&"skill", _skill_cd, _skill_cd_total)
 	if not is_dead and mp < stats.max_mp:
 		mp = minf(stats.max_mp, mp + stats.mp_regen * delta)
 		if absf(mp - _last_mp_emit) >= 0.5 or mp >= stats.max_mp:
@@ -270,7 +340,7 @@ func _emit_mp() -> void:
 func _make_hit(a: AttackData, mult: float) -> HitData:
 	var h := HitData.new()
 	var crit := randf() < stats.crit_chance
-	var dmg := float(stats.attack) * mult * randf_range(0.92, 1.08)
+	var dmg := float(stats.attack) * mult * Profile.damage_multiplier(a.id) * randf_range(0.92, 1.08)
 	if crit:
 		dmg *= stats.crit_multiplier
 	h.damage = maxi(1, roundi(dmg))
@@ -559,7 +629,8 @@ func _enter_skill() -> void:
 	var a := weapon.skill
 	mp -= a.mp_cost
 	_emit_mp()
-	_skill_cd = a.cooldown
+	_skill_cd = maxf(0.5, a.cooldown - Profile.skill_cooldown_reduction())
+	_skill_cd_total = _skill_cd
 	_skill_fired = false
 	if absf(move_axis) > 0.3:
 		set_facing(move_axis)
@@ -647,7 +718,7 @@ func _on_attack_landed(_target: Hurtbox, hit: HitData) -> void:
 		# The ultimate itself neither refunds MP nor refills its own gauge.
 		mp = minf(stats.max_mp, mp + stats.mp_on_hit)
 		_emit_mp()
-		add_ult(hit.damage * stats.ult_per_damage)
+		add_ult(hit.damage * stats.ult_per_damage * Profile.ult_gain_multiplier())
 	Game.add_stat("damage_dealt", hit.damage)
 	combo_hits += 1
 	_combo_timer = 2.0

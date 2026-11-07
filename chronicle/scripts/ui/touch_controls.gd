@@ -18,8 +18,9 @@ const ICONS := {
 	&"dodge": preload("res://assets/ui/icons/dodge.png"),
 	&"skill": preload("res://assets/ui/icons/skill.png"),
 	&"ultimate": preload("res://assets/ui/icons/ultimate.png"),
+	&"use_potion": preload("res://assets/ui/icons/potion.png"),
 }
-const LABELS := {&"attack": "공격", &"jump": "점프", &"dodge": "회피", &"skill": "스킬", &"ultimate": "궁극기"}
+const LABELS := {&"attack": "공격", &"jump": "점프", &"dodge": "회피", &"skill": "스킬", &"ultimate": "궁극기", &"use_potion": "물약"}
 ## Offsets from the bottom-right corner at ui_scale 1.0 and radii.
 const LAYOUT := {
 	&"attack": [Vector2(-64, -68), 32.0],
@@ -27,6 +28,7 @@ const LAYOUT := {
 	&"dodge": [Vector2(-60, -150), 22.0],
 	&"skill": [Vector2(-130, -122), 22.0],
 	&"ultimate": [Vector2(-206, -100), 22.0],
+	&"use_potion": [Vector2(-150, -192), 17.0],
 }
 const STICK_RADIUS := 40.0
 const KNOB_RADIUS := 16.0
@@ -60,6 +62,7 @@ func _ready() -> void:
 	Events.player_mana_changed.connect(func(mp: float, _m: float) -> void: _mp = mp)
 	Events.player_ult_changed.connect(func(v: float, m: float) -> void: _ult_ready = v >= m)
 	Events.player_spawned.connect(_on_player_spawned)
+	Profile.changed.connect(queue_redraw)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
 
@@ -112,6 +115,8 @@ func _process(delta: float) -> void:
 			en = _mp >= _skill_cost and float(b["cooldown"]) <= 0.0
 		elif action == &"ultimate":
 			en = _ult_ready
+		elif action == &"use_potion":
+			en = Profile.inventory.count(Profile.POTION_ID) > 0
 		if en != b["enabled"]:
 			b["enabled"] = en
 			dirty = true
@@ -292,5 +297,9 @@ func _draw_button(action: StringName, b: Dictionary) -> void:
 		if pts.size() >= 3:
 			draw_colored_polygon(pts, Color(0, 0, 0, 0.5))
 		draw_string(_font, c + Vector2(-12, 4), "%.1f" % cd, HORIZONTAL_ALIGNMENT_CENTER, 24, int(11 * clampf(_scale, 1.0, 1.4)), Color(1, 1, 1))
+	if action == &"use_potion":
+		var n := Profile.inventory.count(Profile.POTION_ID)
+		draw_circle(c + Vector2(rr * 0.75, -rr * 0.7), 6.5, Color(0.1, 0.08, 0.16, 0.95))
+		draw_string(_font, c + Vector2(rr * 0.75 - 8, -rr * 0.7 + 4), str(n), HORIZONTAL_ALIGNMENT_CENTER, 16, 11, Color(1, 0.95, 0.8))
 	var lbl: String = LABELS[action]
 	draw_string(_font, c + Vector2(-30, rr + 11.0), lbl, HORIZONTAL_ALIGNMENT_CENTER, 60, 11, Color(0.92, 0.92, 0.98, 0.75))

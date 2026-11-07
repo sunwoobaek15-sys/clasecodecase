@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SkillNodeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/skill_node_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/vitality.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"node_time_blessing"
+display_name = "시간의 가호"
+description = "최대 HP가 늘고 받는 피해가 줄어든다."
+icon = ExtResource("2_icon")
+max_level = 3
+cost = 1
+required_level = 1
+order = 3
+per_level = {"max_hp": 15, "defense_pct": 0.03}

@@ -24,6 +24,8 @@ config/icon="res://icon.png"
 Events="*res://scripts/core/events.gd"
 Game="*res://scripts/core/game.gd"
 FX="*res://scripts/effects/fx.gd"
+Profile="*res://scripts/progression/profile.gd"
+SaveSystem="*res://scripts/save/save_system.gd"
 
 [display]
 

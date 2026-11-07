@@ -5,6 +5,7 @@ extends Entity
 ## Subclasses build their AI with the StateMachine in `fsm`.
 
 const HEAL_ORB_SCENE := preload("res://scenes/world/heal_orb.tscn")
+const ITEM_DROP_SCENE := preload("res://scenes/world/item_drop.tscn")
 
 @export var stats: EnemyStats
 @export var show_hp_bar: bool = true
@@ -127,6 +128,31 @@ func _on_death(_hit: HitData) -> void:
 	Events.enemy_killed.emit(self)
 	if stats != null and randf() < stats.heal_drop_chance:
 		call_deferred("_spawn_heal_orb")
+	call_deferred("spawn_drops")
+
+
+## Rolls the drop table (EnemyStats.drops). Unique items that the hero
+## already owns are skipped.
+func spawn_drops() -> void:
+	if stats == null or not is_inside_tree():
+		return
+	var i := 0
+	for entry in stats.drops:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var d: Dictionary = entry
+		var id := StringName(str(d.get("id", "")))
+		var item := ItemDB.get_item(id)
+		if item == null or randf() > float(d.get("chance", 1.0)):
+			continue
+		if item.unique and Profile.owns(id):
+			continue
+		var drop := ITEM_DROP_SCENE.instantiate() as Pickup
+		drop.item_id = id
+		drop.item_count = int(d.get("count", 1))
+		drop.position = global_position + Vector2((i - 1) * 16.0, -16.0)
+		get_parent().add_child(drop)
+		i += 1
 
 
 func _spawn_heal_orb() -> void:

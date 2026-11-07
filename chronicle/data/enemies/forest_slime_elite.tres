@@ -19,3 +19,6 @@ attack_cooldown = 1.5
 knockback_resist = 0.6
 poise = 30.0
 heal_drop_chance = 1.0
+exp_reward = 30
+gold_reward = 15
+drops = [{"id": &"item_sword_forest", "chance": 1.0, "count": 1}, {"id": &"item_potion_small", "chance": 0.6, "count": 1}, {"id": &"item_slime_gel", "chance": 1.0, "count": 2}]

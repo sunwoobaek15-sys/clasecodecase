@@ -33,6 +33,8 @@ var _hit_tags: Dictionary = {}
 var _hooked_player: Player = null
 var _diag_t: float = 0.0
 var _result_t: float = 0.0
+var _menu_shots_done: bool = false
+var _menu_busy: bool = false
 
 
 func _ready() -> void:
@@ -193,7 +195,7 @@ func _play(stage: Node, delta: float) -> void:
 				rs.call("press_first_button")
 		return
 	_result_t = 0.0
-	if get_tree().paused:
+	if get_tree().paused or _menu_busy:
 		return
 	if _scene_t > 1.2:
 		_shot("02_stage_start")
@@ -202,6 +204,12 @@ func _play(stage: Node, delta: float) -> void:
 		_release_all()
 		if p != null and is_instance_valid(p) and bool(stage.get("boss_fight_started")) and not p.input_enabled:
 			_shot_later("06_boss_intro", 0.9)
+		return
+	if p.hp < p.max_hp * 0.35 and Profile.inventory.count(Profile.POTION_ID) > 0:
+		_tap(&"use_potion")
+	if Game.checkpoint_id >= 0 and not _menu_shots_done and Game.screenshot_dir != "" and DisplayServer.get_name() != "headless":
+		_menu_shots_done = true
+		_capture_menu()
 		return
 	if _hooked_player != p:
 		_hooked_player = p
@@ -214,6 +222,12 @@ func _play(stage: Node, delta: float) -> void:
 	if _threats(p, stage):
 		return
 	var core := _time_core(stage)
+	var loot := _nearest_loot(p, stage)
+	if loot != null and (core != null or _nearest_enemy(p) == null):
+		_release(&"attack")
+		var ldx := loot.global_position.x - p.global_position.x
+		_axis(signf(ldx) if absf(ldx) > 3.0 else 0.0)
+		return
 	if core != null:
 		_release(&"attack")
 		var cdx := core.global_position.x - p.global_position.x
@@ -230,6 +244,37 @@ func _play(stage: Node, delta: float) -> void:
 		_advance(p, delta)
 	if Game.checkpoint_id >= 0:
 		_shot("05_checkpoint")
+
+
+## Opens the pause menu and the character screen and captures its tabs.
+func _capture_menu() -> void:
+	_menu_busy = true
+	_release_all()
+	Events.pause_requested.emit()
+	# let the checkpoint toast fade, then open the screen the way a player does
+	await get_tree().create_timer(3.0, true, false, true).timeout
+	var cm := get_tree().get_first_node_in_group(&"character_menu")
+	var pm := get_tree().get_first_node_in_group(&"pause_menu")
+	if cm != null:
+		if pm != null and pm.has_method("_on_character"):
+			pm.call("_on_character")
+		else:
+			cm.call("open")
+		var names := ["05b_character_stats", "05c_character_items", "05d_character_skills"]
+		for i in names.size():
+			(cm.get("_tabs") as TabContainer).current_tab = i
+			if i == 1:
+				var list := cm.get("_item_list") as ItemList
+				if list != null and list.item_count > 0:
+					list.select(list.item_count - 1)
+					list.item_selected.emit(list.item_count - 1)
+			await get_tree().create_timer(0.3, true, false, true).timeout
+			await _shot(names[i])
+		cm.call("close")
+	await get_tree().create_timer(0.2, true, false, true).timeout
+	Events.pause_requested.emit()
+	await get_tree().create_timer(0.2, true, false, true).timeout
+	_menu_busy = false
 
 
 func _finish(ok: bool, why: String) -> void:
@@ -315,6 +360,23 @@ func _time_core(stage: Node) -> Node2D:
 		if c is Pickup and (c as Pickup).kind == Pickup.Kind.TIME_CORE:
 			return c
 	return null
+
+
+## Closest item drop on roughly the same height (collected before the core).
+func _nearest_loot(p: Player, stage: Node) -> Node2D:
+	var best: Node2D = null
+	var best_d := 160.0
+	var nodes: Array[Node] = (stage.get("actors") as Node).get_children()
+	nodes.append_array((stage.get("enemies") as Node).get_children())
+	for c in nodes:
+		if c is Pickup and (c as Pickup).kind == Pickup.Kind.ITEM and not c.is_queued_for_deletion() \
+				and Profile.inventory.space_for((c as Pickup).item_id) > 0:
+			var d := (c as Node2D).global_position - p.global_position
+			if absf(d.y) > 40.0 or absf(d.x) >= best_d:
+				continue
+			best_d = absf(d.x)
+			best = c
+	return best
 
 
 func _nearest_enemy(p: Player) -> Node2D:

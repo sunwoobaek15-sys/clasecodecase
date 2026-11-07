@@ -548,6 +548,86 @@ def build_icons() -> None:
     finish_icon(im, "pause")
 
 
+# ------------------------------------------------------------ item icons ---
+ITEMS = ROOT / "assets" / "ui" / "items"
+
+
+def _save_item(img: Image.Image, name: str) -> None:
+    a = np.asarray(img).copy()
+    op = a[..., 3] > 0
+    nb = np.zeros_like(op)
+    nb[1:] |= op[:-1]; nb[:-1] |= op[1:]; nb[:, 1:] |= op[:, :-1]; nb[:, :-1] |= op[:, 1:]
+    a[nb & ~op] = (12, 12, 24, 255)
+    Image.fromarray(a, "RGBA").save(ITEMS / f"{name}.png")
+
+
+def build_item_icons() -> None:
+    """24x24 inventory icons in the reference palettes (Phase 2)."""
+    ITEMS.mkdir(parents=True, exist_ok=True)
+    S = 24
+    def canvas():
+        im = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+        return im, ImageDraw.Draw(im)
+    # potion (red) / ether (blue crystal)
+    for name, body, hi in (("potion_small", (210, 50, 60, 255), (255, 150, 150, 255)),):
+        im, d = canvas()
+        d.rectangle([10, 3, 13, 6], fill=(150, 110, 70, 255))
+        d.rectangle([9, 6, 14, 8], fill=(200, 210, 230, 255))
+        d.ellipse([5, 8, 18, 21], fill=(200, 210, 230, 255))
+        d.ellipse([6, 10, 17, 20], fill=body)
+        d.rectangle([8, 12, 9, 15], fill=hi)
+        _save_item(im, name)
+    im, d = canvas()
+    d.polygon([(12, 2), (19, 10), (12, 21), (5, 10)], fill=(60, 120, 230, 255))
+    d.polygon([(12, 2), (12, 21), (5, 10)], fill=(110, 170, 255, 255))
+    d.line([(9, 8), (11, 5)], fill=(230, 245, 255, 255))
+    _save_item(im, "ether")
+    # swords
+    for name, blade, glow in (("sword_cheongwol", (200, 215, 240, 255), (90, 150, 255, 255)),
+                              ("sword_forest", (190, 220, 170, 255), (120, 230, 90, 255))):
+        im, d = canvas()
+        d.line([(5, 19), (19, 5)], fill=blade, width=3)
+        d.line([(6, 18), (18, 6)], fill=glow, width=1)
+        d.line([(3, 15), (9, 21)], fill=(214, 176, 92, 255), width=2)
+        d.line([(2, 22), (5, 19)], fill=(110, 75, 45, 255), width=2)
+        _save_item(im, name)
+    # cloak
+    im, d = canvas()
+    d.polygon([(8, 3), (16, 3), (21, 21), (3, 21)], fill=(40, 80, 190, 255))
+    d.polygon([(10, 3), (14, 3), (15, 21), (9, 21)], fill=(70, 120, 230, 255))
+    d.rectangle([8, 3, 16, 5], fill=(214, 176, 92, 255))
+    _save_item(im, "cloak_traveler")
+    # bark armour
+    im, d = canvas()
+    d.polygon([(5, 4), (19, 4), (20, 12), (17, 21), (7, 21), (4, 12)], fill=(96, 68, 44, 255))
+    d.line([(12, 4), (12, 21)], fill=(70, 48, 32, 255))
+    d.rectangle([9, 9, 15, 13], fill=(70, 200, 120, 255))
+    d.line([(6, 6), (9, 9)], fill=(140, 200, 90, 255))
+    _save_item(im, "armor_guardian")
+    # ring
+    im, d = canvas()
+    d.ellipse([5, 8, 19, 22], outline=(214, 176, 92, 255), width=3)
+    d.polygon([(12, 2), (16, 7), (12, 11), (8, 7)], fill=(80, 220, 170, 255))
+    _save_item(im, "ring_time")
+    # slime gel
+    im, d = canvas()
+    d.ellipse([4, 9, 20, 21], fill=(80, 200, 70, 255))
+    d.ellipse([7, 11, 12, 15], fill=(170, 245, 120, 255))
+    _save_item(im, "slime_gel")
+    # vitality icon for the skill tree (32px like the button icons)
+    im = icon_canvas(); d = ImageDraw.Draw(im)
+    d.ellipse([5, 7, 16, 18], fill=(230, 80, 90, 255))
+    d.ellipse([15, 7, 26, 18], fill=(230, 80, 90, 255))
+    d.polygon([(5, 14), (26, 14), (16, 27)], fill=(230, 80, 90, 255))
+    d.rectangle([9, 10, 11, 12], fill=(255, 190, 190, 255))
+    finish_icon(im, "vitality")
+    im = icon_canvas(24); d = ImageDraw.Draw(im)
+    d.rectangle([10, 2, 13, 5], fill=(150, 110, 70, 255))
+    d.ellipse([5, 6, 18, 20], fill=(210, 50, 60, 255))
+    d.rectangle([8, 10, 9, 13], fill=(255, 150, 150, 255))
+    finish_icon(im, "potion")
+
+
 def build_app_icon() -> None:
     portrait = Image.open(ROOT / "assets/characters/hero/art/portrait_neutral.png").convert("RGBA")
     for size in (192, 512):
@@ -573,6 +653,7 @@ def main() -> None:
     build_backgrounds()
     build_props()
     build_icons()
+    build_item_icons()
     build_app_icon()
     print("environment art written to", ENV.relative_to(ROOT), "and", ICONS.relative_to(ROOT))
 

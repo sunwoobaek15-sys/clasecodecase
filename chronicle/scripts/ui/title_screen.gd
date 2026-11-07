@@ -18,6 +18,7 @@ var _settings: PanelContainer
 var _hero: TextureRect
 var _t: float = 0.0
 var _start_button: Button
+var _confirm_new: bool = false
 
 
 func _ready() -> void:
@@ -100,7 +101,9 @@ func _build_ui() -> void:
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, 18)
 	col.add_child(spacer)
-	_start_button = UiKit.button("게임 시작", _on_start, 170)
+	if SaveSystem.has_save():
+		col.add_child(UiKit.button("이어하기", _on_continue, 170))
+	_start_button = UiKit.button("새 게임" if SaveSystem.has_save() else "게임 시작", _on_start, 170)
 	col.add_child(_start_button)
 	col.add_child(UiKit.button("설정", _on_settings, 170))
 	if not OS.has_feature("mobile") and not OS.has_feature("web"):
@@ -122,7 +125,16 @@ func _build_ui() -> void:
 
 
 func _on_start() -> void:
+	# Overwriting a save needs a second press.
+	if SaveSystem.has_save() and not _confirm_new:
+		_confirm_new = true
+		_start_button.text = "다시 누르면 새로 시작 (저장 덮어씀)"
+		return
 	Game.new_game()
+
+
+func _on_continue() -> void:
+	Game.continue_game()
 
 
 func _on_settings() -> void:
@@ -132,4 +144,7 @@ func _on_settings() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"attack") or event.is_action_pressed(&"jump"):
 		if not _settings.visible:
-			_on_start()
+			if SaveSystem.has_save():
+				_on_continue()
+			else:
+				_on_start()

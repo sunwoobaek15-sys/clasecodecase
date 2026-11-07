@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/potion_small.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_potion_small"
+display_name = "소형 회복 물약"
+description = "숲의 약초를 달인 붉은 물약. HP를 40 회복한다."
+type = 0
+icon = ExtResource("2_icon")
+max_stack = 9
+price = 20
+unique = false
+heal_hp = 40
+bonuses = {}

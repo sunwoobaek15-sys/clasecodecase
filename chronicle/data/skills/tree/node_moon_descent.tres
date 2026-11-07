@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SkillNodeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/skill_node_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/ultimate.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"node_moon_descent"
+display_name = "청월강림 각성"
+description = "궁극기 피해와 게이지 충전 속도가 늘어난다."
+icon = ExtResource("2_icon")
+max_level = 3
+cost = 1
+required_level = 3
+order = 5
+per_level = {"ult_damage_pct": 0.15, "ult_gain_pct": 0.1}

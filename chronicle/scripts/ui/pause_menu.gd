@@ -27,6 +27,8 @@ func _ready() -> void:
 	col.add_theme_constant_override("separation", 8)
 	col.add_child(UiKit.label("일시정지", 22, UiKit.GOLD, true, 4))
 	col.add_child(UiKit.button("계속하기", close))
+	col.add_child(UiKit.button("캐릭터 · 장비 · 스킬", _on_character))
+	col.add_child(UiKit.button("저장하기", _on_save))
 	col.add_child(UiKit.button("체크포인트에서 다시", _on_retry))
 	col.add_child(UiKit.button("타이틀로", _on_title))
 	var help := UiKit.label("키보드: A/D 이동  K 점프  J 공격\nL 회피  U 스킬  I 궁극기", 11, UiKit.DIM)
@@ -38,8 +40,38 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"pause"):
-		toggle()
+		var cm := _character_menu()
+		if cm != null and cm.visible:
+			cm.call("close")
+		else:
+			toggle()
 		get_viewport().set_input_as_handled()
+
+
+func _character_menu() -> Control:
+	return get_tree().get_first_node_in_group(&"character_menu") as Control
+
+
+func _on_character() -> void:
+	var cm := _character_menu()
+	if cm == null:
+		return
+	visible = false
+	if not cm.is_connected("closed", _on_character_closed):
+		cm.connect("closed", _on_character_closed)
+	cm.call("open")
+
+
+func _on_character_closed() -> void:
+	if is_open:
+		visible = true
+
+
+func _on_save() -> void:
+	if SaveSystem.save_game():
+		Events.toast.emit("저장했어요.")
+	else:
+		Events.toast.emit("저장하지 못했어요: " + SaveSystem.last_error)
 
 
 func toggle() -> void:
@@ -69,6 +101,8 @@ func close() -> void:
 
 func _blocked() -> bool:
 	for n in get_tree().get_nodes_in_group(&"modal_ui"):
+		if n == _character_menu():
+			continue
 		if n.visible:
 			return true
 	return false

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/sword_cheongwol.png" id="2_icon"]
+[ext_resource type="Resource" path="res://data/items/weapon_cheongwol_sword.tres" id="3_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_sword_cheongwol"
+display_name = "청월검"
+description = "기억을 잃은 검사가 쥐고 있던 푸른 마법검."
+type = 1
+icon = ExtResource("2_icon")
+max_stack = 1
+price = 0
+unique = true
+bonuses = {}
+weapon = ExtResource("3_weapon")

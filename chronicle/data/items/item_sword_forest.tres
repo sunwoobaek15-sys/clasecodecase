@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/sword_forest.png" id="2_icon"]
+[ext_resource type="Resource" path="res://data/items/weapon_cheongwol_sword.tres" id="3_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_sword_forest"
+display_name = "숲지기의 검"
+description = "자수정 슬라임 속에서 나온 오래된 검. 숲의 기운이 깃들어 있다."
+type = 1
+icon = ExtResource("2_icon")
+max_stack = 1
+price = 120
+unique = true
+bonuses = {"attack": 4, "crit_chance": 0.03}
+weapon = ExtResource("3_weapon")

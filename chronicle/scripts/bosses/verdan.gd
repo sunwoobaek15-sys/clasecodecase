@@ -521,5 +521,6 @@ func _st_dead(_delta: float) -> StringName:
 	if fsm.time_in_state >= 1.5 and not _flags.get("reported", false):
 		_flags["reported"] = true
 		Events.enemy_killed.emit(self)
+		spawn_drops()
 		Events.boss_defeated.emit(self)
 	return &""

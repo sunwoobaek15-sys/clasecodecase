@@ -23,6 +23,7 @@ const KEY_BINDINGS := {
 	&"skill": [KEY_U, KEY_C],
 	&"ultimate": [KEY_I, KEY_V],
 	&"pause": [KEY_ESCAPE, KEY_P],
+	&"use_potion": [KEY_Q, KEY_R],
 }
 const PAD_BUTTONS := {
 	&"jump": [JOY_BUTTON_A],
@@ -31,6 +32,7 @@ const PAD_BUTTONS := {
 	&"skill": [JOY_BUTTON_Y],
 	&"ultimate": [JOY_BUTTON_LEFT_SHOULDER],
 	&"pause": [JOY_BUTTON_START],
+	&"use_potion": [JOY_BUTTON_DPAD_UP],
 }
 const PAD_AXES := {
 	&"move_left": [JOY_AXIS_LEFT_X, -1.0],
@@ -144,8 +146,20 @@ func reset_run() -> void:
 
 func new_game() -> void:
 	checkpoint_id = -1
+	Profile.reset(true)
+	reset_run()
+	SaveSystem.save_game()
+	change_scene(STAGE_SCENE)
+
+
+## Loads the save file and returns to the saved checkpoint.
+func continue_game() -> bool:
+	if not SaveSystem.load_game():
+		Events.toast.emit("저장 데이터를 불러오지 못했어요.")
+		return false
 	reset_run()
 	change_scene(STAGE_SCENE)
+	return true
 
 
 func retry_from_checkpoint() -> void:
@@ -154,6 +168,7 @@ func retry_from_checkpoint() -> void:
 
 
 func go_to_title() -> void:
+	SaveSystem.save_game()
 	change_scene(TITLE_SCENE)
 
 

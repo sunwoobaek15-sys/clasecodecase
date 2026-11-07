@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/slime_gel.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_slime_gel"
+display_name = "슬라임 젤"
+description = "말랑한 초록 젤. 대장간이 복구되면 장비 강화 재료로 쓸 수 있다."
+type = 4
+icon = ExtResource("2_icon")
+max_stack = 99
+price = 3
+unique = false
+bonuses = {}

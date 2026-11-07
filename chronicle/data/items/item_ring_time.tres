@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/ring_time.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_ring_time"
+display_name = "시간 결정 반지"
+description = "시간의 핵 조각 부스러기를 박은 반지. 스킬을 더 자주 쓸 수 있다."
+type = 3
+icon = ExtResource("2_icon")
+max_stack = 1
+price = 250
+unique = true
+bonuses = {"max_mp": 10, "crit_chance": 0.05, "skill_cooldown": 0.3}

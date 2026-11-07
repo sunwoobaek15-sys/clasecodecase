@@ -53,7 +53,8 @@ func _on_body_entered(body: Node) -> void:
 	if not _activated or Game.checkpoint_id < checkpoint_id:
 		Game.checkpoint_id = checkpoint_id
 		Events.checkpoint_reached.emit(checkpoint_id)
-		Events.toast.emit("체크포인트 저장! 체력이 모두 회복되었어요.")
+		var ok := SaveSystem.save_game()
+		Events.toast.emit("체크포인트! 체력 회복 · %s" % ("자동 저장 완료" if ok else "저장 실패"))
 		FX.spark(global_position + Vector2(0, -32), Color(0.5, 1.0, 0.8), true)
 	_set_active_visual()
 

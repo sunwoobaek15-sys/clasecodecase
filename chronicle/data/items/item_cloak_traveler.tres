@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/cloak_traveler.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_cloak_traveler"
+display_name = "여행자의 망토"
+description = "낡았지만 튼튼한 푸른 망토."
+type = 2
+icon = ExtResource("2_icon")
+max_stack = 1
+price = 40
+unique = true
+bonuses = {"max_hp": 15, "defense_pct": 0.05}

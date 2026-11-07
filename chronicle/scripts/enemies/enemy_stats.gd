@@ -17,3 +17,7 @@ extends Resource
 @export_range(0.0, 1.0) var knockback_resist: float = 0.0
 @export var poise: float = 0.0             ## 0 = always flinches
 @export_range(0.0, 1.0) var heal_drop_chance: float = 0.35
+@export var exp_reward: int = 0
+@export var gold_reward: int = 0
+## Item drops: [{"id": &"item_slime_gel", "chance": 0.5, "count": 1}, ...]
+@export var drops: Array = []

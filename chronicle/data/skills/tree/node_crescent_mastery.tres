@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SkillNodeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/skill_node_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/skill.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"node_crescent_mastery"
+display_name = "청월참 숙련"
+description = "초승달 검기가 더 강해지고 더 자주 나간다."
+icon = ExtResource("2_icon")
+max_level = 3
+cost = 1
+required_level = 1
+order = 1
+per_level = {"skill_damage_pct": 0.2, "skill_cooldown": 0.3}

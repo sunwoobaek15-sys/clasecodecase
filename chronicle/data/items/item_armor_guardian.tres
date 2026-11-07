@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/armor_guardian.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_armor_guardian"
+display_name = "수호목 갑옷"
+description = "베르단의 껍질로 만든 갑옷. 몸속 결정이 은은하게 빛난다."
+type = 2
+icon = ExtResource("2_icon")
+max_stack = 1
+price = 300
+unique = true
+bonuses = {"max_hp": 40, "defense_pct": 0.12}

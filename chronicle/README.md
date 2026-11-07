@@ -3,8 +3,9 @@
 Android용 가로 화면 픽셀 아트 액션 RPG (Godot 4 · GDScript).
 시간의 핵이 부서져 떠다니는 섬들로 갈라진 세계에서, 기억을 잃은 검사가 핵 조각을 모읍니다.
 
-**현재 상태: Phase 1 (전투 프로토타입) 완료** — 직접 조작으로 슬라임 구역을 지나 첫 보스 베르단을 쓰러뜨리고
-시간의 핵 조각을 얻는 스테이지 1-1이 처음부터 끝까지 플레이 가능합니다.
+**현재 상태: Phase 2 (성장 시스템) 완료** — 스테이지 1-1(슬라임 구역 → 보스 베르단 → 시간의 핵 조각)을 처음부터
+끝까지 플레이할 수 있고, 레벨·경험치, 장비·가방, 스킬 트리, 회복 물약, JSON 저장/이어하기가 들어갔습니다.
+Phase 2 상세 내용은 [docs/PHASE2_REPORT.md](docs/PHASE2_REPORT.md)를 보세요.
 
 <p>
 <img src="docs/screenshots/01_title.png" width="400" alt="타이틀">
@@ -13,6 +14,8 @@ Android용 가로 화면 픽셀 아트 액션 RPG (Godot 4 · GDScript).
 <img src="docs/screenshots/07_boss_telegraph.png" width="400" alt="숲의 분노 공격 예고">
 <img src="docs/screenshots/08_ultimate_cutin.png" width="400" alt="궁극기 컷인">
 <img src="docs/screenshots/10_stage_clear.png" width="400" alt="스테이지 클리어">
+<img src="docs/screenshots/05c_character_items.png" width="400" alt="장비·가방 화면">
+<img src="docs/screenshots/05d_character_skills.png" width="400" alt="스킬 트리 화면">
 </p>
 
 ## 실행
@@ -31,7 +34,9 @@ PC에서는 마우스 클릭이 터치로 처리되어 화면의 터치 버튼�
 | 회피 (무적 시간) | 회피 | L, X, Shift | B, RB |
 | 스킬 '청월참' (마나 15) | 스킬 | U, C | Y |
 | 궁극기 '청월강림' (게이지 100%) | 궁극기 | I, V | LB |
+| 회복 물약 (HP +40, 가방에 있을 때만) | 물약 | Q, R | 십자키 ↑ |
 | 일시정지·설정 | 우측 상단 ‖ | Esc, P | Start |
+| 캐릭터·장비·스킬 화면 | 일시정지 → 캐릭터 · 장비 · 스킬 | | |
 
 ## 폰에서 바로 해보기 (웹 빌드)
 
@@ -39,6 +44,18 @@ PC에서는 마우스 클릭이 터치로 처리되어 화면의 터치 버튼�
 브랜치를 고르고 `/ (root)`로 배포하면 폰 브라우저에서 `https://<계정>.github.io/<저장소>/chronicle/web/` 주소로 바로 플레이할 수 있습니다.
 (첫 로딩에 수십 초, 가로 화면 권장.) 다시 만들기: `godot --headless --path . --export-release Web web/index.html`
 (웹 내보내기 템플릿 필요). 터치·화면 배치만 확인하는 용도이며 Android 실기기 성능 검증은 아닙니다.
+
+## Phase 2 구현 내용 (성장)
+
+- **레벨·경험치**: 몬스터 처치 시 EXP·골드 획득(떠오르는 숫자), 레벨당 HP +10 · 공격력 +2 · MP +4, 레벨업마다 스킬 포인트 1, 레벨업 시 완전 회복 연출, 최대 30레벨.
+- **아이템·가방**: 데이터 리소스(`data/items/*.tres`) 8종 — 무기 2, 방어구 2, 장신구 1, 소비 2, 재료 1. 30칸 가방, 겹치기(최대 수량), 몬스터 확률 드롭(고유 장비는 중복 드롭 안 함), 바닥에서 줍기, 가방이 가득 차면 안내.
+- **장비**: 무기·방어구·장신구 3칸, 장착하면 즉시 능력치(최대 HP·공격력·피해 감소·치명타·스킬 쿨다운 등)에 반영, 무기는 공격 방식 자체(`WeaponData`)를 바꿈.
+- **스킬 트리**: 5개 노드 × 3랭크(연격 숙련, 청월참 숙련, 청월강림 각성, 시간의 가호, 바람 걸음), 요구 레벨, 스킬 포인트로 강화.
+- **물약 퀵슬롯**: 터치 버튼(남은 개수 표시)·키보드 Q/R, 사용 쿨다운, 체력이 가득하면 아끼기.
+- **캐릭터 화면**: 일시정지 → 상태 / 장비·가방 / 스킬 탭. 아이템 설명·장착·해제·사용, 스킬 강화.
+- **저장**: `user://save_slot1.json`에 버전·체크섬(SHA-256)과 함께 저장. 임시 파일에 쓰고 검증한 뒤 교체(원자적 저장),
+  이전 저장은 `.bak.json`으로 보관, 손상·변조된 파일은 백업으로 복구, 옛 형식은 버전별 마이그레이션, 불러올 때 값 검증·보정.
+  체크포인트·스테이지 클리어·타이틀로 나갈 때 자동 저장, 일시정지 메뉴에서 수동 저장. 타이틀에 **이어하기**(마지막 체크포인트부터).
 
 ## Phase 1 구현 내용
 
@@ -56,12 +73,12 @@ PC에서는 마우스 클릭이 터치로 처리되어 화면의 터치 버튼�
 chronicle/
 ├── project.godot
 ├── scenes/   boot/ world/ player/ enemies/ bosses/ ui/ (village/ pets/ effects/: 다음 단계)
-├── scripts/  core/ player/ combat/ enemies/ bosses/ world/ ui/ effects/ inventory/
-│             (progression/ quests/ pets/ save/: 다음 단계)
+├── scripts/  core/ player/ combat/ enemies/ bosses/ world/ ui/ effects/ inventory/ progression/ save/
+│             (quests/ pets/: 다음 단계)
 ├── assets/   characters/ enemies/ bosses/ effects/ environments/ ui/ (npcs/ pets/ weapons/ audio/: 다음 단계)
-├── data/     items/ skills/ enemies/ player/ levels/ (quests/ pets/: 다음 단계)
+├── data/     items/ skills/(tree/) enemies/ player/ levels/ (quests/ pets/: 다음 단계)
 ├── tests/    자동 테스트 (test_*.gd)
-├── docs/     ASSET_ANALYSIS.md, PHASE1_REPORT.md, screenshots/
+├── docs/     ASSET_ANALYSIS.md, PHASE1_REPORT.md, PHASE2_REPORT.md, screenshots/
 ├── tools/    에셋 파이프라인 (Python + Godot 스크립트)
 └── art_source/  original/ (첨부 원본, 수정 금지) cleaned/ preview/
 ```
@@ -85,7 +102,7 @@ godot --headless --path . -s res://tools/build_sprite_frames.gd   # 4. JSON → 
 ## 테스트
 
 ```bash
-# 자동 테스트 (46개, 약 2초)
+# 자동 테스트 (63개)
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn
 
 # 자동 플레이 봇: 타이틀부터 보스 처치·클리어까지 입력만으로 플레이 (성공 시 종료 코드 0)

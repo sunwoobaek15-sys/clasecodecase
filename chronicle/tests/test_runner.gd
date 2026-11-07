@@ -4,6 +4,9 @@ extends Node
 
 func _ready() -> void:
 	await get_tree().process_frame
+	# Tests never touch the real save slot.
+	SaveSystem.save_path = "user://test_slot.json"
+	SaveSystem.delete_save()
 	var only := str(Game.cmd_options.get("only", ""))
 	var files: Array[String] = []
 	var dir := DirAccess.open("res://tests")
@@ -49,4 +52,5 @@ func _ready() -> void:
 		total_checks += tc.checks
 		all_failures.append_array(tc.failures)
 	print("\n==== %d tests, %d checks, %d failed  (%.1fs) ====" % [total_tests, total_checks, all_failures.size(), (Time.get_ticks_msec() - started) / 1000.0])
+	SaveSystem.delete_save()
 	get_tree().quit(0 if all_failures.is_empty() else 1)

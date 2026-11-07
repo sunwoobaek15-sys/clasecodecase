@@ -36,6 +36,16 @@ func _ready() -> void:
 	add_child(_bubble)
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	set_process(false)
+
+
+## Keeps the bubble inside the visible area (signs near the stage edge would
+## otherwise push it off screen on wide phones).
+func _process(_delta: float) -> void:
+	var view := get_viewport().get_canvas_transform().affine_inverse() * get_viewport().get_visible_rect()
+	var half := _bubble.size.x / 2.0
+	var cx := clampf(global_position.x, view.position.x + half + 4.0, view.end.x - half - 4.0)
+	_bubble.position.x = cx - global_position.x - half
 
 
 func _on_body_entered(body: Node) -> void:
@@ -55,3 +65,5 @@ func _show(on: bool) -> void:
 		_bubble.position = Vector2(-_bubble.size.x / 2.0, -40.0 - _bubble.size.y)
 		_bubble.modulate.a = 0.0
 		create_tween().tween_property(_bubble, "modulate:a", 1.0, 0.15)
+		_process(0.0)
+	set_process(on)

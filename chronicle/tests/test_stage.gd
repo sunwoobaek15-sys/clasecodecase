@@ -6,6 +6,7 @@ var _stage: Node2D
 
 func _load_stage() -> Node2D:
 	Game.checkpoint_id = -1
+	Profile.reset(false)
 	_stage = (load("res://scenes/world/forest_stage.tscn") as PackedScene).instantiate() as Node2D
 	add(_stage)
 	return _stage
@@ -110,6 +111,31 @@ func test_game_over_panel_on_death() -> void:
 		check_eq((labels[0] as Button).text, "체크포인트에서 재도전", "first button retries from the checkpoint")
 	check(tree().paused, "game paused behind the panel")
 	tree().paused = false
+
+
+func test_boss_drops_rewards() -> void:
+	var st := _load_stage()
+	await seconds(0.5)
+	var boss: Verdan = st.get("boss")
+	st.call("start_boss_fight")
+	await wait_until(func() -> bool: return boss.is_active(), 5.0)
+	boss.take_hit(HitData.make(99999, Vector2.ZERO))
+	await seconds(3.0)
+	var ids: Array[StringName] = []
+	for c in (st.get("enemies") as Node).get_children():
+		if c is Pickup and (c as Pickup).kind == Pickup.Kind.ITEM:
+			ids.append((c as Pickup).item_id)
+	check(ids.has(&"item_armor_guardian"), "boss drops the guardian armour (%s)" % str(ids))
+	check(ids.has(&"item_ring_time"), "boss drops the time ring")
+	# touching the core ends the stage; loot still on the floor is swept into the bag
+	await wait_until(func() -> bool: return _find_core(st) != null, 4.0)
+	var core := _find_core(st)
+	check(core != null, "time core appeared")
+	if core != null:
+		var p: Player = st.get("player")
+		p.global_position = core.global_position
+		await wait_until(func() -> bool: return bool(st.get("stage_cleared")), 3.0)
+	check(Profile.owns(&"item_armor_guardian") and Profile.owns(&"item_ring_time"), "leftover boss loot collected on clear")
 
 
 func _find_core(st: Node) -> Pickup:

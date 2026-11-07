@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SkillNodeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/skill_node_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/attack.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"node_combo_mastery"
+display_name = "연격 숙련"
+description = "3단 콤보·공중 베기·강공격의 피해가 늘어난다."
+icon = ExtResource("2_icon")
+max_level = 3
+cost = 1
+required_level = 1
+order = 2
+per_level = {"basic_damage_pct": 0.08}

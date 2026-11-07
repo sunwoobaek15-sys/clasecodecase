@@ -15,6 +15,7 @@ const CONTROLS_SCENE := preload("res://scenes/ui/touch_controls.tscn")
 const PAUSE_SCENE := preload("res://scenes/ui/pause_menu.tscn")
 const RESULT_SCENE := preload("res://scenes/ui/result_screen.tscn")
 const CUTIN_SCENE := preload("res://scenes/ui/ultimate_cutin.tscn")
+const CHARACTER_MENU_SCENE := preload("res://scenes/ui/character_menu.tscn")
 const WALL_TEX := preload("res://assets/environments/forgotten_forest/arena_wall.png")
 const FIREFLY_TEX := preload("res://assets/environments/forgotten_forest/firefly.png")
 const LEAF_TEX := preload("res://assets/environments/forgotten_forest/leaf.png")
@@ -270,6 +271,7 @@ func _build_ui() -> void:
 	add_child(overlay)
 	overlay.add_child(CUTIN_SCENE.instantiate())
 	overlay.add_child(PAUSE_SCENE.instantiate())
+	overlay.add_child(CHARACTER_MENU_SCENE.instantiate())
 	overlay.add_child(RESULT_SCENE.instantiate())
 
 
@@ -317,4 +319,16 @@ func _on_core_collected(_p: Pickup) -> void:
 	stage_cleared = true
 	player.input_enabled = false
 	player.clear_input()
+	_collect_leftover_loot()
+	Profile.mark_stage_cleared(SaveSystem.STAGE_ID)
+	SaveSystem.save_game()
 	Events.stage_cleared.emit(Game.run.duplicate())
+
+
+## Item drops still lying around when the stage ends go straight into the bag
+## (the core appears right where the boss loot falls).
+func _collect_leftover_loot() -> void:
+	for parent in [actors, enemies]:
+		for c in (parent as Node).get_children():
+			if c is Pickup and (c as Pickup).kind == Pickup.Kind.ITEM:
+				(c as Pickup).collect_item()

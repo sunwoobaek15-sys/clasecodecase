@@ -52,7 +52,7 @@ func _on_cleared(stats: Dictionary) -> void:
 		UiKit.format_time(float(stats.get("time", 0.0))), int(stats.get("damage_dealt", 0)),
 		int(stats.get("max_combo", 0)), int(stats.get("kills", 0)), int(stats.get("deaths", 0))]
 	_center(UiKit.label(lines, 11, UiKit.TEXT))
-	_center(UiKit.label("Phase 1 전투 프로토타입 완료 - 다음: 성장 시스템", 11, UiKit.DIM))
+	_center(UiKit.label("Lv.%d  ·  골드 %d  ·  자동 저장됨" % [Profile.level, Profile.gold], 11, Color(0.7, 0.95, 1.0)))
 	_center(UiKit.button("처음부터 다시", _on_restart))
 	_center(UiKit.button("타이틀로", _on_title))
 	_show()

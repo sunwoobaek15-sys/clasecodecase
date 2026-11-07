@@ -65,7 +65,12 @@ func _ready() -> void:
 	_toast_box = VBoxContainer.new()
 	_toast_box.alignment = BoxContainer.ALIGNMENT_BEGIN
 	_toast_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_toast_box)
+	# Toasts sit above the pause/character menus and keep animating while paused.
+	var toast_layer := CanvasLayer.new()
+	toast_layer.layer = 25
+	toast_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(toast_layer)
+	toast_layer.add_child(_toast_box)
 	_title = UiKit.label("1-1  잊혀진 숲", 22, Color(0.85, 1.0, 0.85), true, 4)
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_title)
@@ -285,6 +290,19 @@ func _draw() -> void:
 	var ur := ult / maxf(ult_max, 1.0)
 	var ucol := Color(0.95, 0.78, 0.3) if ur < 1.0 else Color(1.0, 0.9, 0.45).lerp(Color(1, 1, 1), 0.3 + 0.3 * sin(_time * 8.0))
 	_bar(Rect2(bx, 31, 110, 5), ur, ucol)
+	# level + EXP (Phase 2)
+	var lv_rect := Rect2(x0 - 2, 4 + PORTRAIT.get_height() + 6, PORTRAIT.get_width() + 4, 3)
+	_bar(lv_rect, float(Profile.xp) / float(maxi(1, Profile.exp_to_next(Profile.level))), Color(0.55, 0.9, 1.0))
+	# drawn below the EXP bar: the portrait (a child control) covers anything drawn on it
+	var lv_y := lv_rect.end.y + 11.0
+	var lv_text := "Lv.%d" % Profile.level
+	draw_string_outline(UiKit.FONT_BOLD, Vector2(x0, lv_y), lv_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, 3, UiKit.OUTLINE)
+	draw_string(UiKit.FONT_BOLD, Vector2(x0, lv_y), lv_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.92, 0.6))
+	if Profile.skill_points > 0:
+		var sp_x := x0 + UiKit.FONT_BOLD.get_string_size(lv_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 5.0
+		var sp_col := Color(0.6, 1.0, 0.7, 0.6 + 0.4 * sin(_time * 5.0))
+		draw_string_outline(UiKit.FONT, Vector2(sp_x, lv_y), "SP", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, 3, Color(UiKit.OUTLINE, sp_col.a))
+		draw_string(UiKit.FONT, Vector2(sp_x, lv_y), "SP", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, sp_col)
 	if boss_visible:
 		var w := minf(300.0, vp.x * 0.5)
 		var r := Rect2(vp.x / 2.0 - w / 2.0, 22, w, 8)
