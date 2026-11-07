@@ -20,7 +20,7 @@ collision_layer = 4
 collision_mask = 1
 script = ExtResource("1_verdan")
 stats = ExtResource("5_stats")
-max_hp = 1300
+max_hp = 1000
 body_height = 120.0
 
 [node name="BodyShape" type="CollisionShape2D" parent="."]

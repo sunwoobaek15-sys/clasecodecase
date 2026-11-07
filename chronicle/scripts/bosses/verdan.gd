@@ -25,6 +25,20 @@ const WARN_COLOR := Color(1.0, 0.55, 0.2)
 ## Big aura effects are drawn behind the characters so they never hide them
 ## (Effects layer z 0 + this < Enemies z 10 / Actors z 12).
 const BEHIND_Z := 5
+## Difficulty tuning (play-test feedback: the first version was too hard).
+## Longer warnings, slower root waves, fewer bursts, longer breathing room.
+const TELE_PHASE1 := 1.25
+const TELE_PHASE2 := 1.05
+const SPEED_PHASE1 := 0.85
+const SPEED_PHASE2 := 1.0
+const IDLE_MIN := 1.0
+const IDLE_MAX := 1.6
+const IDLE_PHASE2 := 0.8
+const WRATH_BURSTS := 3
+const WRATH_SECOND_WAVE := 2
+const ROOT_BONUS_DAMAGE := 1
+const WRATH_BONUS_DAMAGE := 2
+const STAGGER_HEAL_CHANCE := 0.6
 
 var phase: int = 1
 var arena_left: float = -100000.0
@@ -71,13 +85,13 @@ func _physics_process(delta: float) -> void:
 	global_position.x = clampf(global_position.x, arena_left + 50.0, arena_right - 50.0)
 
 
-## Telegraph length multiplier (phase 2 is faster).
+## Telegraph length multiplier (phase 2 is a little faster).
 func _tele() -> float:
-	return 1.0 if phase == 1 else 0.78
+	return TELE_PHASE1 if phase == 1 else TELE_PHASE2
 
 
 func _speed() -> float:
-	return 1.0 if phase == 1 else 1.3
+	return SPEED_PHASE1 if phase == 1 else SPEED_PHASE2
 
 
 func ground_y() -> float:
@@ -169,7 +183,7 @@ func is_active() -> bool:
 func _enter_idle() -> void:
 	sprite.speed_scale = 1.0
 	play_anim(&"idle")
-	_idle_len = randf_range(0.7, 1.2) * (1.0 if phase == 1 else 0.6)
+	_idle_len = randf_range(IDLE_MIN, IDLE_MAX) * (1.0 if phase == 1 else IDLE_PHASE2)
 
 
 func _st_idle(delta: float) -> StringName:
@@ -357,7 +371,7 @@ func _spawn_root_wave(dir: int) -> void:
 	w.speed = 280.0 * _speed()
 	w.max_distance = _root_length(dir)
 	w.source = self
-	w.hit = _make_hit(stats.attack_damage + 2, Vector2(150.0, -260.0), &"root_wave")
+	w.hit = _make_hit(stats.attack_damage + ROOT_BONUS_DAMAGE, Vector2(150.0, -260.0), &"root_wave")
 	FX._parent().add_child(w)
 	w.global_position = Vector2(_root_start_x(dir), ground_y())
 	_track(w)
@@ -374,7 +388,7 @@ func _enter_forest_wrath() -> void:
 	if circle:
 		var spin := circle.create_tween()
 		spin.tween_property(circle, "rotation", TAU, 1.2 * _tele())
-	_spawn_wrath_wave(4 if phase == 1 else 3, 1.0 * _tele())
+	_spawn_wrath_wave(WRATH_BURSTS, 1.0 * _tele())
 
 
 func _spawn_wrath_wave(count: int, delay: float) -> void:
@@ -396,7 +410,7 @@ func _spawn_wrath_wave(count: int, delay: float) -> void:
 		var b := WrathBurst.new()
 		b.delay = delay + i * 0.1
 		b.source = self
-		b.hit = _make_hit(stats.attack_damage + 4, Vector2(120.0, -280.0), &"forest_wrath")
+		b.hit = _make_hit(stats.attack_damage + WRATH_BONUS_DAMAGE, Vector2(120.0, -280.0), &"forest_wrath")
 		FX._parent().add_child(b)
 		b.global_position = Vector2(xs[i], ground_y())
 		_track(b)
@@ -406,7 +420,7 @@ func _st_forest_wrath(_delta: float) -> StringName:
 	var t := fsm.time_in_state
 	if phase == 2 and t >= 0.55 * _tele() and not _flags.get("wave2", false):
 		_flags["wave2"] = true
-		_spawn_wrath_wave(3, 0.95 * _tele())
+		_spawn_wrath_wave(WRATH_SECOND_WAVE, 0.95 * _tele())
 	if t >= (1.0 * _tele() + (1.6 if phase == 2 else 1.1)):
 		return &"idle"
 	return &""
@@ -445,6 +459,8 @@ func _enter_stagger() -> void:
 	_staggers += 1
 	_poise_max *= 1.15  # harder to stun-lock
 	FX.floating_text("그로기!", global_position + Vector2(0, -body_height - 16), Color(1.0, 0.85, 0.3), 16)
+	if randf() < STAGGER_HEAL_CHANCE:
+		call_deferred("_spawn_heal_orb")
 
 
 func _st_stagger(delta: float) -> StringName:
