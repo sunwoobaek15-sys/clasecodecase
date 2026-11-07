@@ -1,0 +1,102 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/pets/spirit_slime/pet_spirit_slime_atlas.png" id="1_nj75q"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ak6m0"]
+atlas = ExtResource("1_nj75q")
+region = Rect2(154, 0, 28, 23)
+margin = Rect2(3, 6, 7, 6)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_swngu"]
+atlas = ExtResource("1_nj75q")
+region = Rect2(129, 0, 23, 24)
+margin = Rect2(6, 5, 12, 5)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q6duk"]
+atlas = ExtResource("1_nj75q")
+region = Rect2(0, 0, 35, 29)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8fmwt"]
+atlas = ExtResource("1_nj75q")
+region = Rect2(69, 0, 25, 27)
+margin = Rect2(5, 2, 10, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fv8d5"]
+atlas = ExtResource("1_nj75q")
+region = Rect2(37, 0, 30, 28)
+margin = Rect2(2, 1, 5, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p4aol"]
+atlas = ExtResource("1_nj75q")
+region = Rect2(184, 0, 28, 23)
+margin = Rect2(3, 6, 7, 6)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1ty27"]
+atlas = ExtResource("1_nj75q")
+region = Rect2(96, 0, 31, 27)
+margin = Rect2(2, 2, 4, 2)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ak6m0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_swngu")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q6duk")
+}],
+"loop": 1,
+"name": &"love",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ak6m0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8fmwt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fv8d5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_swngu")
+}],
+"loop": 1,
+"name": &"move",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4aol")
+}],
+"loop": 1,
+"name": &"sleep",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1ty27")
+}],
+"loop": 1,
+"name": &"surprise",
+"speed": 1.0
+}]
+metadata/anchor = Vector2(17, 29)
+metadata/cell = Vector2(35, 29)
+metadata/source_sheet = "art_source/original/05_pets.png"

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ach_hunter"
+title = "숲의 사냥꾼"
+type = 3
+description = "몬스터 100마리를 처치했다."
+giver = &""
+objectives = [{"type": "kill", "target": "any", "count": 100, "text": "몬스터 처치"}]
+requires = Array[StringName]([])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 150
+reward_items = {}
+reward_pet = &""
+auto_accept = true
+turn_in = false
+order = 35

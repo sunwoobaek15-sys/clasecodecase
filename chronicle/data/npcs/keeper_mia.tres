@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NpcData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/npc_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/npcs/maid/full.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/npcs/maid/portrait.png" id="3_portrait"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"keeper_mia"
+display_name = "미아"
+role = "마을 관리인"
+sprite = ExtResource("2_sprite")
+portrait = ExtResource("3_portrait")
+lines = PackedStringArray("마을이 조금씩 살아나는 게 느껴져요.", "게시판에서 재건할 시설을 고를 수 있어요.", "숲에 다녀오시면 작물이 자라 있을 거예요.")
+intro = PackedStringArray("정신이 드셨군요! 숲 입구에 쓰러져 계셨어요.", "여기는 시간의 핵이 부서진 뒤 겨우 남은 마을, 루멘이에요.", "건물이 거의 다 무너졌지만… 힘을 보태 주신다면 다시 살릴 수 있을 거예요.")
+requires_facility = &""

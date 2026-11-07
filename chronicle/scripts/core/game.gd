@@ -10,6 +10,9 @@ extends Node
 const SETTINGS_PATH := "user://settings.cfg"
 const TITLE_SCENE := "res://scenes/boot/title.tscn"
 const STAGE_SCENE := "res://scenes/world/forest_stage.tscn"
+const VILLAGE_SCENE := "res://scenes/village/village.tscn"
+## Stage id -> scene. Regions 2 and 3 are listed on the world map as locked.
+const STAGES := {"forest_1": STAGE_SCENE}
 
 ## Keyboard bindings (physical keys) for desktop testing.
 const KEY_BINDINGS := {
@@ -24,6 +27,7 @@ const KEY_BINDINGS := {
 	&"ultimate": [KEY_I, KEY_V],
 	&"pause": [KEY_ESCAPE, KEY_P],
 	&"use_potion": [KEY_Q, KEY_R],
+	&"interact": [KEY_E, KEY_F],
 }
 const PAD_BUTTONS := {
 	&"jump": [JOY_BUTTON_A],
@@ -33,6 +37,7 @@ const PAD_BUTTONS := {
 	&"ultimate": [JOY_BUTTON_LEFT_SHOULDER],
 	&"pause": [JOY_BUTTON_START],
 	&"use_potion": [JOY_BUTTON_DPAD_UP],
+	&"interact": [JOY_BUTTON_DPAD_DOWN],
 }
 const PAD_AXES := {
 	&"move_left": [JOY_AXIS_LEFT_X, -1.0],
@@ -51,6 +56,8 @@ const DEFAULT_SETTINGS := {
 
 var settings: Dictionary = DEFAULT_SETTINGS.duplicate()
 var checkpoint_id: int = -1   # -1 = stage start
+var current_stage_id: String = "forest_1"
+var location: String = "stage"   # "stage" or "village" (where Continue starts)
 var run: Dictionary = {}
 var bot_mode := false
 var screenshot_dir := ""
@@ -141,30 +148,64 @@ func vibrate(ms: int) -> void:
 
 # -------------------------------------------------------------------- run ---
 func reset_run() -> void:
-	run = {"time": 0.0, "damage_dealt": 0, "damage_taken": 0, "kills": 0, "deaths": 0, "max_combo": 0}
+	run = {"time": 0.0, "damage_dealt": 0, "damage_taken": 0, "kills": 0, "deaths": 0, "max_combo": 0,
+			"stage_id": current_stage_id}
+
+
+## Clears all persistent progress (hero, village, pets, codex, quests).
+func reset_progress(starting_kit: bool = true) -> void:
+	Profile.reset(starting_kit)
+	Pets.reset()
+	Village.reset()
+	Codex.reset()
+	Quests.reset()
 
 
 func new_game() -> void:
 	checkpoint_id = -1
-	Profile.reset(true)
+	current_stage_id = "forest_1"
+	location = "stage"
+	reset_progress(true)
 	reset_run()
 	SaveSystem.save_game()
 	change_scene(STAGE_SCENE)
 
 
-## Loads the save file and returns to the saved checkpoint.
+## Loads the save file and returns to the village or the saved checkpoint.
 func continue_game() -> bool:
 	if not SaveSystem.load_game():
 		Events.toast.emit("저장 데이터를 불러오지 못했어요.")
 		return false
 	reset_run()
-	change_scene(STAGE_SCENE)
+	if location == "village" and Village.arrived:
+		change_scene(VILLAGE_SCENE)
+	else:
+		change_scene(str(STAGES.get(current_stage_id, STAGE_SCENE)))
 	return true
+
+
+func start_stage(stage_id: String) -> void:
+	if not STAGES.has(stage_id):
+		return
+	current_stage_id = stage_id
+	checkpoint_id = -1
+	location = "stage"
+	reset_run()
+	SaveSystem.save_game()
+	change_scene(str(STAGES[stage_id]))
+
+
+func go_to_village() -> void:
+	checkpoint_id = -1
+	location = "village"
+	Village.arrived = true
+	SaveSystem.save_game()
+	change_scene(VILLAGE_SCENE)
 
 
 func retry_from_checkpoint() -> void:
 	run["deaths"] = int(run.get("deaths", 0)) + 1
-	change_scene(STAGE_SCENE)
+	change_scene(str(STAGES.get(current_stage_id, STAGE_SCENE)))
 
 
 func go_to_title() -> void:

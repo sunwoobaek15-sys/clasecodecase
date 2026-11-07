@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/time_shard.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_time_shard"
+display_name = "시간의 핵 조각"
+description = "부서진 시간의 핵에서 떨어져 나온 조각. 희미하게 시간이 흐르는 소리가 난다. 연구소 복구에 필요하다."
+type = 4
+icon = ExtResource("2_icon")
+max_stack = 9
+price = 0
+unique = false
+bonuses = {}

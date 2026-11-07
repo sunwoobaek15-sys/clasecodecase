@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NpcData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/npc_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/npcs/scholar/full.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/npcs/scholar/portrait.png" id="3_portrait"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"scholar_edel"
+display_name = "에델 박사"
+role = "연구원"
+sprite = ExtResource("2_sprite")
+portrait = ExtResource("3_portrait")
+lines = PackedStringArray("새로운 몬스터를 만나면 도감에 기록해 오게.", "도감을 채우면 연구 지원금을 주겠네.", "크로노스… 시계 도시의 지배자라는 기록이 있었지.")
+intro = PackedStringArray("도서관이 다시 열리다니! 기록이야말로 시간을 붙잡는 유일한 방법이지.")
+requires_facility = &"library"

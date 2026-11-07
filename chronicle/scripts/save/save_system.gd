@@ -2,8 +2,11 @@ extends Node
 ## JSON save system (autoload "SaveSystem").
 ##
 ## File layout (user://save_slot1.json):
-##   {"version": 1, "saved_at": <unix>, "checksum": <sha256 of payload>,
-##    "payload": {"profile": {...}, "stage": {"stage_id", "checkpoint_id"}}}
+##   {"version": 2, "saved_at": <unix>, "checksum": <sha256 of payload>,
+##    "payload": {"profile": {...},
+##                "stage": {"stage_id", "checkpoint_id", "location"},
+##                "quests": {...}, "village": {...}, "pets": {...}, "codex": {...}}}
+## location is "village" or "stage" (where Continue starts).
 ##
 ## Safety:
 ##   * atomic write: the new file is written to *.tmp, read back and checked,
@@ -15,7 +18,7 @@ extends Node
 signal saved
 signal loaded
 
-const VERSION := 1
+const VERSION := 2
 const STAGE_ID := "forest_1"
 
 var save_path: String = "user://save_slot1.json"
@@ -54,7 +57,12 @@ static func checksum(payload: Dictionary) -> String:
 func build_payload() -> Dictionary:
 	return {
 		"profile": Profile.to_dict(),
-		"stage": {"stage_id": STAGE_ID, "checkpoint_id": Game.checkpoint_id},
+		"stage": {"stage_id": Game.current_stage_id, "checkpoint_id": Game.checkpoint_id,
+				"location": Game.location},
+		"quests": Quests.to_dict(),
+		"village": Village.to_dict(),
+		"pets": Pets.to_dict(),
+		"codex": Codex.to_dict(),
 	}
 
 
@@ -95,15 +103,27 @@ func load_game() -> bool:
 		if data.is_empty():
 			continue
 		var payload: Dictionary = data["payload"]
-		Profile.from_dict(payload.get("profile", {}) as Dictionary)
-		var stage: Variant = payload.get("stage", {})
-		Game.checkpoint_id = int((stage as Dictionary).get("checkpoint_id", -1)) if typeof(stage) == TYPE_DICTIONARY else -1
+		Profile.from_dict(_section(payload, "profile"))
+		Village.from_dict(_section(payload, "village"))
+		Pets.from_dict(_section(payload, "pets"))
+		Codex.from_dict(_section(payload, "codex"))
+		Quests.from_dict(_section(payload, "quests"))
+		var stage := _section(payload, "stage")
+		Game.checkpoint_id = int(stage.get("checkpoint_id", -1))
+		Game.current_stage_id = str(stage.get("stage_id", STAGE_ID))
+		var loc := str(stage.get("location", "stage"))
+		Game.location = loc if loc in ["village", "stage"] else "stage"
 		if p != save_path:
 			push_warning("SaveSystem: main save unreadable, restored from backup")
 		loaded.emit()
 		return true
 	last_error = "no valid save"
 	return false
+
+
+static func _section(payload: Dictionary, key: String) -> Dictionary:
+	var v: Variant = payload.get(key, {})
+	return v if typeof(v) == TYPE_DICTIONARY else {}
 
 
 ## Parsed + verified + migrated save data, or {} when the file is unusable.
@@ -141,6 +161,8 @@ func _migrate(data: Dictionary) -> Dictionary:
 		match v:
 			0:
 				data = _migrate_0_to_1(data)
+			1:
+				data = _migrate_1_to_2(data)
 		v += 1
 	data["version"] = VERSION
 	return data
@@ -163,6 +185,26 @@ func _migrate_0_to_1(data: Dictionary) -> Dictionary:
 	payload["profile"] = prof
 	if not payload.has("stage"):
 		payload["stage"] = {"stage_id": STAGE_ID, "checkpoint_id": -1}
+	data["payload"] = payload
+	return data
+
+
+## v1 (Phase 2): no quests / village / pets / codex. A hero who already
+## cleared the forest has reached the village; continue from there.
+func _migrate_1_to_2(data: Dictionary) -> Dictionary:
+	var payload: Dictionary = data["payload"]
+	var prof: Dictionary = _section(payload, "profile")
+	var cleared: Variant = prof.get("cleared_stages", [])
+	var arrived: bool = typeof(cleared) == TYPE_ARRAY and (cleared as Array).has(STAGE_ID)
+	var stage: Dictionary = _section(payload, "stage")
+	stage["location"] = "village" if arrived else "stage"
+	if arrived:
+		stage["checkpoint_id"] = -1
+	payload["stage"] = stage
+	payload["village"] = {"arrived": arrived}
+	for key in ["quests", "pets", "codex"]:
+		if not payload.has(key):
+			payload[key] = {}
 	data["payload"] = payload
 	return data
 

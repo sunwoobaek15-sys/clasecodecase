@@ -53,7 +53,8 @@ func _on_cleared(stats: Dictionary) -> void:
 		int(stats.get("max_combo", 0)), int(stats.get("kills", 0)), int(stats.get("deaths", 0))]
 	_center(UiKit.label(lines, 11, UiKit.TEXT))
 	_center(UiKit.label("Lv.%d  ·  골드 %d  ·  자동 저장됨" % [Profile.level, Profile.gold], 11, Color(0.7, 0.95, 1.0)))
-	_center(UiKit.button("처음부터 다시", _on_restart))
+	_center(UiKit.button("마을로 가기", _on_village))
+	_center(UiKit.button("다시 도전", _on_replay))
 	_center(UiKit.button("타이틀로", _on_title))
 	_show()
 
@@ -64,6 +65,8 @@ func _on_died() -> void:
 	_center(UiKit.label("쓰러졌다...", 33, Color(1.0, 0.45, 0.4), true, 5))
 	_center(UiKit.label("시간의 흐름이 다시 너를 일으킨다.", 11, UiKit.DIM))
 	_center(UiKit.button("체크포인트에서 재도전", _on_retry))
+	if Village.arrived:
+		_center(UiKit.button("마을로 돌아가기", _on_village))
 	_center(UiKit.button("타이틀로", _on_title))
 	_show()
 
@@ -76,9 +79,14 @@ func _show() -> void:
 	get_tree().paused = true
 
 
-func _on_restart() -> void:
+func _on_village() -> void:
 	_leave()
-	Game.new_game()
+	Game.go_to_village()
+
+
+func _on_replay() -> void:
+	_leave()
+	Game.start_stage(Game.current_stage_id)
 
 
 func _on_title() -> void:

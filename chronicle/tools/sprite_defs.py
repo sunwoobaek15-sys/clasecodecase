@@ -257,3 +257,130 @@ GROUPS = [
          out="assets/bosses/verdan/art", frames=VERDAN_ART, anchor="bottom",
          outline=(16, 12, 8)),
 ]
+
+
+# --------------------------------------------------------------------------
+# Phase 3: village NPCs (sheet 03) and pets (sheet 05).
+# --------------------------------------------------------------------------
+# Full-body illustrations are used as the standing NPC sprites (about the
+# hero's height); the first (neutral) portrait card of each NPC is used in
+# the dialogue box. Column 1 of the NPC sheet repeats the hero; it is the base
+# of the guard (palette swap, see tools/build_npc_variants.py) because the
+# sheet has no guard design.
+NPC_FULL = {
+    "hero_npc": B(32, 4, 152, 299), "maid": B(216, 12, 157, 293), "scholar": B(389, 5, 205, 299),
+    "smith": B(603, 2, 156, 302), "witch": B(776, 10, 182, 295), "priest": B(973, 3, 144, 300),
+    "merchant": B(1130, 5, 183, 298), "traveler": B(1303, 7, 207, 296),
+}
+_PY0, _PY1 = 571, 690
+NPC_PORTRAIT = {
+    "hero_npc": F(8, _PY0, 92, _PY1, hard=True), "maid": F(193, _PY0, 281, _PY1, hard=True),
+    "scholar": F(404, _PY0, 489, _PY1, hard=True), "smith": F(591, _PY0, 672, _PY1, hard=True),
+    "witch": F(778, _PY0, 870, _PY1, hard=True), "priest": F(974, _PY0, 1060, _PY1, hard=True),
+    "merchant": F(1157, _PY0, 1244, _PY1, hard=True), "traveler": F(1348, _PY0, 1430, _PY1, hard=True),
+}
+VILLAGE_ICONS = {
+    "bubble_talk": B(18, 696, 71, 60, pad=3), "bubble_question": B(98, 695, 63, 72, pad=3),
+    "bubble_exclaim": B(171, 695, 60, 71, pad=3), "scroll": B(257, 699, 63, 73, pad=3),
+    "quest_turnin": B(339, 698, 55, 71, pad=3), "alert": B(416, 702, 49, 54, pad=3),
+    "coin": B(483, 701, 64, 72, pad=3), "chest": B(557, 696, 82, 86, pad=3),
+    "gold_bag": B(644, 700, 68, 88, pad=3), "gift": B(732, 698, 68, 90, pad=3),
+}
+VILLAGE_PROPS = {
+    "stall": B(0, 778, 335, 232, pad=2), "potion_sign": F(279, 786, 421, 911, hard=True),
+    "banner": F(438, 797, 532, 938, hard=True), "notice_board": F(563, 797, 725, 929, hard=True),
+    "lamp": F(740, 794, 790, 1002, hard=True), "barrel": F(278, 918, 336, 1005, hard=True),
+    "bush": F(338, 904, 405, 1007, hard=True),
+}
+
+# Pets: move / idle / sleep / emote frames. Floating marks (Z, !, hearts)
+# drawn next to the poses are erased; the game draws its own emote icons.
+CAT_FRAMES = {
+    "move0": B(249, 51, 116, 95), "move1": B(375, 38, 101, 106), "move2": B(478, 46, 88, 97),
+    "move3": B(567, 46, 97, 96), "move4": B(666, 48, 82, 94), "move5": B(745, 47, 91, 90),
+    "dash": B(845, 29, 94, 92), "sit": B(255, 156, 100, 106),
+    "sleep": B(375, 153, 114, 110, erase=[(452, 148, 495, 196)]),
+    "surprise": B(516, 154, 117, 108, erase=[(634, 145, 665, 196)]),
+    "love": B(675, 153, 112, 109, erase=[(670, 150, 712, 188)]),
+}
+FOX_FRAMES = {
+    "move0": B(252, 309, 120, 96), "move1": B(375, 288, 105, 106), "move2": B(484, 287, 94, 104),
+    "move3": B(591, 295, 84, 99), "sleep": B(692, 303, 98, 91, erase=[(686, 297, 745, 334)]),
+    "sit": B(809, 288, 106, 105, erase=[(803, 318, 836, 350)]),
+    "love": B(931, 288, 99, 108, erase=[(924, 292, 960, 326)]),
+}
+DRAGON_FRAMES = {
+    "idle0": B(264, 451, 104, 121), "idle1": B(370, 437, 107, 135), "idle2": B(477, 436, 108, 136),
+    "sleep": B(593, 528, 73, 47), "fly": B(791, 434, 132, 71), "wings": B(934, 425, 153, 146),
+}
+DRAGON_FX = {"pet_fireball": F(800, 512, 948, 590, hard=True)}
+PSLIME_FRAMES = {
+    "idle0": B(262, 614, 91, 76), "bounce1": B(369, 601, 84, 89, erase=[(436, 605, 470, 650)]),
+    "bounce2": B(471, 613, 75, 77), "bounce3": B(547, 593, 99, 94), "squish": B(663, 619, 84, 75),
+    "surprise": B(787, 615, 110, 81, erase=[(878, 608, 922, 652), (758, 630, 798, 690)]),
+    "happy": B(913, 593, 114, 97),
+}
+BIRD_FRAMES = {
+    "flap0": B(248, 731, 104, 88), "flap1": B(366, 712, 93, 103), "flap2": B(472, 714, 91, 105),
+    "flap3": B(574, 714, 100, 94), "glide": B(753, 711, 134, 108), "happy": B(983, 709, 160, 109),
+}
+PET_ART = {
+    "cat_full": B(9, 11, 220, 250, pad=3), "fox_full": B(9, 265, 211, 170, pad=3),
+    "dragon_full": F(6, 430, 258, 573, hard=True, erase=[(6, 430, 258, 441)]),
+    "slime_full": F(6, 574, 232, 712, hard=True, erase=[(6, 574, 232, 584)]),
+    "bird_full": B(67, 711, 139, 110, pad=3),
+}
+_IY0, _IY1 = 856, 940
+PET_ICONS = {
+    "icon_cat": F(15, _IY0, 100, _IY1, hard=True), "icon_fox": F(102, _IY0, 186, _IY1, hard=True),
+    "icon_dragon": F(186, _IY0, 271, _IY1, hard=True), "icon_slime": F(271, _IY0, 356, _IY1, hard=True),
+    "icon_bird": F(356, _IY0, 439, _IY1, hard=True), "icon_paw": F(440, _IY0, 522, _IY1, hard=True),
+    "heart": B(20, 946, 65, 58, pad=3), "heart_plus": B(93, 946, 80, 59, pad=3),
+    "star": B(183, 946, 51, 51, pad=3), "paw": B(244, 945, 57, 59, pad=3), "crown": B(312, 946, 65, 53, pad=3),
+}
+
+PET_ANIMS = {
+    "cat": {"idle": (["sit"], 1, True), "move": (["move0", "move1", "move2", "move3", "move4", "move5"], 10, True),
+            "sleep": (["sleep"], 1, True), "love": (["love"], 1, True), "surprise": (["surprise"], 1, True),
+            "dash": (["dash"], 1, True)},
+    "fox": {"idle": (["sit"], 1, True), "move": (["move0", "move1", "move2", "move3"], 8, True),
+            "sleep": (["sleep"], 1, True), "love": (["love"], 1, True)},
+    "dragon": {"idle": (["idle0", "idle1", "idle2", "idle1"], 5, True), "move": (["fly"], 1, True),
+               "sleep": (["sleep"], 1, True), "love": (["wings"], 1, True)},
+    "spirit_slime": {"idle": (["idle0", "bounce2"], 3, True),
+                     "move": (["idle0", "bounce1", "bounce3", "bounce2"], 8, True),
+                     "sleep": (["squish"], 1, True), "love": (["happy"], 1, True), "surprise": (["surprise"], 1, True)},
+    "bird": {"idle": (["flap0", "flap3"], 3, True), "move": (["flap0", "flap1", "flap2", "flap3"], 10, True),
+             "sleep": (["flap0"], 1, True), "love": (["happy"], 1, True), "glide": (["glide"], 1, True)},
+}
+
+_NPC_OUT = (20, 14, 30)
+for _n, _fd in NPC_FULL.items():
+    GROUPS.append(dict(name=f"npc_{_n}", sheet="03_village_npcs", kind="art", scale=0.22, colors=40,
+                       out=f"assets/npcs/{_n}", frames={"full": _fd}, anchor="bottom", outline=_NPC_OUT))
+    GROUPS.append(dict(name=f"npc_{_n}_portrait", sheet="03_village_npcs", kind="art", scale=0.62,
+                       colors=56, out=f"assets/npcs/{_n}", frames={"portrait": NPC_PORTRAIT[_n]},
+                       anchor="bottom"))
+GROUPS += [
+    dict(name="village_icons", sheet="03_village_npcs", kind="art", scale=0.34, colors=48,
+         out="assets/ui/village", frames=VILLAGE_ICONS, anchor="bottom", outline=_NPC_OUT),
+    dict(name="village_props", sheet="03_village_npcs", kind="art", scale=0.42, colors=56,
+         out="assets/environments/village/props", frames=VILLAGE_PROPS, anchor="bottom", outline=_NPC_OUT),
+    dict(name="pet_cat", sheet="05_pets", kind="character", scale=0.30, colors=28, out="assets/pets/cat",
+         frames=CAT_FRAMES, anims=PET_ANIMS["cat"], anchor="bottom", outline=(12, 10, 26)),
+    dict(name="pet_fox", sheet="05_pets", kind="character", scale=0.28, colors=28, out="assets/pets/fox",
+         frames=FOX_FRAMES, anims=PET_ANIMS["fox"], anchor="bottom", outline=(16, 22, 48)),
+    dict(name="pet_dragon", sheet="05_pets", kind="character", scale=0.27, colors=32, out="assets/pets/dragon",
+         frames=DRAGON_FRAMES, anims=PET_ANIMS["dragon"], anchor="bottom", outline=(22, 8, 8)),
+    dict(name="pet_spirit_slime", sheet="05_pets", kind="character", scale=0.30, colors=40,
+         out="assets/pets/spirit_slime", frames=PSLIME_FRAMES, anims=PET_ANIMS["spirit_slime"],
+         anchor="bottom", outline=(14, 22, 52)),
+    dict(name="pet_bird", sheet="05_pets", kind="character", scale=0.28, colors=28, out="assets/pets/bird",
+         frames=BIRD_FRAMES, anims=PET_ANIMS["bird"], anchor="bottom", outline=(14, 22, 52)),
+    dict(name="pet_fx", sheet="05_pets", kind="fx", scale=0.24, colors=24, out="assets/effects/pets",
+         frames=DRAGON_FX, anchor="center", thr=40, dil=3),
+    dict(name="pet_art", sheet="05_pets", kind="art", scale=0.40, colors=64, out="assets/pets/art",
+         frames=PET_ART, anchor="bottom", outline=(14, 12, 28)),
+    dict(name="pet_icons", sheet="05_pets", kind="art", scale=0.36, colors=56, out="assets/ui/pets",
+         frames=PET_ICONS, anchor="bottom"),
+]

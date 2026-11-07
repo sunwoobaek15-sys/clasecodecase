@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_sub_harvest"
+title = "첫 수확"
+type = 1
+description = "농장의 작물을 두 번 수확해 보자."
+giver = &"keeper_mia"
+objectives = [{"type": "harvest", "target": "", "count": 2, "text": "작물 수확"}]
+requires = Array[StringName]([])
+requires_facility = &"farm"
+reward_exp = 30
+reward_gold = 0
+reward_items = {"item_potion_small": 3}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 13

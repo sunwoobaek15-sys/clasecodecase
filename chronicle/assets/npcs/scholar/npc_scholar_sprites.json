@@ -1,0 +1,44 @@
+{
+ "name": "npc_scholar",
+ "source_sheet": "art_source/original/03_village_npcs.png",
+ "kind": "art",
+ "scale": 0.22,
+ "atlas": "res://assets/npcs/scholar/npc_scholar_atlas.png",
+ "cell": [
+  46,
+  66
+ ],
+ "anchor": [
+  23,
+  66
+ ],
+ "frames": {
+  "full": {
+   "region": [
+    0,
+    0,
+    46,
+    66
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    383,
+    -1,
+    600,
+    310
+   ]
+  }
+ },
+ "animations": {
+  "full": {
+   "frames": [
+    "full"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

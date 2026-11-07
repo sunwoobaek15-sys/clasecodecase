@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ach_level5"
+title = "성장의 증거"
+type = 3
+description = "레벨 5에 도달했다."
+giver = &""
+objectives = [{"type": "level", "target": "", "count": 5, "text": "레벨 5"}]
+requires = Array[StringName]([])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 50
+reward_items = {}
+reward_pet = &""
+auto_accept = true
+turn_in = false
+order = 31

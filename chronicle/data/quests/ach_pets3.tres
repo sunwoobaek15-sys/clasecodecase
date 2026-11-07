@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ach_pets3"
+title = "든든한 동료들"
+type = 3
+description = "펫 3마리와 함께하게 되었다."
+giver = &""
+objectives = [{"type": "pet_count", "target": "", "count": 3, "text": "펫 3마리"}]
+requires = Array[StringName]([])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 0
+reward_items = {"item_pet_treat": 3}
+reward_pet = &""
+auto_accept = true
+turn_in = false
+order = 32

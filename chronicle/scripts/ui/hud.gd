@@ -32,6 +32,7 @@ var _combo_label: Label
 var _combo_timer: float = 0.0
 var _toast_box: VBoxContainer
 var _title: Label
+var _quest_label: Label
 var _banner: Control
 var _pause_button: TextureButton
 var _left: float = 0.0
@@ -71,7 +72,13 @@ func _ready() -> void:
 	toast_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(toast_layer)
 	toast_layer.add_child(_toast_box)
-	_title = UiKit.label("1-1  잊혀진 숲", 22, Color(0.85, 1.0, 0.85), true, 4)
+	_title = UiKit.label("루멘 마을" if Game.location == "village" else "1-1  잊혀진 숲", 22, Color(0.85, 1.0, 0.85), true, 4)
+	_quest_label = UiKit.label("", 11, Color(1.0, 0.93, 0.7))
+	_quest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(_quest_label)
+	Quests.changed.connect(_update_quest)
+	Profile.changed.connect(_update_quest)
+	_update_quest()
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_title)
 	_pause_button = TextureButton.new()
@@ -108,6 +115,23 @@ func _ready() -> void:
 	t.tween_property(_title, "modulate:a", 0.0, 0.6)
 
 
+## Tracked quest under the portrait: "★ title" + first open objective.
+func _update_quest() -> void:
+	var q := Quests.tracked()
+	if q == null:
+		_quest_label.text = ""
+		return
+	var line := ""
+	if Quests.status(q.id) == "ready":
+		line = "→ 보고하기"
+	else:
+		for i in q.objectives.size():
+			if not Quests.objective_done(q, i):
+				line = Quests.objective_text(q, i)
+				break
+	_quest_label.text = "★ %s\n  %s" % [q.title, line]
+
+
 func _compute_margins() -> void:
 	_left = 0.0
 	_right = 0.0
@@ -133,6 +157,8 @@ func _relayout() -> void:
 	_toast_box.position = Vector2(vp.x / 2.0 - 160, 78)
 	_toast_box.size = Vector2(320, 80)
 	_title.position = Vector2(vp.x / 2.0 - 200, 120)
+	_quest_label.position = Vector2(_left + 8, 86)
+	_quest_label.size = Vector2(230, 40)
 	_title.size = Vector2(400, 30)
 	_pause_button.position = Vector2(vp.x - _right - 40, 4)
 	_banner.size = Vector2(vp.x, 120)
@@ -199,7 +225,16 @@ func _on_combo(hits: int) -> void:
 	create_tween().tween_property(_combo_label, "scale", Vector2.ONE, 0.12)
 
 
+const MAX_TOASTS := 3
+
+
 func show_toast(text: String) -> void:
+	var live: Array[Node] = []
+	for c in _toast_box.get_children():
+		if not c.is_queued_for_deletion():
+			live.append(c)
+	while live.size() >= MAX_TOASTS:
+		live.pop_front().queue_free()
 	var p := PanelContainer.new()
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var l := UiKit.label(text, 11)

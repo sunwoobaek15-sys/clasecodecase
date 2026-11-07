@@ -10,6 +10,7 @@ const SLOT_NAMES := {&"weapon": "무기", &"armor": "방어구", &"accessory": "
 const BASE_STATS := preload("res://data/player/hero_stats.tres")
 
 var _tabs: TabContainer
+var _extra_tabs: Array[Control] = []
 var _stats_label: Label
 var _exp_bar: ProgressBar
 var _level_label: Label
@@ -62,19 +63,35 @@ func _ready() -> void:
 	_build_stats_tab()
 	_build_items_tab()
 	_build_skills_tab()
+	for tab in [MenuTabs.PetTab.new(), MenuTabs.QuestTab.new(), MenuTabs.CodexTab.new()]:
+		_tabs.add_child(tab)
+		_extra_tabs.append(tab)
 	Profile.changed.connect(_refresh)
+	Pets.changed.connect(_refresh)
+	Quests.changed.connect(_refresh)
+	Codex.changed.connect(_refresh)
 
 
 func open() -> void:
 	visible = true
 	_selected_id = &""
 	_selected_slot = &""
+	ModalPanel.pause_game(self)
 	_refresh()
 
 
 func close() -> void:
 	visible = false
+	ModalPanel.resume_game(self)
 	closed.emit()
+
+
+## Selects a tab by its title ("상태", "장비·가방", "스킬", "펫", "퀘스트", "도감").
+func show_tab(title: String) -> void:
+	for i in _tabs.get_tab_count():
+		if _tabs.get_tab_title(i) == title:
+			_tabs.current_tab = i
+			return
 
 
 func _player() -> Player:
@@ -156,6 +173,8 @@ func _refresh() -> void:
 	_refresh_stats()
 	_refresh_items()
 	_refresh_skills()
+	for tab in _extra_tabs:
+		tab.call(&"refresh")
 
 
 func _refresh_stats() -> void:
@@ -168,13 +187,18 @@ func _refresh_stats() -> void:
 	_stats_label.text = "최대 HP  %d\n최대 MP  %d\n공격력  %d\n받는 피해 감소  %d%%\n치명타 확률  %d%%\n회피 재사용 대기  %.2f초" % [
 		s.max_hp, roundi(s.max_mp), s.attack, roundi(Profile.defense() * 100.0),
 		roundi(s.crit_chance * 100.0), s.dodge_cooldown]
+	var pet := Pets.active_pet()
+	if pet != null:
+		_stats_label.text += "\n\n펫  %s Lv.%d  (%s)" % [pet.display_name, Pets.level_of(pet.id), pet.bonus_text(Pets.level_of(pet.id))]
+	if Village.blessing:
+		_stats_label.text += "\n축복  다음 스테이지 EXP +%d%%" % roundi(Village.BLESSING_EXP * 100.0)
 
 
 func _refresh_items() -> void:
 	for slot in Profile.SLOTS:
 		var b: Button = _equip_buttons[slot]
 		var item := ItemDB.get_item(Profile.equipment.get(slot, &""))
-		b.text = "%s: %s" % [SLOT_NAMES[slot], item.display_name if item != null else "(없음)"]
+		b.text = "%s: %s" % [SLOT_NAMES[slot], Profile.item_label(item.id) if item != null else "(없음)"]
 		b.icon = item.icon if item != null else null
 	_item_list.clear()
 	_list_ids.clear()
@@ -183,7 +207,7 @@ func _refresh_items() -> void:
 		if item == null:
 			continue
 		var n := int(entry["count"])
-		_item_list.add_item(item.display_name + ("" if n == 1 else "  x%d" % n), item.icon)
+		_item_list.add_item(Profile.item_label(item.id) + ("" if n == 1 else "  x%d" % n), item.icon)
 		_list_ids.append(item.id)
 	_show_detail()
 
@@ -245,7 +269,9 @@ func _show_detail() -> void:
 		_action.text = "-"
 		_action.disabled = true
 		return
-	var text := "%s  [%s]\n%s" % [item.display_name, item.type_name(), item.description]
+	var text := "%s  [%s]\n%s" % [Profile.item_label(item.id), item.type_name(), item.description]
+	if item.is_equipment() and Profile.enhance_level(item.id) > 0:
+		text += "\n강화: " + Profile.enhance_text(item.slot(), Profile.enhance_level(item.id))
 	var bonus := item.bonus_text()
 	if bonus != "":
 		text += "\n\n효과: " + bonus

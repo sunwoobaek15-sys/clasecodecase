@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NpcData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/npc_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/npcs/smith/full.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/npcs/smith/portrait.png" id="3_portrait"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"smith_bron"
+display_name = "브론"
+role = "대장장이"
+sprite = ExtResource("2_sprite")
+portrait = ExtResource("3_portrait")
+lines = PackedStringArray("좋은 검은 주인을 배신하지 않는다.", "강화는 +5까지. 그 이상은 아직 내 실력이 모자라.", "슬라임 젤이 담금질에 그렇게 좋을 줄이야.")
+intro = PackedStringArray("흠! 화로에 다시 불이 들어왔군. 고맙다, 젊은이.", "장비를 가져오면 단단하게 벼려 주지. 재료는 슬라임 젤이면 충분해.")
+requires_facility = &"smithy"

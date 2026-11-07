@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_main_01"
+title = "낯선 마을"
+type = 0
+description = "숲을 빠져나와 도착한 마을. 마을 관리인 미아와 이야기해 보자."
+giver = &"keeper_mia"
+objectives = [{"type": "talk", "target": "keeper_mia", "count": 1, "text": "미아와 대화하기"}]
+requires = Array[StringName]([])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 30
+reward_items = {}
+reward_pet = &"spirit_slime"
+auto_accept = true
+turn_in = false
+order = 1

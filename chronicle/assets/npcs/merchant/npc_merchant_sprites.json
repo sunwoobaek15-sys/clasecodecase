@@ -1,0 +1,44 @@
+{
+ "name": "npc_merchant",
+ "source_sheet": "art_source/original/03_village_npcs.png",
+ "kind": "art",
+ "scale": 0.22,
+ "atlas": "res://assets/npcs/merchant/npc_merchant_atlas.png",
+ "cell": [
+  41,
+  66
+ ],
+ "anchor": [
+  21,
+  65
+ ],
+ "frames": {
+  "full": {
+   "region": [
+    0,
+    0,
+    41,
+    66
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    1124,
+    -1,
+    1319,
+    309
+   ]
+  }
+ },
+ "animations": {
+  "full": {
+   "frames": [
+    "full"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

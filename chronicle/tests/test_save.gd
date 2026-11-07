@@ -4,13 +4,13 @@ extends TestCase
 
 func before_each() -> void:
 	SaveSystem.delete_save()
-	Profile.reset(false)
+	Game.reset_progress(false)
 	Game.checkpoint_id = -1
 
 
 func after_each() -> void:
 	SaveSystem.delete_save()
-	Profile.reset(false)
+	Game.reset_progress(false)
 	Game.checkpoint_id = -1
 
 
@@ -115,7 +115,8 @@ func test_rejects_newer_and_invalid_values() -> void:
 	check(SaveSystem.load_game(), "loads with bad values")
 	check_eq(Profile.level, Profile.MAX_LEVEL, "level clamped")
 	check_eq(Profile.xp, 0, "exp clamped")
-	check_eq(Profile.gold, 0, "gold clamped")
+	# -10 gold is clamped to 0; the level-5 achievement (level is clamped to 30) then pays 50
+	check_eq(Profile.gold, 50, "gold clamped (+ achievement reward)")
 	check_eq(Profile.skill_rank(&"node_combo_mastery"), 3, "skill rank clamped")
 	check_eq(Profile.equipment[&"weapon"], &"item_sword_cheongwol", "invalid weapon replaced by the default sword")
 	check_eq(Profile.equipment[&"armor"], &"item_cloak_traveler", "valid armour kept")

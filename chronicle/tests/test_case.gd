@@ -111,7 +111,7 @@ func make_floor(width: float = 4000.0) -> StaticBody2D:
 
 
 func spawn_player(pos: Vector2 = Vector2.ZERO) -> Player:
-	Profile.reset(false)  # bare level-1 hero: tests use the base numbers
+	Game.reset_progress(false)  # bare level-1 hero, no pets: tests use the base numbers
 	var p := (load("res://scenes/player/player.tscn") as PackedScene).instantiate() as Player
 	p.position = pos
 	p.stats = p.stats.duplicate()

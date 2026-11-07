@@ -5,7 +5,9 @@ extends Node
 ## input actions (Input.action_press for the stick, InputEventActions for the
 ## buttons - the same path as the touch controls) and reads what is visible:
 ## enemy positions, warning markers, the root wave front. It never edits game
-## state. It exits with code 0 when the stage is cleared, 1 on failure.
+## state. After the clear it walks into the village and tours it (talks to
+## the keeper, restores the shop, visits the merchant, opens the menus and the
+## world map). It exits with code 0 when all of that worked, 1 on failure.
 ##
 ## Options:  --screenshots=DIR  save key frames (needs a renderer, not --headless)
 ##           --timeout=SECONDS  give up after this much game time (default 900)
@@ -35,6 +37,7 @@ var _diag_t: float = 0.0
 var _result_t: float = 0.0
 var _menu_shots_done: bool = false
 var _menu_busy: bool = false
+var _tour_started: bool = false
 
 
 func _ready() -> void:
@@ -157,6 +160,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if scene.name != _scene_name:
 		_scene_name = scene.name
+		_log("scene: " + _scene_name)
 		_scene_t = 0.0
 		_release_all()
 	_scene_t += real
@@ -170,6 +174,9 @@ func _physics_process(delta: float) -> void:
 			Game.new_game()
 	elif scene.name == "ForestStage":
 		_play(scene, real)
+	elif scene.name == "VillageScene" and not _tour_started and _scene_t > 1.0:
+		_tour_started = true
+		_village_tour(scene)
 
 
 func _play(stage: Node, delta: float) -> void:
@@ -181,8 +188,11 @@ func _play(stage: Node, delta: float) -> void:
 			return
 		if rs.get("shown") == &"clear":
 			_shot("10_stage_clear")
-			if _shots.has("10_stage_clear") or Game.screenshot_dir == "" or DisplayServer.get_name() == "headless":
-				_finish(true, "stage cleared")
+			if (_shots.has("10_stage_clear") or Game.screenshot_dir == "" or DisplayServer.get_name() == "headless") \
+					and _result_t > 1.4:
+				_log("result -> 마을로 가기")
+				_result_t = -999.0
+				rs.call("press_first_button")
 		else:
 			_shot("xx_game_over_%d" % _deaths)
 			if _result_t < 1.3:
@@ -275,6 +285,110 @@ func _capture_menu() -> void:
 	Events.pause_requested.emit()
 	await get_tree().create_timer(0.2, true, false, true).timeout
 	_menu_busy = false
+
+
+# ---------------------------------------------------------------- village ---
+func _wait(sec: float) -> void:
+	await get_tree().create_timer(sec, true, false, true).timeout
+
+
+## Walks until the hero is within 6 px of x (gives up after 8 s).
+func _walk_to(v: Node, x: float) -> bool:
+	var p := v.get("player") as Player
+	var limit := 8.0
+	while limit > 0.0 and is_instance_valid(p):
+		var dx := x - p.global_position.x
+		if absf(dx) < 6.0:
+			break
+		_axis(signf(dx) * (1.0 if absf(dx) > 30.0 else 0.4))
+		await get_tree().physics_frame
+		limit -= get_physics_process_delta_time()
+	_axis(0.0)
+	await _wait(0.3)
+	return is_instance_valid(p) and absf(x - p.global_position.x) < 12.0
+
+
+func _talk(v: Node, npc_id: StringName) -> DialogueBox:
+	var n := (v.get("npcs") as Dictionary).get(npc_id) as Npc
+	if n == null or not n.visible:
+		return null
+	await _walk_to(v, n.global_position.x - 14.0)
+	_tap(&"interact")
+	await _wait(0.6)
+	var d := v.get("dialogue") as DialogueBox
+	return d if d.visible else null
+
+
+func _village_tour(v: Node) -> void:
+	_log("village: arrived (Lv.%d, %dG)" % [Profile.level, Profile.gold])
+	await _wait(1.2)
+	await _shot("12_village")
+	var d := await _talk(v, &"keeper_mia")
+	if d == null:
+		_finish(false, "could not talk to Mia")
+		return
+	await _wait(0.8)
+	await _shot("13_dialogue")
+	for i in 8:
+		d.advance()
+		await _wait(0.15)
+	if Quests.status(&"q_main_01") != "done" or not Pets.owns(&"spirit_slime"):
+		_finish(false, "first quest not completed by talking")
+		return
+	_log("village: talked to Mia, first pet %s" % Pets.active)
+	await _shot("14_choices")
+	if not d.choose_containing("마을 재건"):
+		_finish(false, "no restoration choice")
+		return
+	await _wait(0.6)
+	var rp := (v.get("panels") as Dictionary)["restore"] as ModalPanel
+	await _shot("15_restore")
+	rp.call(&"_restore", &"shop")
+	rp.close()
+	if not Village.is_restored(&"shop"):
+		_finish(false, "shop not restored (gold %d)" % Profile.gold)
+		return
+	_log("village: shop restored (%dG left)" % Profile.gold)
+	await _wait(1.0)
+	d = await _talk(v, &"merchant_kairo")
+	if d == null:
+		_finish(false, "merchant did not appear")
+		return
+	if not d.choose_containing("상점"):
+		_finish(false, "no shop choice")
+		return
+	await _wait(0.5)
+	await _shot("16_shop")
+	((v.get("panels") as Dictionary)["shop"] as ModalPanel).close()
+	await _wait(0.4)
+	var pet_count := get_tree().get_nodes_in_group(&"pet").size()
+	await _shot("17_village_pet")
+	v.call(&"open_menu_tab", "펫")
+	await _wait(0.4)
+	await _shot("18_menu_pets")
+	(v.get("character_menu") as Control).call(&"show_tab", "퀘스트")
+	await _wait(0.4)
+	await _shot("19_menu_quests")
+	(v.get("character_menu") as Control).call(&"show_tab", "도감")
+	await _wait(0.4)
+	await _shot("20_menu_codex")
+	(v.get("character_menu") as Control).call(&"close")
+	await _wait(0.3)
+	await _walk_to(v, 70.0)
+	_tap(&"interact")
+	await _wait(0.6)
+	var map := (v.get("panels") as Dictionary)["map"] as ModalPanel
+	if not map.visible:
+		_finish(false, "gate did not open the world map")
+		return
+	await _shot("21_world_map")
+	map.close()
+	await _wait(0.3)
+	if pet_count != 1:
+		_finish(false, "pet not following in the village")
+		return
+	_log("village: tour done (codex %d, quests done %d)" % [Codex.count_known(), Quests.list(["done"]).size()])
+	_finish(true, "stage cleared and village toured")
 
 
 func _finish(ok: bool, why: String) -> void:

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NpcData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/npc_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/npcs/priest/full.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/npcs/priest/portrait.png" id="3_portrait"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"priest_serena"
+display_name = "세레나"
+role = "사제"
+sprite = ExtResource("2_sprite")
+portrait = ExtResource("3_portrait")
+lines = PackedStringArray("스킬을 다시 배우고 싶다면 언제든 말씀하세요.", "축복을 받으면 다음 여정에서 더 많이 배울 수 있어요.", "무리하지 마세요. 쉬는 것도 수련이에요.")
+intro = PackedStringArray("성소가 다시 깨끗해졌어요. 빛의 가호가 함께하기를.")
+requires_facility = &"training"

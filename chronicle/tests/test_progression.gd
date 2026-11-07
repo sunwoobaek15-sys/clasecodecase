@@ -3,11 +3,11 @@ extends TestCase
 
 
 func before_each() -> void:
-	Profile.reset(false)
+	Game.reset_progress(false)
 
 
 func after_each() -> void:
-	Profile.reset(false)
+	Game.reset_progress(false)
 
 
 func test_exp_curve_and_level_up() -> void:

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_main_05"
+title = "다음 여정"
+type = 0
+description = "그림자 여행자가 할 이야기가 있다고 한다. 충분히 강해진 뒤 찾아가자."
+giver = &"traveler_shade"
+objectives = [{"type": "level", "target": "", "count": 6, "text": "레벨 6 달성"}, {"type": "talk", "target": "traveler_shade", "count": 1, "text": "그림자 여행자와 대화"}]
+requires = Array[StringName]([&"q_main_04"])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 150
+reward_items = {}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 5

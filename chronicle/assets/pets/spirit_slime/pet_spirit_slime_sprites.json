@@ -1,0 +1,184 @@
+{
+ "name": "pet_spirit_slime",
+ "source_sheet": "art_source/original/05_pets.png",
+ "kind": "character",
+ "scale": 0.3,
+ "atlas": "res://assets/pets/spirit_slime/pet_spirit_slime_atlas.png",
+ "cell": [
+  35,
+  29
+ ],
+ "anchor": [
+  17,
+  29
+ ],
+ "frames": {
+  "idle0": {
+   "region": [
+    154,
+    0,
+    28,
+    23
+   ],
+   "offset": [
+    3,
+    6
+   ],
+   "source_box": [
+    256,
+    608,
+    359,
+    696
+   ]
+  },
+  "bounce1": {
+   "region": [
+    69,
+    0,
+    25,
+    27
+   ],
+   "offset": [
+    5,
+    2
+   ],
+   "source_box": [
+    363,
+    595,
+    459,
+    696
+   ]
+  },
+  "bounce2": {
+   "region": [
+    129,
+    0,
+    23,
+    24
+   ],
+   "offset": [
+    6,
+    5
+   ],
+   "source_box": [
+    465,
+    607,
+    552,
+    696
+   ]
+  },
+  "bounce3": {
+   "region": [
+    37,
+    0,
+    30,
+    28
+   ],
+   "offset": [
+    2,
+    1
+   ],
+   "source_box": [
+    541,
+    587,
+    652,
+    693
+   ]
+  },
+  "squish": {
+   "region": [
+    184,
+    0,
+    28,
+    23
+   ],
+   "offset": [
+    3,
+    6
+   ],
+   "source_box": [
+    657,
+    613,
+    753,
+    700
+   ]
+  },
+  "surprise": {
+   "region": [
+    96,
+    0,
+    31,
+    27
+   ],
+   "offset": [
+    2,
+    2
+   ],
+   "source_box": [
+    781,
+    609,
+    903,
+    702
+   ]
+  },
+  "happy": {
+   "region": [
+    0,
+    0,
+    35,
+    29
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    907,
+    587,
+    1033,
+    696
+   ]
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "idle0",
+    "bounce2"
+   ],
+   "fps": 3,
+   "loop": true
+  },
+  "move": {
+   "frames": [
+    "idle0",
+    "bounce1",
+    "bounce3",
+    "bounce2"
+   ],
+   "fps": 8,
+   "loop": true
+  },
+  "sleep": {
+   "frames": [
+    "squish"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "love": {
+   "frames": [
+    "happy"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "surprise": {
+   "frames": [
+    "surprise"
+   ],
+   "fps": 1,
+   "loop": true
+  }
+ }
+}

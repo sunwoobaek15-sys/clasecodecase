@@ -6,7 +6,7 @@ var _stage: Node2D
 
 func _load_stage() -> Node2D:
 	Game.checkpoint_id = -1
-	Profile.reset(false)
+	Game.reset_progress(false)
 	_stage = (load("res://scenes/world/forest_stage.tscn") as PackedScene).instantiate() as Node2D
 	add(_stage)
 	return _stage

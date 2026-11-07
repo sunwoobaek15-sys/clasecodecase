@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="FacilityData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/facility_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_farm_ruined.png" id="2_ruined"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_farm_restored.png" id="3_restored"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"farm"
+display_name = "농장"
+description = "잡초만 무성한 밭."
+unlock_text = "스테이지를 깰 때마다 작물이 자람 → 수확하면 회복 물약. 작은 새가 찾아옴"
+cost_gold = 60
+cost_items = {"item_slime_gel": 3}
+ruined_texture = ExtResource("2_ruined")
+restored_texture = ExtResource("3_restored")
+npc_id = &""
+order = 3

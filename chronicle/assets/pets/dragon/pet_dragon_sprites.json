@@ -1,0 +1,158 @@
+{
+ "name": "pet_dragon",
+ "source_sheet": "art_source/original/05_pets.png",
+ "kind": "character",
+ "scale": 0.27,
+ "atlas": "res://assets/pets/dragon/pet_dragon_atlas.png",
+ "cell": [
+  42,
+  41
+ ],
+ "anchor": [
+  21,
+  40
+ ],
+ "frames": {
+  "idle0": {
+   "region": [
+    105,
+    0,
+    29,
+    34
+   ],
+   "offset": [
+    7,
+    7
+   ],
+   "source_box": [
+    258,
+    445,
+    374,
+    578
+   ]
+  },
+  "idle1": {
+   "region": [
+    44,
+    0,
+    28,
+    37
+   ],
+   "offset": [
+    8,
+    4
+   ],
+   "source_box": [
+    364,
+    431,
+    483,
+    578
+   ]
+  },
+  "idle2": {
+   "region": [
+    74,
+    0,
+    29,
+    37
+   ],
+   "offset": [
+    7,
+    4
+   ],
+   "source_box": [
+    471,
+    430,
+    591,
+    578
+   ]
+  },
+  "sleep": {
+   "region": [
+    174,
+    0,
+    20,
+    13
+   ],
+   "offset": [
+    11,
+    27
+   ],
+   "source_box": [
+    587,
+    522,
+    672,
+    581
+   ]
+  },
+  "fly": {
+   "region": [
+    136,
+    0,
+    36,
+    19
+   ],
+   "offset": [
+    4,
+    21
+   ],
+   "source_box": [
+    785,
+    428,
+    929,
+    511
+   ]
+  },
+  "wings": {
+   "region": [
+    0,
+    0,
+    42,
+    40
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    928,
+    419,
+    1093,
+    577
+   ]
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "idle0",
+    "idle1",
+    "idle2",
+    "idle1"
+   ],
+   "fps": 5,
+   "loop": true
+  },
+  "move": {
+   "frames": [
+    "fly"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "sleep": {
+   "frames": [
+    "sleep"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "love": {
+   "frames": [
+    "wings"
+   ],
+   "fps": 1,
+   "loop": true
+  }
+ }
+}

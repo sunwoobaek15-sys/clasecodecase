@@ -26,6 +26,7 @@ var _collected: bool = false
 
 
 func _ready() -> void:
+	add_to_group(&"pickups")
 	monitoring = true
 	body_entered.connect(_on_body_entered)
 	_t = randf() * TAU

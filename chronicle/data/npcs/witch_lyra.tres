@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NpcData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/npc_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/npcs/witch/full.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/npcs/witch/portrait.png" id="3_portrait"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"witch_lyra"
+display_name = "리라"
+role = "마법사"
+sprite = ExtResource("2_sprite")
+portrait = ExtResource("3_portrait")
+lines = PackedStringArray("펫도 간식을 먹으면 쑥쑥 자란답니다.", "그림자 고양이는 낯을 가리지만 곧 친해질 거야.", "시간의 핵 조각에서 묘한 마력이 느껴져.")
+intro = PackedStringArray("후후, 탑이 다시 빛나네. 펫들이 좋아하겠어.")
+requires_facility = &"lab"

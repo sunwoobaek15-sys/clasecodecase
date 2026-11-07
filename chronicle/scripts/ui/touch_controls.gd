@@ -19,8 +19,10 @@ const ICONS := {
 	&"skill": preload("res://assets/ui/icons/skill.png"),
 	&"ultimate": preload("res://assets/ui/icons/ultimate.png"),
 	&"use_potion": preload("res://assets/ui/icons/potion.png"),
+	&"interact": preload("res://assets/ui/village/bubble_talk.png"),
 }
-const LABELS := {&"attack": "공격", &"jump": "점프", &"dodge": "회피", &"skill": "스킬", &"ultimate": "궁극기", &"use_potion": "물약"}
+const LABELS := {&"attack": "공격", &"jump": "점프", &"dodge": "회피", &"skill": "스킬", &"ultimate": "궁극기", &"use_potion": "물약",
+		&"interact": "대화"}
 ## Offsets from the bottom-right corner at ui_scale 1.0 and radii.
 const LAYOUT := {
 	&"attack": [Vector2(-64, -68), 32.0],
@@ -29,6 +31,7 @@ const LAYOUT := {
 	&"skill": [Vector2(-130, -122), 22.0],
 	&"ultimate": [Vector2(-206, -100), 22.0],
 	&"use_potion": [Vector2(-150, -192), 17.0],
+	&"interact": [Vector2(-224, -40), 24.0],
 }
 const STICK_RADIUS := 40.0
 const KNOB_RADIUS := 16.0
@@ -48,6 +51,10 @@ var _mp: float = 0.0
 var _skill_cost: float = 15.0
 var _time: float = 0.0
 var _font: Font = UiKit.FONT
+## Actions not shown at all (the village hides skill and ultimate).
+var hidden_actions: Array = []
+var _interact_label := "대화"
+var _has_target := false
 
 
 func _ready() -> void:
@@ -62,9 +69,26 @@ func _ready() -> void:
 	Events.player_mana_changed.connect(func(mp: float, _m: float) -> void: _mp = mp)
 	Events.player_ult_changed.connect(func(v: float, m: float) -> void: _ult_ready = v >= m)
 	Events.player_spawned.connect(_on_player_spawned)
+	Events.interact_target_changed.connect(_on_interact_target)
 	Profile.changed.connect(queue_redraw)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
+
+
+func _on_interact_target(t: Node) -> void:
+	_has_target = t != null and is_instance_valid(t)
+	if _has_target:
+		_interact_label = str(t.get(&"label"))
+	elif buttons[&"interact"]["pressed"]:
+		_touch_up(int(buttons[&"interact"]["touch"]))
+	queue_redraw()
+
+
+## Hidden buttons are neither drawn nor touchable.
+func is_hidden(action: StringName) -> bool:
+	if action == &"interact":
+		return not _has_target
+	return action in hidden_actions
 
 
 func _on_player_spawned(p: Node) -> void:
@@ -159,6 +183,8 @@ func _touch_down(index: int, pos: Vector2) -> bool:
 	var best: StringName = &""
 	var best_d := INF
 	for action in buttons:
+		if is_hidden(action):
+			continue
 		var b: Dictionary = buttons[action]
 		var d := pos.distance_to(b["center"])
 		if d <= float(b["radius"]) * 1.25 and d < best_d:
@@ -263,7 +289,8 @@ func _draw() -> void:
 	draw_arc(stick_knob, KNOB_RADIUS * _scale, 0.0, TAU, 24, Color(1, 1, 1, 0.7), 1.5)
 	# buttons
 	for action in buttons:
-		_draw_button(action, buttons[action])
+		if not is_hidden(action):
+			_draw_button(action, buttons[action])
 
 
 func _draw_button(action: StringName, b: Dictionary) -> void:
@@ -301,5 +328,5 @@ func _draw_button(action: StringName, b: Dictionary) -> void:
 		var n := Profile.inventory.count(Profile.POTION_ID)
 		draw_circle(c + Vector2(rr * 0.75, -rr * 0.7), 6.5, Color(0.1, 0.08, 0.16, 0.95))
 		draw_string(_font, c + Vector2(rr * 0.75 - 8, -rr * 0.7 + 4), str(n), HORIZONTAL_ALIGNMENT_CENTER, 16, 11, Color(1, 0.95, 0.8))
-	var lbl: String = LABELS[action]
+	var lbl: String = _interact_label if action == &"interact" else LABELS[action]
 	draw_string(_font, c + Vector2(-30, rr + 11.0), lbl, HORIZONTAL_ALIGNMENT_CENTER, 60, 11, Color(0.92, 0.92, 0.98, 0.75))

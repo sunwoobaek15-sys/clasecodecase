@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_daily_hunt"
+title = "오늘의 사냥"
+type = 2
+description = "매일 바뀌는 사냥 의뢰. 몬스터 12마리를 처치하자."
+giver = &""
+objectives = [{"type": "kill", "target": "any", "count": 12, "text": "몬스터 처치"}]
+requires = Array[StringName]([&"q_main_01"])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 40
+reward_items = {"item_potion_small": 1}
+reward_pet = &""
+auto_accept = true
+turn_in = false
+order = 20

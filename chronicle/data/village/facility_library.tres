@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="FacilityData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/facility_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_library_ruined.png" id="2_ruined"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_library_restored.png" id="3_restored"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"library"
+display_name = "도서관"
+description = "책장이 무너진 마을 도서관."
+unlock_text = "연구원 에델 합류: 도감 보상 수령"
+cost_gold = 90
+cost_items = {}
+ruined_texture = ExtResource("2_ruined")
+restored_texture = ExtResource("3_restored")
+npc_id = &"scholar_edel"
+order = 4

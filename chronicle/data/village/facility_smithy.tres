@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="FacilityData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/facility_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_smithy_ruined.png" id="2_ruined"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_smithy_restored.png" id="3_restored"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"smithy"
+display_name = "대장간"
+description = "불이 꺼진 지 오래된 대장간."
+unlock_text = "대장장이 브론 합류: 장비 강화 (+1 ~ +5)"
+cost_gold = 120
+cost_items = {"item_slime_gel": 5}
+ruined_texture = ExtResource("2_ruined")
+restored_texture = ExtResource("3_restored")
+npc_id = &"smith_bron"
+order = 2

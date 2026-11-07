@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_main_04"
+title = "마을의 심장"
+type = 0
+description = "시설을 4곳 이상 되살려 마을에 활기를 되찾자."
+giver = &"keeper_mia"
+objectives = [{"type": "restore_count", "target": "", "count": 4, "text": "시설 4곳 복구"}]
+requires = Array[StringName]([&"q_main_03"])
+requires_facility = &""
+reward_exp = 100
+reward_gold = 0
+reward_items = {}
+reward_pet = &"dragon"
+auto_accept = false
+turn_in = true
+order = 4

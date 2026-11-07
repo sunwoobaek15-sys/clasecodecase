@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_sub_verdan"
+title = "숲의 수호자, 다시"
+type = 1
+description = "베르단이 다시 깨어났다는 소문이 있다. 확인하고 오자."
+giver = &"guard_gareth"
+objectives = [{"type": "boss", "target": "verdan", "count": 1, "text": "베르단 처치"}]
+requires = Array[StringName]([&"q_main_02"])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 100
+reward_items = {"item_ether": 2}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 12

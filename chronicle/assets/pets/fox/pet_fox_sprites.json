@@ -1,0 +1,176 @@
+{
+ "name": "pet_fox",
+ "source_sheet": "art_source/original/05_pets.png",
+ "kind": "character",
+ "scale": 0.28,
+ "atlas": "res://assets/pets/fox/pet_fox_atlas.png",
+ "cell": [
+  35,
+  32
+ ],
+ "anchor": [
+  18,
+  31
+ ],
+ "frames": {
+  "move0": {
+   "region": [
+    124,
+    0,
+    35,
+    28
+   ],
+   "offset": [
+    0,
+    4
+   ],
+   "source_box": [
+    246,
+    303,
+    378,
+    411
+   ]
+  },
+  "move1": {
+   "region": [
+    31,
+    0,
+    30,
+    31
+   ],
+   "offset": [
+    3,
+    1
+   ],
+   "source_box": [
+    369,
+    282,
+    486,
+    400
+   ]
+  },
+  "move2": {
+   "region": [
+    95,
+    0,
+    27,
+    30
+   ],
+   "offset": [
+    4,
+    2
+   ],
+   "source_box": [
+    478,
+    281,
+    584,
+    397
+   ]
+  },
+  "move3": {
+   "region": [
+    161,
+    0,
+    24,
+    28
+   ],
+   "offset": [
+    6,
+    4
+   ],
+   "source_box": [
+    585,
+    289,
+    681,
+    400
+   ]
+  },
+  "sleep": {
+   "region": [
+    187,
+    0,
+    29,
+    26
+   ],
+   "offset": [
+    4,
+    6
+   ],
+   "source_box": [
+    686,
+    297,
+    796,
+    400
+   ]
+  },
+  "sit": {
+   "region": [
+    63,
+    0,
+    30,
+    31
+   ],
+   "offset": [
+    3,
+    1
+   ],
+   "source_box": [
+    803,
+    282,
+    921,
+    399
+   ]
+  },
+  "love": {
+   "region": [
+    0,
+    0,
+    29,
+    31
+   ],
+   "offset": [
+    4,
+    0
+   ],
+   "source_box": [
+    925,
+    282,
+    1036,
+    402
+   ]
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "sit"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "move": {
+   "frames": [
+    "move0",
+    "move1",
+    "move2",
+    "move3"
+   ],
+   "fps": 8,
+   "loop": true
+  },
+  "sleep": {
+   "frames": [
+    "sleep"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "love": {
+   "frames": [
+    "love"
+   ],
+   "fps": 1,
+   "loop": true
+  }
+ }
+}

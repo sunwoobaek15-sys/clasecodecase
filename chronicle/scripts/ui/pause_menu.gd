@@ -27,9 +27,10 @@ func _ready() -> void:
 	col.add_theme_constant_override("separation", 8)
 	col.add_child(UiKit.label("일시정지", 22, UiKit.GOLD, true, 4))
 	col.add_child(UiKit.button("계속하기", close))
-	col.add_child(UiKit.button("캐릭터 · 장비 · 스킬", _on_character))
+	col.add_child(UiKit.button("캐릭터 · 펫 · 퀘스트 · 도감", _on_character))
 	col.add_child(UiKit.button("저장하기", _on_save))
-	col.add_child(UiKit.button("체크포인트에서 다시", _on_retry))
+	if Game.location != "village":
+		col.add_child(UiKit.button("체크포인트에서 다시", _on_retry))
 	col.add_child(UiKit.button("타이틀로", _on_title))
 	var help := UiKit.label("키보드: A/D 이동  K 점프  J 공격\nL 회피  U 스킬  I 궁극기", 11, UiKit.DIM)
 	col.add_child(help)

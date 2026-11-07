@@ -1,0 +1,194 @@
+{
+ "name": "village_props",
+ "source_sheet": "art_source/original/03_village_npcs.png",
+ "kind": "art",
+ "scale": 0.42,
+ "atlas": "res://assets/environments/village/props/village_props_atlas.png",
+ "cell": [
+  141,
+  98
+ ],
+ "anchor": [
+  70,
+  97
+ ],
+ "frames": {
+  "stall": {
+   "region": [
+    0,
+    0,
+    141,
+    97
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    -2,
+    776,
+    337,
+    1012
+   ]
+  },
+  "potion_sign": {
+   "region": [
+    279,
+    0,
+    60,
+    53
+   ],
+   "offset": [
+    40,
+    45
+   ],
+   "source_box": [
+    279,
+    786,
+    421,
+    911
+   ]
+  },
+  "banner": {
+   "region": [
+    168,
+    0,
+    40,
+    61
+   ],
+   "offset": [
+    50,
+    37
+   ],
+   "source_box": [
+    438,
+    797,
+    532,
+    938
+   ]
+  },
+  "notice_board": {
+   "region": [
+    210,
+    0,
+    67,
+    56
+   ],
+   "offset": [
+    37,
+    42
+   ],
+   "source_box": [
+    563,
+    797,
+    725,
+    929
+   ]
+  },
+  "lamp": {
+   "region": [
+    143,
+    0,
+    23,
+    87
+   ],
+   "offset": [
+    59,
+    11
+   ],
+   "source_box": [
+    740,
+    794,
+    790,
+    1002
+   ]
+  },
+  "barrel": {
+   "region": [
+    373,
+    0,
+    25,
+    38
+   ],
+   "offset": [
+    57,
+    60
+   ],
+   "source_box": [
+    278,
+    918,
+    336,
+    1005
+   ]
+  },
+  "bush": {
+   "region": [
+    341,
+    0,
+    30,
+    45
+   ],
+   "offset": [
+    55,
+    53
+   ],
+   "source_box": [
+    338,
+    904,
+    405,
+    1007
+   ]
+  }
+ },
+ "animations": {
+  "stall": {
+   "frames": [
+    "stall"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "potion_sign": {
+   "frames": [
+    "potion_sign"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "banner": {
+   "frames": [
+    "banner"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "notice_board": {
+   "frames": [
+    "notice_board"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "lamp": {
+   "frames": [
+    "lamp"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "barrel": {
+   "frames": [
+    "barrel"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "bush": {
+   "frames": [
+    "bush"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

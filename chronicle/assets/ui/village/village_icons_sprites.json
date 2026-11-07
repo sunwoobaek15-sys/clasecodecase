@@ -1,0 +1,269 @@
+{
+ "name": "village_icons",
+ "source_sheet": "art_source/original/03_village_npcs.png",
+ "kind": "art",
+ "scale": 0.34,
+ "atlas": "res://assets/ui/village/village_icons_atlas.png",
+ "cell": [
+  28,
+  32
+ ],
+ "anchor": [
+  14,
+  31
+ ],
+ "frames": {
+  "bubble_talk": {
+   "region": [
+    197,
+    0,
+    25,
+    21
+   ],
+   "offset": [
+    2,
+    10
+   ],
+   "source_box": [
+    15,
+    693,
+    92,
+    759
+   ]
+  },
+  "bubble_question": {
+   "region": [
+    105,
+    0,
+    22,
+    25
+   ],
+   "offset": [
+    3,
+    7
+   ],
+   "source_box": [
+    95,
+    692,
+    164,
+    770
+   ]
+  },
+  "bubble_exclaim": {
+   "region": [
+    174,
+    0,
+    21,
+    24
+   ],
+   "offset": [
+    4,
+    7
+   ],
+   "source_box": [
+    168,
+    692,
+    234,
+    769
+   ]
+  },
+  "scroll": {
+   "region": [
+    81,
+    0,
+    22,
+    26
+   ],
+   "offset": [
+    3,
+    6
+   ],
+   "source_box": [
+    254,
+    696,
+    323,
+    775
+   ]
+  },
+  "quest_turnin": {
+   "region": [
+    153,
+    0,
+    19,
+    25
+   ],
+   "offset": [
+    5,
+    7
+   ],
+   "source_box": [
+    336,
+    695,
+    397,
+    772
+   ]
+  },
+  "alert": {
+   "region": [
+    224,
+    0,
+    17,
+    19
+   ],
+   "offset": [
+    5,
+    12
+   ],
+   "source_box": [
+    413,
+    699,
+    468,
+    759
+   ]
+  },
+  "coin": {
+   "region": [
+    129,
+    0,
+    22,
+    25
+   ],
+   "offset": [
+    3,
+    7
+   ],
+   "source_box": [
+    480,
+    698,
+    550,
+    776
+   ]
+  },
+  "chest": {
+   "region": [
+    25,
+    0,
+    28,
+    30
+   ],
+   "offset": [
+    0,
+    1
+   ],
+   "source_box": [
+    554,
+    693,
+    642,
+    785
+   ]
+  },
+  "gold_bag": {
+   "region": [
+    55,
+    0,
+    24,
+    30
+   ],
+   "offset": [
+    2,
+    1
+   ],
+   "source_box": [
+    641,
+    697,
+    715,
+    791
+   ]
+  },
+  "gift": {
+   "region": [
+    0,
+    0,
+    23,
+    31
+   ],
+   "offset": [
+    2,
+    0
+   ],
+   "source_box": [
+    729,
+    695,
+    803,
+    791
+   ]
+  }
+ },
+ "animations": {
+  "bubble_talk": {
+   "frames": [
+    "bubble_talk"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "bubble_question": {
+   "frames": [
+    "bubble_question"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "bubble_exclaim": {
+   "frames": [
+    "bubble_exclaim"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "scroll": {
+   "frames": [
+    "scroll"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "quest_turnin": {
+   "frames": [
+    "quest_turnin"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "alert": {
+   "frames": [
+    "alert"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "coin": {
+   "frames": [
+    "coin"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "chest": {
+   "frames": [
+    "chest"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "gold_bag": {
+   "frames": [
+    "gold_bag"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "gift": {
+   "frames": [
+    "gift"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

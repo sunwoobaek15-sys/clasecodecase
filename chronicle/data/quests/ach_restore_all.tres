@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ach_restore_all"
+title = "마을의 부활"
+type = 3
+description = "마을의 시설 6곳을 모두 되살렸다."
+giver = &""
+objectives = [{"type": "restore_count", "target": "", "count": 6, "text": "시설 6곳"}]
+requires = Array[StringName]([])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 300
+reward_items = {}
+reward_pet = &""
+auto_accept = true
+turn_in = false
+order = 34

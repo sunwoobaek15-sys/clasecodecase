@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NpcData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/npc_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/npcs/guard/full.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/npcs/guard/portrait.png" id="3_portrait"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"guard_gareth"
+display_name = "가렛"
+role = "경비병"
+sprite = ExtResource("2_sprite")
+portrait = ExtResource("3_portrait")
+lines = PackedStringArray("문 밖은 위험하다. 물약은 챙겼나?", "숲의 수호자 베르단… 아직도 숲을 지키고 있다더군.", "시계 도시 쪽 다리는 아직 끊겨 있다.")
+intro = PackedStringArray("멈춰라! …아, 미아가 말하던 그 검사로군.", "마을 밖으로 나가려면 이 문을 지나면 된다. 월드맵에서 갈 곳을 골라라.")
+requires_facility = &""

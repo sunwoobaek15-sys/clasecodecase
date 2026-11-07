@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/pets/pet_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/pets/spirit_slime/pet_spirit_slime_frames.tres" id="2_frames"]
+[ext_resource type="Texture2D" path="res://assets/ui/pets/icon_slime.png" id="3_icon"]
+[ext_resource type="Texture2D" path="res://assets/pets/art/slime_full.png" id="4_art"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"spirit_slime"
+display_name = "정령 슬라임"
+description = "숲의 맑은 물방울이 모여 태어난 작은 정령. 왕관은 스스로 만든 것이라고 한다."
+frames = ExtResource("2_frames")
+icon = ExtResource("3_icon")
+art = ExtResource("4_art")
+flying = false
+passive_name = "치유의 거품"
+base_bonuses = {"hp_regen": 2.0}
+per_level = {"hp_regen": 0.5}
+active = &"regen"
+unlock_hint = "메인 퀘스트 '낯선 마을' 보상"
+order = 1

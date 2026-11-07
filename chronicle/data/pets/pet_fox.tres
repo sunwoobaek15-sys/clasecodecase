@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/pets/pet_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/pets/fox/pet_fox_frames.tres" id="2_frames"]
+[ext_resource type="Texture2D" path="res://assets/ui/pets/icon_fox.png" id="3_icon"]
+[ext_resource type="Texture2D" path="res://assets/pets/art/fox_full.png" id="4_art"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"fox"
+display_name = "설원 여우"
+description = "눈보라 속에서 길을 잃은 아홉 꼬리 여우. 발걸음이 바람처럼 가볍다."
+frames = ExtResource("2_frames")
+icon = ExtResource("3_icon")
+art = ExtResource("4_art")
+flying = false
+passive_name = "눈바람 걸음"
+base_bonuses = {"dodge_cooldown": 0.04, "dodge_iframes": 0.02}
+per_level = {"dodge_cooldown": 0.008, "dodge_iframes": 0.004}
+active = &""
+unlock_hint = "서브 퀘스트 '슬라임 소탕' 보상"
+order = 2

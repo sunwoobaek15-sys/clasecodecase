@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_main_03"
+title = "검을 벼리다"
+type = 0
+description = "대장간을 되살리고 장비를 한 번 강화해 보자."
+giver = &"keeper_mia"
+objectives = [{"type": "restore", "target": "smithy", "count": 1, "text": "대장간 복구하기"}, {"type": "enhance", "target": "", "count": 1, "text": "장비 강화 1회"}]
+requires = Array[StringName]([&"q_main_02"])
+requires_facility = &""
+reward_exp = 60
+reward_gold = 60
+reward_items = {"item_ether": 2}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 3

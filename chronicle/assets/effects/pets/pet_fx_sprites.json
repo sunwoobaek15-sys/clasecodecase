@@ -1,0 +1,44 @@
+{
+ "name": "pet_fx",
+ "source_sheet": "art_source/original/05_pets.png",
+ "kind": "fx",
+ "scale": 0.24,
+ "atlas": "res://assets/effects/pets/pet_fx_atlas.png",
+ "cell": [
+  35,
+  18
+ ],
+ "anchor": [
+  17,
+  9
+ ],
+ "frames": {
+  "pet_fireball": {
+   "region": [
+    0,
+    0,
+    35,
+    18
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    800,
+    512,
+    948,
+    590
+   ]
+  }
+ },
+ "animations": {
+  "pet_fireball": {
+   "frames": [
+    "pet_fireball"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

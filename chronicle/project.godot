@@ -26,6 +26,10 @@ Game="*res://scripts/core/game.gd"
 FX="*res://scripts/effects/fx.gd"
 Profile="*res://scripts/progression/profile.gd"
 SaveSystem="*res://scripts/save/save_system.gd"
+Pets="*res://scripts/pets/pet_manager.gd"
+Village="*res://scripts/world/village_state.gd"
+Codex="*res://scripts/progression/codex.gd"
+Quests="*res://scripts/quests/quest_manager.gd"
 
 [display]
 

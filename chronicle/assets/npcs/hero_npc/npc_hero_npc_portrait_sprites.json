@@ -1,0 +1,44 @@
+{
+ "name": "npc_hero_npc_portrait",
+ "source_sheet": "art_source/original/03_village_npcs.png",
+ "kind": "art",
+ "scale": 0.62,
+ "atlas": "res://assets/npcs/hero_npc/npc_hero_npc_portrait_atlas.png",
+ "cell": [
+  52,
+  71
+ ],
+ "anchor": [
+  26,
+  72
+ ],
+ "frames": {
+  "portrait": {
+   "region": [
+    0,
+    0,
+    52,
+    71
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    8,
+    571,
+    92,
+    690
+   ]
+  }
+ },
+ "animations": {
+  "portrait": {
+   "frames": [
+    "portrait"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

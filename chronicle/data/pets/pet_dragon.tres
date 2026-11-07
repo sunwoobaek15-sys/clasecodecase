@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/pets/pet_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/pets/dragon/pet_dragon_frames.tres" id="2_frames"]
+[ext_resource type="Texture2D" path="res://assets/ui/pets/icon_dragon.png" id="3_icon"]
+[ext_resource type="Texture2D" path="res://assets/pets/art/dragon_full.png" id="4_art"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"dragon"
+display_name = "아기 드래곤"
+description = "시간의 핵 조각의 열기로 깨어난 아기 용. 가끔 작은 불덩이를 뱉는다."
+frames = ExtResource("2_frames")
+icon = ExtResource("3_icon")
+art = ExtResource("4_art")
+flying = true
+passive_name = "작은 불꽃"
+base_bonuses = {"attack": 2.0}
+per_level = {"attack": 0.6}
+active = &"fireball"
+unlock_hint = "메인 퀘스트 '마을의 심장' 보상"
+order = 5

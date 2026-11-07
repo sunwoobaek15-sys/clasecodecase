@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="FacilityData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/facility_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_lab_ruined.png" id="2_ruined"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_lab_restored.png" id="3_restored"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"lab"
+display_name = "연구소"
+description = "시간 마법을 연구하던 탑."
+unlock_text = "마법사 리라 합류: 펫 간식 주기. 그림자 고양이가 찾아옴"
+cost_gold = 150
+cost_items = {"item_time_shard": 1}
+ruined_texture = ExtResource("2_ruined")
+restored_texture = ExtResource("3_restored")
+npc_id = &"witch_lyra"
+order = 5

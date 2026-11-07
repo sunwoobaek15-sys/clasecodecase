@@ -1,0 +1,264 @@
+{
+ "name": "pet_cat",
+ "source_sheet": "art_source/original/05_pets.png",
+ "kind": "character",
+ "scale": 0.3,
+ "atlas": "res://assets/pets/cat/pet_cat_atlas.png",
+ "cell": [
+  36,
+  33
+ ],
+ "anchor": [
+  18,
+  32
+ ],
+ "frames": {
+  "move0": {
+   "region": [
+    139,
+    0,
+    36,
+    29
+   ],
+   "offset": [
+    0,
+    3
+   ],
+   "source_box": [
+    243,
+    45,
+    371,
+    152
+   ]
+  },
+  "move1": {
+   "region": [
+    36,
+    0,
+    31,
+    33
+   ],
+   "offset": [
+    2,
+    0
+   ],
+   "source_box": [
+    369,
+    32,
+    482,
+    150
+   ]
+  },
+  "move2": {
+   "region": [
+    177,
+    0,
+    27,
+    29
+   ],
+   "offset": [
+    4,
+    3
+   ],
+   "source_box": [
+    472,
+    40,
+    572,
+    149
+   ]
+  },
+  "move3": {
+   "region": [
+    206,
+    0,
+    29,
+    29
+   ],
+   "offset": [
+    4,
+    4
+   ],
+   "source_box": [
+    561,
+    40,
+    670,
+    148
+   ]
+  },
+  "move4": {
+   "region": [
+    237,
+    0,
+    25,
+    29
+   ],
+   "offset": [
+    6,
+    4
+   ],
+   "source_box": [
+    660,
+    42,
+    754,
+    148
+   ]
+  },
+  "move5": {
+   "region": [
+    295,
+    0,
+    28,
+    27
+   ],
+   "offset": [
+    4,
+    6
+   ],
+   "source_box": [
+    739,
+    41,
+    842,
+    143
+   ]
+  },
+  "dash": {
+   "region": [
+    264,
+    0,
+    29,
+    28
+   ],
+   "offset": [
+    3,
+    5
+   ],
+   "source_box": [
+    839,
+    23,
+    945,
+    127
+   ]
+  },
+  "sit": {
+   "region": [
+    106,
+    0,
+    31,
+    32
+   ],
+   "offset": [
+    2,
+    0
+   ],
+   "source_box": [
+    249,
+    150,
+    361,
+    268
+   ]
+  },
+  "sleep": {
+   "region": [
+    325,
+    0,
+    33,
+    27
+   ],
+   "offset": [
+    1,
+    5
+   ],
+   "source_box": [
+    369,
+    147,
+    495,
+    269
+   ]
+  },
+  "surprise": {
+   "region": [
+    69,
+    0,
+    35,
+    33
+   ],
+   "offset": [
+    1,
+    0
+   ],
+   "source_box": [
+    510,
+    148,
+    639,
+    268
+   ]
+  },
+  "love": {
+   "region": [
+    0,
+    0,
+    34,
+    33
+   ],
+   "offset": [
+    1,
+    0
+   ],
+   "source_box": [
+    669,
+    147,
+    793,
+    268
+   ]
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "sit"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "move": {
+   "frames": [
+    "move0",
+    "move1",
+    "move2",
+    "move3",
+    "move4",
+    "move5"
+   ],
+   "fps": 10,
+   "loop": true
+  },
+  "sleep": {
+   "frames": [
+    "sleep"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "love": {
+   "frames": [
+    "love"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "surprise": {
+   "frames": [
+    "surprise"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "dash": {
+   "frames": [
+    "dash"
+   ],
+   "fps": 1,
+   "loop": true
+  }
+ }
+}

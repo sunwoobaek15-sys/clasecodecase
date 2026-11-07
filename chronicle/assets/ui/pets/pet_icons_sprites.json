@@ -1,0 +1,294 @@
+{
+ "name": "pet_icons",
+ "source_sheet": "art_source/original/05_pets.png",
+ "kind": "art",
+ "scale": 0.36,
+ "atlas": "res://assets/ui/pets/pet_icons_atlas.png",
+ "cell": [
+  30,
+  30
+ ],
+ "anchor": [
+  15,
+  30
+ ],
+ "frames": {
+  "icon_cat": {
+   "region": [
+    158,
+    0,
+    29,
+    29
+   ],
+   "offset": [
+    0,
+    1
+   ],
+   "source_box": [
+    15,
+    856,
+    100,
+    940
+   ]
+  },
+  "icon_fox": {
+   "region": [
+    64,
+    0,
+    30,
+    30
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    102,
+    856,
+    186,
+    940
+   ]
+  },
+  "icon_dragon": {
+   "region": [
+    32,
+    0,
+    30,
+    30
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    186,
+    856,
+    271,
+    940
+   ]
+  },
+  "icon_slime": {
+   "region": [
+    127,
+    0,
+    29,
+    30
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    271,
+    856,
+    356,
+    940
+   ]
+  },
+  "icon_bird": {
+   "region": [
+    0,
+    0,
+    30,
+    30
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    356,
+    856,
+    439,
+    940
+   ]
+  },
+  "icon_paw": {
+   "region": [
+    96,
+    0,
+    29,
+    30
+   ],
+   "offset": [
+    1,
+    0
+   ],
+   "source_box": [
+    440,
+    856,
+    522,
+    940
+   ]
+  },
+  "heart": {
+   "region": [
+    189,
+    0,
+    22,
+    19
+   ],
+   "offset": [
+    4,
+    11
+   ],
+   "source_box": [
+    17,
+    943,
+    88,
+    1007
+   ]
+  },
+  "heart_plus": {
+   "region": [
+    213,
+    0,
+    28,
+    19
+   ],
+   "offset": [
+    1,
+    11
+   ],
+   "source_box": [
+    90,
+    943,
+    176,
+    1008
+   ]
+  },
+  "star": {
+   "region": [
+    288,
+    0,
+    16,
+    16
+   ],
+   "offset": [
+    7,
+    14
+   ],
+   "source_box": [
+    180,
+    943,
+    237,
+    1000
+   ]
+  },
+  "paw": {
+   "region": [
+    243,
+    0,
+    19,
+    19
+   ],
+   "offset": [
+    6,
+    11
+   ],
+   "source_box": [
+    241,
+    942,
+    304,
+    1007
+   ]
+  },
+  "crown": {
+   "region": [
+    264,
+    0,
+    22,
+    17
+   ],
+   "offset": [
+    4,
+    13
+   ],
+   "source_box": [
+    309,
+    943,
+    380,
+    1002
+   ]
+  }
+ },
+ "animations": {
+  "icon_cat": {
+   "frames": [
+    "icon_cat"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "icon_fox": {
+   "frames": [
+    "icon_fox"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "icon_dragon": {
+   "frames": [
+    "icon_dragon"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "icon_slime": {
+   "frames": [
+    "icon_slime"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "icon_bird": {
+   "frames": [
+    "icon_bird"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "icon_paw": {
+   "frames": [
+    "icon_paw"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "heart": {
+   "frames": [
+    "heart"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "heart_plus": {
+   "frames": [
+    "heart_plus"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "star": {
+   "frames": [
+    "star"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "paw": {
+   "frames": [
+    "paw"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "crown": {
+   "frames": [
+    "crown"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

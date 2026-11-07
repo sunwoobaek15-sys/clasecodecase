@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_sub_gel"
+title = "대장장이의 부탁"
+type = 1
+description = "담금질에 쓸 슬라임 젤 8개를 가져다 달라고 한다."
+giver = &"smith_bron"
+objectives = [{"type": "collect", "target": "item_slime_gel", "count": 8, "text": "슬라임 젤 모으기"}]
+requires = Array[StringName]([])
+requires_facility = &"smithy"
+reward_exp = 0
+reward_gold = 120
+reward_items = {}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 11

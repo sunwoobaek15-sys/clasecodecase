@@ -1,0 +1,86 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/pets/dragon/pet_dragon_atlas.png" id="1_x6364"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0akmp"]
+atlas = ExtResource("1_x6364")
+region = Rect2(105, 0, 29, 34)
+margin = Rect2(7, 7, 13, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u8hgc"]
+atlas = ExtResource("1_x6364")
+region = Rect2(44, 0, 28, 37)
+margin = Rect2(8, 4, 14, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_73l4r"]
+atlas = ExtResource("1_x6364")
+region = Rect2(74, 0, 29, 37)
+margin = Rect2(7, 4, 13, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mxsao"]
+atlas = ExtResource("1_x6364")
+region = Rect2(0, 0, 42, 40)
+margin = Rect2(0, 0, 0, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w12cm"]
+atlas = ExtResource("1_x6364")
+region = Rect2(136, 0, 36, 19)
+margin = Rect2(4, 21, 6, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ychq6"]
+atlas = ExtResource("1_x6364")
+region = Rect2(174, 0, 20, 13)
+margin = Rect2(11, 27, 22, 28)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0akmp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u8hgc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_73l4r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u8hgc")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mxsao")
+}],
+"loop": 1,
+"name": &"love",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w12cm")
+}],
+"loop": 1,
+"name": &"move",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ychq6")
+}],
+"loop": 1,
+"name": &"sleep",
+"speed": 1.0
+}]
+metadata/anchor = Vector2(21, 40)
+metadata/cell = Vector2(42, 41)
+metadata/source_sheet = "art_source/original/05_pets.png"

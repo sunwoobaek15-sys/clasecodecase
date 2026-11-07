@@ -17,6 +17,11 @@ const SOURCES := [
 	"res://assets/effects/hero/hero_fx_sprites.json",
 	"res://assets/effects/slime/slime_fx_sprites.json",
 	"res://assets/effects/verdan/verdan_fx_sprites.json",
+	"res://assets/pets/cat/pet_cat_sprites.json",
+	"res://assets/pets/fox/pet_fox_sprites.json",
+	"res://assets/pets/dragon/pet_dragon_sprites.json",
+	"res://assets/pets/spirit_slime/pet_spirit_slime_sprites.json",
+	"res://assets/pets/bird/pet_bird_sprites.json",
 ]
 
 

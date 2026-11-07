@@ -1,0 +1,44 @@
+{
+ "name": "npc_priest",
+ "source_sheet": "art_source/original/03_village_npcs.png",
+ "kind": "art",
+ "scale": 0.22,
+ "atlas": "res://assets/npcs/priest/npc_priest_atlas.png",
+ "cell": [
+  32,
+  67
+ ],
+ "anchor": [
+  16,
+  66
+ ],
+ "frames": {
+  "full": {
+   "region": [
+    0,
+    0,
+    32,
+    67
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    967,
+    -3,
+    1123,
+    309
+   ]
+  }
+ },
+ "animations": {
+  "full": {
+   "frames": [
+    "full"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

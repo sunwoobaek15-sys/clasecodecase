@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="FacilityData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/facility_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_shop_ruined.png" id="2_ruined"]
+[ext_resource type="Texture2D" path="res://assets/environments/village/building_shop_restored.png" id="3_restored"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"shop"
+display_name = "상점"
+description = "여행 상인이 머물 수 있는 가게."
+unlock_text = "상인 카이로 합류: 물약·간식 구매, 아이템 판매"
+cost_gold = 50
+cost_items = {}
+ruined_texture = ExtResource("2_ruined")
+restored_texture = ExtResource("3_restored")
+npc_id = &"merchant_kairo"
+order = 1

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NpcData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/npc_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/npcs/merchant/full.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/npcs/merchant/portrait.png" id="3_portrait"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"merchant_kairo"
+display_name = "카이로"
+role = "상인"
+sprite = ExtResource("2_sprite")
+portrait = ExtResource("3_portrait")
+lines = PackedStringArray("물약은 넉넉히! 숲은 생각보다 위험하답니다.", "쓸모없는 재료는 제가 사 드려요.", "펫 간식은 인기 상품이에요.")
+intro = PackedStringArray("오오, 가게를 고쳐 준 분이 당신이군요! 장사는 신뢰가 생명이죠.")
+requires_facility = &"shop"

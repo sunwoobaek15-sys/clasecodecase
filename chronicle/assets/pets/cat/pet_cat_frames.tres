@@ -1,0 +1,138 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/pets/cat/pet_cat_atlas.png" id="1_jrrm6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jfivv"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(264, 0, 29, 28)
+margin = Rect2(3, 5, 7, 5)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_go444"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(106, 0, 31, 32)
+margin = Rect2(2, 0, 5, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gd6oq"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(0, 0, 34, 33)
+margin = Rect2(1, 0, 2, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0mpua"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(139, 0, 36, 29)
+margin = Rect2(0, 3, 0, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1bf73"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(36, 0, 31, 33)
+margin = Rect2(2, 0, 5, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5aluu"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(177, 0, 27, 29)
+margin = Rect2(4, 3, 9, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_orbf7"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(206, 0, 29, 29)
+margin = Rect2(4, 4, 7, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rrve0"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(237, 0, 25, 29)
+margin = Rect2(6, 4, 11, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c20se"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(295, 0, 28, 27)
+margin = Rect2(4, 6, 8, 6)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r6dku"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(325, 0, 33, 27)
+margin = Rect2(1, 5, 3, 6)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ucwul"]
+atlas = ExtResource("1_jrrm6")
+region = Rect2(69, 0, 35, 33)
+margin = Rect2(1, 0, 1, 0)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jfivv")
+}],
+"loop": 1,
+"name": &"dash",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_go444")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gd6oq")
+}],
+"loop": 1,
+"name": &"love",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0mpua")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1bf73")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5aluu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_orbf7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rrve0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c20se")
+}],
+"loop": 1,
+"name": &"move",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r6dku")
+}],
+"loop": 1,
+"name": &"sleep",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ucwul")
+}],
+"loop": 1,
+"name": &"surprise",
+"speed": 1.0
+}]
+metadata/anchor = Vector2(18, 32)
+metadata/cell = Vector2(36, 33)
+metadata/source_sheet = "art_source/original/05_pets.png"

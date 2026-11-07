@@ -137,6 +137,7 @@ func _spawn_actors() -> void:
 	player.position = cp_pos + Vector2(-24, 0) if at_checkpoint else start
 	actors.add_child(player)
 	player.kill_y = level.pixel_size().y + 48.0
+	Pet.spawn(actors, player)
 	for m in level.markers:
 		var c: String = m["char"]
 		var pos: Vector2 = m["position"]
@@ -320,9 +321,15 @@ func _on_core_collected(_p: Pickup) -> void:
 	player.input_enabled = false
 	player.clear_input()
 	_collect_leftover_loot()
+	if not Profile.cleared_stages.has(SaveSystem.STAGE_ID):
+		# the first clear keeps the core fragment (needed to rebuild the lab)
+		Profile.inventory.add(&"item_time_shard", 1)
 	Profile.mark_stage_cleared(SaveSystem.STAGE_ID)
-	SaveSystem.save_game()
 	Events.stage_cleared.emit(Game.run.duplicate())
+	Game.location = "village"
+	Game.checkpoint_id = -1
+	Village.arrived = true
+	SaveSystem.save_game()
 
 
 ## Item drops still lying around when the stage ends go straight into the bag

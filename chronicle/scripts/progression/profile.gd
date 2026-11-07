@@ -32,11 +32,23 @@ const STAT_KEYS := {
 	&"dodge_iframes": "회피 무적 시간",
 	&"ult_damage_pct": "궁극기 피해",
 	&"ult_gain_pct": "궁극기 게이지 충전",
+	&"hp_regen": "5초마다 HP 회복",
+	&"gold_pct": "골드 획득",
+	&"exp_pct": "경험치 획득",
+	&"magnet": "아이템 끌어오기 범위",
 }
 const PERCENT_KEYS := [&"defense_pct", &"crit_chance", &"basic_damage_pct", &"skill_damage_pct",
-		&"ult_damage_pct", &"ult_gain_pct"]
+		&"ult_damage_pct", &"ult_gain_pct", &"gold_pct", &"exp_pct"]
 const SECONDS_KEYS := [&"skill_cooldown", &"dodge_cooldown", &"dodge_iframes"]
 const BASIC_ATTACKS := [&"combo1", &"combo2", &"combo3", &"air_slash", &"heavy"]
+## Blacksmith enhancement (+1 .. +5): bonus per level by slot, and its cost.
+const MAX_ENHANCE := 5
+const ENHANCE_BONUS := {
+	&"weapon": {&"attack": 2.0},
+	&"armor": {&"max_hp": 8.0, &"defense_pct": 0.01},
+	&"accessory": {&"max_mp": 3.0, &"crit_chance": 0.01},
+}
+const ENHANCE_MATERIAL := &"item_slime_gel"
 
 var level: int = 1
 var xp: int = 0
@@ -46,6 +58,7 @@ var skill_levels: Dictionary = {}  ## StringName -> rank
 var equipment: Dictionary = {}     ## slot -> item id (&"" = empty)
 var inventory := Inventory.new()
 var cleared_stages: Array[String] = []
+var enhance: Dictionary = {}       ## item id -> +level (blacksmith)
 var skill_tree: Array[SkillNodeData] = []
 
 
@@ -65,6 +78,7 @@ func reset(starting_kit: bool = true) -> void:
 	skill_levels.clear()
 	equipment = {&"weapon": &"", &"armor": &"", &"accessory": &""}
 	cleared_stages.clear()
+	enhance.clear()
 	inventory.clear()
 	if starting_kit:
 		equipment[&"weapon"] = &"item_sword_cheongwol"
@@ -130,8 +144,9 @@ func _on_enemy_killed(enemy: Node) -> void:
 	var e := enemy as Enemy
 	if e == null or e.stats == null:
 		return
-	var ex := e.stats.exp_reward
-	var g := e.stats.gold_reward
+	var m := modifiers()
+	var ex := roundi(e.stats.exp_reward * (1.0 + float(m.get(&"exp_pct", 0.0))))
+	var g := roundi(e.stats.gold_reward * (1.0 + float(m.get(&"gold_pct", 0.0))))
 	if ex > 0 or g > 0:
 		var text := "+%d EXP" % ex if g <= 0 else "+%d EXP  +%dG" % [ex, g]
 		FX.floating_text(text, e.global_position + Vector2(0, -e.body_height - 18), Color(0.7, 0.95, 1.0), 11)
@@ -140,7 +155,8 @@ func _on_enemy_killed(enemy: Node) -> void:
 
 
 # --------------------------------------------------------------- modifiers ---
-## Sum of all equipment bonuses and skill ranks.
+## Sum of equipment (with blacksmith levels), skill ranks, the active pet's
+## passive and the priest's blessing.
 func modifiers() -> Dictionary:
 	var m := {}
 	for slot in SLOTS:
@@ -148,6 +164,17 @@ func modifiers() -> Dictionary:
 		if item != null:
 			for key in item.bonuses:
 				m[StringName(key)] = float(m.get(StringName(key), 0.0)) + float(item.bonuses[key])
+			var lv := enhance_level(item.id)
+			for key in ENHANCE_BONUS.get(slot, {}):
+				m[key] = float(m.get(key, 0.0)) + float(ENHANCE_BONUS[slot][key]) * lv
+	var pets := get_node_or_null(^"/root/Pets")
+	if pets != null:
+		var pm: Dictionary = pets.call(&"modifiers")
+		for key in pm:
+			m[StringName(key)] = float(m.get(StringName(key), 0.0)) + float(pm[key])
+	var village := get_node_or_null(^"/root/Village")
+	if village != null:
+		m[&"exp_pct"] = float(m.get(&"exp_pct", 0.0)) + float(village.call(&"exp_bonus"))
 	for node in skill_tree:
 		var rank := int(skill_levels.get(node.id, 0))
 		if rank > 0:
@@ -206,6 +233,8 @@ static func describe_stat(key: StringName, value: float) -> String:
 		return "%s +%d%%" % [label, roundi(value * 100.0)]
 	if key in SECONDS_KEYS:
 		return "%s %.2f초" % [label, value]
+	if key == &"hp_regen":
+		return "%s +%.1f" % [label, value]
 	return "%s +%d" % [label, roundi(value)]
 
 
@@ -243,6 +272,65 @@ func unequip(slot: StringName) -> bool:
 	equipment[slot] = &""
 	changed.emit()
 	return true
+
+
+# ------------------------------------------------------------- blacksmith ---
+func enhance_level(id: StringName) -> int:
+	return int(enhance.get(id, 0))
+
+
+## {"gold": int, "gel": int} for the next level.
+func enhance_cost(id: StringName) -> Dictionary:
+	var lv := enhance_level(id)
+	return {"gold": 40 * (lv + 1), "gel": 2 * (lv + 1)}
+
+
+func can_enhance(id: StringName) -> bool:
+	var item := ItemDB.get_item(id)
+	if item == null or not item.is_equipment() or not owns(id) or enhance_level(id) >= MAX_ENHANCE:
+		return false
+	var c := enhance_cost(id)
+	return gold >= int(c["gold"]) and inventory.count(ENHANCE_MATERIAL) >= int(c["gel"])
+
+
+func enhance_item(id: StringName) -> bool:
+	if not can_enhance(id):
+		return false
+	var c := enhance_cost(id)
+	gold -= int(c["gold"])
+	inventory.remove(ENHANCE_MATERIAL, int(c["gel"]))
+	enhance[id] = enhance_level(id) + 1
+	Events.item_enhanced.emit(id, enhance_level(id))
+	changed.emit()
+	return true
+
+
+static func enhance_text(slot: StringName, lv: int) -> String:
+	var parts: PackedStringArray = []
+	var b: Dictionary = ENHANCE_BONUS.get(slot, {})
+	for key in b:
+		parts.append(describe_stat(key, float(b[key]) * lv))
+	return ", ".join(parts)
+
+
+## Display name with the enhancement level, e.g. "숲지기의 검 +2".
+func item_label(id: StringName) -> String:
+	var item := ItemDB.get_item(id)
+	if item == null:
+		return ""
+	var lv := enhance_level(id)
+	return item.display_name if lv <= 0 else "%s +%d" % [item.display_name, lv]
+
+
+## Refunds every skill point (priest at the training ground).
+func reset_skills() -> int:
+	var refund := 0
+	for node in skill_tree:
+		refund += skill_rank(node.id) * node.cost
+	skill_levels.clear()
+	skill_points += refund
+	changed.emit()
+	return refund
 
 
 # ------------------------------------------------------------------ skills ---
@@ -307,7 +395,15 @@ func to_dict() -> Dictionary:
 		"equipment": eq,
 		"inventory": inventory.to_array(),
 		"cleared_stages": Array(cleared_stages),
+		"enhance": _enhance_dict(),
 	}
+
+
+func _enhance_dict() -> Dictionary:
+	var e := {}
+	for id in enhance:
+		e[str(id)] = int(enhance[id])
+	return e
 
 
 ## Restores from save data. Every value is validated: unknown items and
@@ -336,6 +432,13 @@ func from_dict(d: Dictionary) -> void:
 		equipment[&"weapon"] = &"item_sword_cheongwol"
 	var inv: Variant = d.get("inventory", [])
 	inventory.load_array(inv if typeof(inv) == TYPE_ARRAY else [])
+	enhance.clear()
+	var en: Variant = d.get("enhance", {})
+	if typeof(en) == TYPE_DICTIONARY:
+		for key in en:
+			var item := ItemDB.get_item(StringName(str(key)))
+			if item != null and item.is_equipment():
+				enhance[item.id] = clampi(int((en as Dictionary)[key]), 0, MAX_ENHANCE)
 	cleared_stages.clear()
 	var cs: Variant = d.get("cleared_stages", [])
 	if typeof(cs) == TYPE_ARRAY:

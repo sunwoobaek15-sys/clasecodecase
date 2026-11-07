@@ -1,0 +1,92 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/pets/fox/pet_fox_atlas.png" id="1_v1bgq"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o104a"]
+atlas = ExtResource("1_v1bgq")
+region = Rect2(63, 0, 30, 31)
+margin = Rect2(3, 1, 5, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_32h3a"]
+atlas = ExtResource("1_v1bgq")
+region = Rect2(0, 0, 29, 31)
+margin = Rect2(4, 0, 6, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vl3fp"]
+atlas = ExtResource("1_v1bgq")
+region = Rect2(124, 0, 35, 28)
+margin = Rect2(0, 4, 0, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sq67i"]
+atlas = ExtResource("1_v1bgq")
+region = Rect2(31, 0, 30, 31)
+margin = Rect2(3, 1, 5, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vah2d"]
+atlas = ExtResource("1_v1bgq")
+region = Rect2(95, 0, 27, 30)
+margin = Rect2(4, 2, 8, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cp14i"]
+atlas = ExtResource("1_v1bgq")
+region = Rect2(161, 0, 24, 28)
+margin = Rect2(6, 4, 11, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ism2b"]
+atlas = ExtResource("1_v1bgq")
+region = Rect2(187, 0, 29, 26)
+margin = Rect2(4, 6, 6, 6)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o104a")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_32h3a")
+}],
+"loop": 1,
+"name": &"love",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vl3fp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sq67i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vah2d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cp14i")
+}],
+"loop": 1,
+"name": &"move",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ism2b")
+}],
+"loop": 1,
+"name": &"sleep",
+"speed": 1.0
+}]
+metadata/anchor = Vector2(18, 31)
+metadata/cell = Vector2(35, 32)
+metadata/source_sheet = "art_source/original/05_pets.png"

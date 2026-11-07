@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_main_02"
+title = "재건의 시작"
+type = 0
+description = "무너진 마을을 되살리자. 우선 상인이 머물 상점부터."
+giver = &"keeper_mia"
+objectives = [{"type": "restore", "target": "shop", "count": 1, "text": "상점 복구하기"}]
+requires = Array[StringName]([&"q_main_01"])
+requires_facility = &""
+reward_exp = 40
+reward_gold = 0
+reward_items = {"item_potion_small": 2}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 2

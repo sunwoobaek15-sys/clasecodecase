@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NpcData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/npc_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/npcs/traveler/full.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/npcs/traveler/portrait.png" id="3_portrait"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"traveler_shade"
+display_name = "그림자 여행자"
+role = "여행자"
+sprite = ExtResource("2_sprite")
+portrait = ExtResource("3_portrait")
+lines = PackedStringArray("떠다니는 섬들은 원래 하나의 대륙이었다.", "무너진 시계 도시… 그곳에도 조각이 있다.", "나는 그저 지나가는 사람일 뿐이다.")
+intro = PackedStringArray("…너에게서 시간의 핵 냄새가 나는군.", "조각을 모아라. 세계가 다시 이어지려면 그것뿐이다.")
+requires_facility = &""

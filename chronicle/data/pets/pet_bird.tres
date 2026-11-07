@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/pets/pet_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/pets/bird/pet_bird_frames.tres" id="2_frames"]
+[ext_resource type="Texture2D" path="res://assets/ui/pets/icon_bird.png" id="3_icon"]
+[ext_resource type="Texture2D" path="res://assets/pets/art/bird_full.png" id="4_art"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"bird"
+display_name = "작은 새"
+description = "반짝이는 것을 좋아하는 파랑새. 떨어진 물건을 귀신같이 찾아낸다."
+frames = ExtResource("2_frames")
+icon = ExtResource("3_icon")
+art = ExtResource("4_art")
+flying = true
+passive_name = "반짝이 수집가"
+base_bonuses = {"gold_pct": 0.1, "magnet": 40.0}
+per_level = {"gold_pct": 0.03, "magnet": 6.0}
+active = &"magnet"
+unlock_hint = "농장 복구 보상"
+order = 3

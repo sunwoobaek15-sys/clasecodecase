@@ -31,3 +31,9 @@ signal toast(text: String)
 signal camera_shake(strength: float, duration: float)
 signal settings_changed
 signal pause_requested
+
+# --- village / quests (Phase 3) ---------------------------------------------
+signal npc_talked(npc_id: StringName)
+signal item_enhanced(item_id: StringName, level: int)
+signal farm_harvested(count: int)
+signal interact_target_changed(target: Node)

@@ -3,9 +3,10 @@
 Android용 가로 화면 픽셀 아트 액션 RPG (Godot 4 · GDScript).
 시간의 핵이 부서져 떠다니는 섬들로 갈라진 세계에서, 기억을 잃은 검사가 핵 조각을 모읍니다.
 
-**현재 상태: Phase 2 (성장 시스템) 완료** — 스테이지 1-1(슬라임 구역 → 보스 베르단 → 시간의 핵 조각)을 처음부터
-끝까지 플레이할 수 있고, 레벨·경험치, 장비·가방, 스킬 트리, 회복 물약, JSON 저장/이어하기가 들어갔습니다.
-Phase 2 상세 내용은 [docs/PHASE2_REPORT.md](docs/PHASE2_REPORT.md)를 보세요.
+**현재 상태: Phase 3-1 (마을·NPC·퀘스트·마을 복구·펫·도감) 완료** — 스테이지 1-1을 깨면 허브 마을 '루멘'으로
+이어집니다. NPC 8명과 대화하고, 퀘스트를 받고, 무너진 시설 6곳을 되살리고, 펫 5종과 함께 다닐 수 있습니다.
+월드맵의 지역 2·3(시계 도시, 하늘의 폐허)은 다음 단계(3-2, 3-3)에서 열립니다.
+상세: [Phase 3-1](docs/PHASE3_REPORT.md) · [Phase 2](docs/PHASE2_REPORT.md) · [Phase 1](docs/PHASE1_REPORT.md)
 
 <p>
 <img src="docs/screenshots/01_title.png" width="400" alt="타이틀">
@@ -14,8 +15,10 @@ Phase 2 상세 내용은 [docs/PHASE2_REPORT.md](docs/PHASE2_REPORT.md)를 보�
 <img src="docs/screenshots/07_boss_telegraph.png" width="400" alt="숲의 분노 공격 예고">
 <img src="docs/screenshots/08_ultimate_cutin.png" width="400" alt="궁극기 컷인">
 <img src="docs/screenshots/10_stage_clear.png" width="400" alt="스테이지 클리어">
-<img src="docs/screenshots/05c_character_items.png" width="400" alt="장비·가방 화면">
-<img src="docs/screenshots/05d_character_skills.png" width="400" alt="스킬 트리 화면">
+<img src="docs/screenshots/12_village.png" width="400" alt="루멘 마을">
+<img src="docs/screenshots/13_dialogue.png" width="400" alt="NPC 대화">
+<img src="docs/screenshots/15_restore.png" width="400" alt="마을 재건">
+<img src="docs/screenshots/18_menu_pets.png" width="400" alt="펫 화면">
 </p>
 
 ## 실행
@@ -35,8 +38,9 @@ PC에서는 마우스 클릭이 터치로 처리되어 화면의 터치 버튼�
 | 스킬 '청월참' (마나 15) | 스킬 | U, C | Y |
 | 궁극기 '청월강림' (게이지 100%) | 궁극기 | I, V | LB |
 | 회복 물약 (HP +40, 가방에 있을 때만) | 물약 | Q, R | 십자키 ↑ |
+| 대화 · 이용 (마을, 가까이 가면 나타남) | 대화 | E, F | 십자키 ↓ |
 | 일시정지·설정 | 우측 상단 ‖ | Esc, P | Start |
-| 캐릭터·장비·스킬 화면 | 일시정지 → 캐릭터 · 장비 · 스킬 | | |
+| 캐릭터·펫·퀘스트·도감 화면 | 일시정지 → 캐릭터 · 펫 · 퀘스트 · 도감 | | |
 
 ## 폰에서 바로 해보기 (웹 빌드)
 
@@ -44,6 +48,19 @@ PC에서는 마우스 클릭이 터치로 처리되어 화면의 터치 버튼�
 브랜치를 고르고 `/ (root)`로 배포하면 폰 브라우저에서 `https://<계정>.github.io/<저장소>/chronicle/web/` 주소로 바로 플레이할 수 있습니다.
 (첫 로딩에 수십 초, 가로 화면 권장.) 다시 만들기: `godot --headless --path . --export-release Web web/index.html`
 (웹 내보내기 템플릿 필요). 터치·화면 배치만 확인하는 용도이며 Android 실기기 성능 검증은 아닙니다.
+
+## Phase 3-1 구현 내용 (마을·NPC·퀘스트·복구·펫·도감)
+
+- **흐름**: 타이틀 → 1-1 → 클리어 → 루멘 마을 ↔ 월드맵 → 스테이지. 이어하기는 마지막 장소(마을/체크포인트)에서 시작합니다.
+- **마을**: 걸어 다니는 허브. 가까이 가면 대화/이용 버튼이 뜨고, 대화창(초상화·선택지)이 열립니다. 머리 위 ! / ? 로 퀘스트를 표시합니다.
+- **NPC 8명**: 미아(관리인), 가렛(경비병), 그림자 여행자, 카이로(상인), 브론(대장장이), 에델 박사(연구원), 리라(마법사), 세레나(사제).
+  뒤의 다섯 명은 시설을 복구하면 합류합니다.
+- **마을 복구 6곳**: 상점·대장간·농장·도서관·연구소·훈련장. 골드와 재료(슬라임 젤, 시간의 핵 조각)로 되살리면 건물 그림이 바뀌고 NPC·기능·펫이 해금됩니다.
+- **상점·강화·농장·축복**: 물약/마나 결정/펫 간식 구매와 판매, 장비 강화 +1~+5, 스테이지마다 자라는 작물 수확, 다음 스테이지 EXP +20% 축복, 스킬 초기화.
+- **퀘스트 17개**: 메인 5, 서브 5, 일일 1(날짜가 바뀌면 다시 열림), 업적 6. HUD에 추적 중인 퀘스트 표시.
+- **펫 5종**: 정령 슬라임·설원 여우·작은 새·그림자 고양이·아기 드래곤. 따라오기·대기·잠자기·감정 표현, 레벨 1~10 성장, 고유 패시브(회복, 회피, 골드·아이템 끌어오기, 치명타, 불덩이). 펫 화면에서 선택·교체·간식.
+- **도감**: 몬스터·보스·무기·펫·유물. 처치/획득 시 기록, 처치 횟수, 도서관 보상.
+- **저장 v2**: 퀘스트·마을·펫·도감·위치 추가, v1 저장 자동 변환.
 
 ## Phase 2 구현 내용 (성장)
 
@@ -72,13 +89,13 @@ PC에서는 마우스 클릭이 터치로 처리되어 화면의 터치 버튼�
 ```
 chronicle/
 ├── project.godot
-├── scenes/   boot/ world/ player/ enemies/ bosses/ ui/ (village/ pets/ effects/: 다음 단계)
-├── scripts/  core/ player/ combat/ enemies/ bosses/ world/ ui/ effects/ inventory/ progression/ save/
-│             (quests/ pets/: 다음 단계)
-├── assets/   characters/ enemies/ bosses/ effects/ environments/ ui/ (npcs/ pets/ weapons/ audio/: 다음 단계)
-├── data/     items/ skills/(tree/) enemies/ player/ levels/ (quests/ pets/: 다음 단계)
+├── scenes/   boot/ world/ village/ player/ enemies/ bosses/ ui/
+├── scripts/  core/ player/ combat/ enemies/ bosses/ world/ village/ ui/ effects/ inventory/
+│             progression/ quests/ pets/ save/
+├── assets/   characters/ enemies/ bosses/ npcs/ pets/ effects/ environments/ ui/ (weapons/ audio/: 다음 단계)
+├── data/     items/ skills/(tree/) enemies/ player/ levels/ quests/ pets/ npcs/ village/
 ├── tests/    자동 테스트 (test_*.gd)
-├── docs/     ASSET_ANALYSIS.md, PHASE1_REPORT.md, PHASE2_REPORT.md, screenshots/
+├── docs/     ASSET_ANALYSIS.md, PHASE1_REPORT.md, PHASE2_REPORT.md, PHASE3_REPORT.md, screenshots/
 ├── tools/    에셋 파이프라인 (Python + Godot 스크립트)
 └── art_source/  original/ (첨부 원본, 수정 금지) cleaned/ preview/
 ```
@@ -95,6 +112,8 @@ pip install pillow numpy opencv-python-headless
 python3 tools/clean_sheets.py        # 1. 라벨·가짜 배경 제거 → art_source/cleaned/
 python3 tools/build_sprites.py       # 2. 프레임 추출·축소·팔레트·외곽선·정렬 → assets/**/_atlas.png + _sprites.json
 python3 tools/build_environment.py   # 3. 타일·배경·소품·UI 아이콘 (절차 생성)
+python3 tools/build_village.py       #    마을 건물·땅·배경 (절차 생성)
+python3 tools/build_npc_variants.py  #    경비병(시트에 없음) = 주인공형 NPC 색 변형
 godot --headless --path . --import
 godot --headless --path . -s res://tools/build_sprite_frames.gd   # 4. JSON → SpriteFrames(.tres)
 ```
@@ -102,10 +121,10 @@ godot --headless --path . -s res://tools/build_sprite_frames.gd   # 4. JSON → 
 ## 테스트
 
 ```bash
-# 자동 테스트 (63개)
+# 자동 테스트 (75개)
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn
 
-# 자동 플레이 봇: 타이틀부터 보스 처치·클리어까지 입력만으로 플레이 (성공 시 종료 코드 0)
+# 자동 플레이 봇: 타이틀 → 1-1 클리어 → 마을(대화·복구·상점·메뉴·월드맵)까지 진행 (성공 시 종료 코드 0)
 godot --headless --path . --fixed-fps 60 -- --bot
 
 # 화면 캡처 포함 (렌더러 필요, 리눅스 서버에서는 xvfb-run)
@@ -116,4 +135,5 @@ godot --path . --fixed-fps 60 -- --bot --screenshots=/tmp/shots
 
 - 캐릭터·몬스터·보스·NPC·펫 디자인: 프로젝트 제공 참고 이미지 (`art_source/original/`).
 - 폰트: [Galmuri](https://github.com/quiple/galmuri) by Lee Minseo — SIL Open Font License 1.1 (`assets/ui/fonts/OFL-Galmuri.md`).
-- 지형·배경·UI 아이콘: `tools/build_environment.py`로 생성한 임시 아트 (Phase 4에서 교체 예정).
+- 지형·배경·UI 아이콘·마을 건물: `tools/build_environment.py`, `tools/build_village.py`로 생성한 임시 아트 (Phase 4에서 교체 예정).
+- 경비병 NPC: 참고 시트에 디자인이 없어 주인공형 NPC를 색만 바꾼 임시 디자인.

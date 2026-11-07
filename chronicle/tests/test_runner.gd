@@ -38,6 +38,9 @@ func _ready() -> void:
 		for m in methods:
 			tc.current = "%s.%s" % [f.get_basename(), m]
 			var before := tc.failures.size()
+			Game.reset_progress(false)
+			Game.location = "stage"
+			Game.current_stage_id = "forest_1"
 			tc.before_each()
 			await tc.call(m)
 			tc.after_each()
