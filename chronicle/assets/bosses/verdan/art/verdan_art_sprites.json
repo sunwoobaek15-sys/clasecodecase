@@ -1,0 +1,194 @@
+{
+ "name": "verdan_art",
+ "source_sheet": "art_source/original/04_boss_verdan.png",
+ "kind": "art",
+ "scale": 0.44,
+ "atlas": "res://assets/bosses/verdan/art/verdan_art_atlas.png",
+ "cell": [
+  219,
+  177
+ ],
+ "anchor": [
+  109,
+  176
+ ],
+ "frames": {
+  "full_art": {
+   "region": [
+    0,
+    0,
+    219,
+    176
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    4,
+    4,
+    508,
+    410
+   ]
+  },
+  "part_tree": {
+   "region": [
+    221,
+    0,
+    87,
+    81
+   ],
+   "offset": [
+    66,
+    96
+   ],
+   "source_box": [
+    1334,
+    811,
+    1536,
+    1008
+   ]
+  },
+  "part_crystal": {
+   "region": [
+    420,
+    0,
+    19,
+    36
+   ],
+   "offset": [
+    100,
+    141
+   ],
+   "source_box": [
+    1329,
+    827,
+    1378,
+    917
+   ]
+  },
+  "part_branch": {
+   "region": [
+    310,
+    0,
+    49,
+    72
+   ],
+   "offset": [
+    85,
+    105
+   ],
+   "source_box": [
+    1171,
+    832,
+    1293,
+    1007
+   ]
+  },
+  "part_bush": {
+   "region": [
+    361,
+    0,
+    34,
+    46
+   ],
+   "offset": [
+    93,
+    131
+   ],
+   "source_box": [
+    1264,
+    893,
+    1347,
+    1005
+   ]
+  },
+  "part_rock": {
+   "region": [
+    397,
+    0,
+    21,
+    42
+   ],
+   "offset": [
+    99,
+    135
+   ],
+   "source_box": [
+    1432,
+    901,
+    1487,
+    1003
+   ]
+  },
+  "part_rock2": {
+   "region": [
+    441,
+    0,
+    18,
+    31
+   ],
+   "offset": [
+    100,
+    146
+   ],
+   "source_box": [
+    1484,
+    923,
+    1533,
+    1000
+   ]
+  }
+ },
+ "animations": {
+  "full_art": {
+   "frames": [
+    "full_art"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "part_tree": {
+   "frames": [
+    "part_tree"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "part_crystal": {
+   "frames": [
+    "part_crystal"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "part_branch": {
+   "frames": [
+    "part_branch"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "part_bush": {
+   "frames": [
+    "part_bush"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "part_rock": {
+   "frames": [
+    "part_rock"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "part_rock2": {
+   "frames": [
+    "part_rock2"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

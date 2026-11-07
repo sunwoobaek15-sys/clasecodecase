@@ -1,0 +1,244 @@
+{
+ "name": "slime_fx",
+ "source_sheet": "art_source/original/02_forest_slime.png",
+ "kind": "fx",
+ "scale": 0.4,
+ "atlas": "res://assets/effects/slime/slime_fx_atlas.png",
+ "cell": [
+  86,
+  85
+ ],
+ "anchor": [
+  43,
+  43
+ ],
+ "frames": {
+  "ball": {
+   "region": [
+    547,
+    0,
+    26,
+    25
+   ],
+   "offset": [
+    30,
+    31
+   ],
+   "source_box": [
+    364,
+    490,
+    426,
+    566
+   ]
+  },
+  "droplet": {
+   "region": [
+    443,
+    0,
+    27,
+    27
+   ],
+   "offset": [
+    29,
+    30
+   ],
+   "source_box": [
+    793,
+    646,
+    876,
+    725
+   ]
+  },
+  "crescent": {
+   "region": [
+    0,
+    0,
+    78,
+    85
+   ],
+   "offset": [
+    4,
+    0
+   ],
+   "source_box": [
+    997,
+    633,
+    1202,
+    860
+   ]
+  },
+  "burst": {
+   "region": [
+    80,
+    0,
+    68,
+    74
+   ],
+   "offset": [
+    8,
+    6
+   ],
+   "source_box": [
+    1346,
+    674,
+    1531,
+    859
+   ]
+  },
+  "puddle": {
+   "region": [
+    355,
+    0,
+    86,
+    32
+   ],
+   "offset": [
+    0,
+    27
+   ],
+   "source_box": [
+    5,
+    889,
+    235,
+    985
+   ]
+  },
+  "puddle_small": {
+   "region": [
+    472,
+    0,
+    73,
+    27
+   ],
+   "offset": [
+    6,
+    30
+   ],
+   "source_box": [
+    240,
+    901,
+    439,
+    984
+   ]
+  },
+  "splash": {
+   "region": [
+    286,
+    0,
+    67,
+    40
+   ],
+   "offset": [
+    9,
+    23
+   ],
+   "source_box": [
+    442,
+    892,
+    615,
+    993
+   ]
+  },
+  "splash_tall": {
+   "region": [
+    225,
+    0,
+    59,
+    41
+   ],
+   "offset": [
+    14,
+    23
+   ],
+   "source_box": [
+    617,
+    890,
+    768,
+    996
+   ]
+  },
+  "pillar": {
+   "region": [
+    150,
+    0,
+    73,
+    55
+   ],
+   "offset": [
+    6,
+    16
+   ],
+   "source_box": [
+    857,
+    859,
+    1045,
+    1011
+   ]
+  }
+ },
+ "animations": {
+  "ball": {
+   "frames": [
+    "ball"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "droplet": {
+   "frames": [
+    "droplet"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "crescent": {
+   "frames": [
+    "crescent"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "burst": {
+   "frames": [
+    "burst"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "puddle": {
+   "frames": [
+    "puddle"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "puddle_small": {
+   "frames": [
+    "puddle_small"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "splash": {
+   "frames": [
+    "splash"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "splash_tall": {
+   "frames": [
+    "splash_tall"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "pillar": {
+   "frames": [
+    "pillar"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

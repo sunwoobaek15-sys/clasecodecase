@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_stats.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"verdan"
+display_name = "숲의 수호자 베르단"
+max_hp = 1300
+contact_damage = 10
+attack_damage = 18
+move_speed = 40.0
+chase_speed = 55.0
+aggro_range = 9999.0
+lose_range = 99999.0
+attack_range = 120.0
+shot_range = 400.0
+attack_cooldown = 1.0
+knockback_resist = 1.0
+poise = 100.0
+heal_drop_chance = 0.0

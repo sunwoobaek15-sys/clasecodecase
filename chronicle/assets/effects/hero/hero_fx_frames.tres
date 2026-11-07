@@ -1,0 +1,121 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/effects/hero/hero_fx_atlas.png" id="1_hm7ss"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t7wwf"]
+atlas = ExtResource("1_hm7ss")
+region = Rect2(129, 0, 118, 61)
+margin = Rect2(0, 4, 0, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x6vlt"]
+atlas = ExtResource("1_hm7ss")
+region = Rect2(249, 0, 60, 60)
+margin = Rect2(29, 5, 58, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vejk5"]
+atlas = ExtResource("1_hm7ss")
+region = Rect2(311, 0, 61, 57)
+margin = Rect2(29, 6, 57, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jpw6e"]
+atlas = ExtResource("1_hm7ss")
+region = Rect2(481, 0, 23, 19)
+margin = Rect2(48, 25, 95, 49)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_twqgy"]
+atlas = ExtResource("1_hm7ss")
+region = Rect2(446, 0, 33, 50)
+margin = Rect2(43, 9, 85, 18)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hsubt"]
+atlas = ExtResource("1_hm7ss")
+region = Rect2(0, 0, 52, 68)
+margin = Rect2(33, 0, 66, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_82cai"]
+atlas = ExtResource("1_hm7ss")
+region = Rect2(374, 0, 70, 57)
+margin = Rect2(24, 6, 48, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b3wi2"]
+atlas = ExtResource("1_hm7ss")
+region = Rect2(54, 0, 73, 66)
+margin = Rect2(23, 1, 45, 2)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t7wwf")
+}],
+"loop": 0,
+"name": &"crescent",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x6vlt")
+}],
+"loop": 0,
+"name": &"light_pillar",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vejk5")
+}],
+"loop": 0,
+"name": &"magic_circle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jpw6e")
+}],
+"loop": 0,
+"name": &"ring",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_twqgy")
+}],
+"loop": 0,
+"name": &"sparkle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hsubt")
+}],
+"loop": 0,
+"name": &"spike_burst",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_82cai")
+}],
+"loop": 0,
+"name": &"swirl",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b3wi2")
+}],
+"loop": 0,
+"name": &"vortex",
+"speed": 1.0
+}]
+metadata/anchor = Vector2(59, 34)
+metadata/cell = Vector2(118, 68)
+metadata/source_sheet = "art_source/original/01_hero_cheongwol.png"

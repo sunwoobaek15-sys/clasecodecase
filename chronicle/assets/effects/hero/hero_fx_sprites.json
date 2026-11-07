@@ -1,0 +1,219 @@
+{
+ "name": "hero_fx",
+ "source_sheet": "art_source/original/01_hero_cheongwol.png",
+ "kind": "fx",
+ "scale": 0.44,
+ "atlas": "res://assets/effects/hero/hero_fx_atlas.png",
+ "cell": [
+  118,
+  68
+ ],
+ "anchor": [
+  59,
+  34
+ ],
+ "frames": {
+  "crescent": {
+   "region": [
+    129,
+    0,
+    118,
+    61
+   ],
+   "offset": [
+    0,
+    4
+   ],
+   "source_box": [
+    1250,
+    195,
+    1532,
+    345
+   ]
+  },
+  "spike_burst": {
+   "region": [
+    0,
+    0,
+    52,
+    68
+   ],
+   "offset": [
+    33,
+    0
+   ],
+   "source_box": [
+    1093,
+    372,
+    1225,
+    541
+   ]
+  },
+  "magic_circle": {
+   "region": [
+    311,
+    0,
+    61,
+    57
+   ],
+   "offset": [
+    29,
+    6
+   ],
+   "source_box": [
+    1220,
+    405,
+    1368,
+    545
+   ]
+  },
+  "vortex": {
+   "region": [
+    54,
+    0,
+    73,
+    66
+   ],
+   "offset": [
+    23,
+    1
+   ],
+   "source_box": [
+    1256,
+    714,
+    1418,
+    865
+   ]
+  },
+  "swirl": {
+   "region": [
+    374,
+    0,
+    70,
+    57
+   ],
+   "offset": [
+    24,
+    6
+   ],
+   "source_box": [
+    1229,
+    861,
+    1377,
+    1005
+   ]
+  },
+  "light_pillar": {
+   "region": [
+    249,
+    0,
+    60,
+    60
+   ],
+   "offset": [
+    29,
+    5
+   ],
+   "source_box": [
+    1390,
+    857,
+    1541,
+    1008
+   ]
+  },
+  "sparkle": {
+   "region": [
+    446,
+    0,
+    33,
+    50
+   ],
+   "offset": [
+    43,
+    9
+   ],
+   "source_box": [
+    1440,
+    783,
+    1507,
+    858
+   ]
+  },
+  "ring": {
+   "region": [
+    481,
+    0,
+    23,
+    19
+   ],
+   "offset": [
+    48,
+    25
+   ],
+   "source_box": [
+    1336,
+    882,
+    1402,
+    938
+   ]
+  }
+ },
+ "animations": {
+  "crescent": {
+   "frames": [
+    "crescent"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "spike_burst": {
+   "frames": [
+    "spike_burst"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "magic_circle": {
+   "frames": [
+    "magic_circle"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "vortex": {
+   "frames": [
+    "vortex"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "swirl": {
+   "frames": [
+    "swirl"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "light_pillar": {
+   "frames": [
+    "light_pillar"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "sparkle": {
+   "frames": [
+    "sparkle"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "ring": {
+   "frames": [
+    "ring"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

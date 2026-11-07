@@ -1,0 +1,688 @@
+{
+ "name": "hero",
+ "source_sheet": "art_source/original/01_hero_cheongwol.png",
+ "kind": "character",
+ "scale": 0.44,
+ "atlas": "res://assets/characters/hero/hero_atlas.png",
+ "cell": [
+  137,
+  159
+ ],
+ "anchor": [
+  56,
+  148
+ ],
+ "frames": {
+  "idle0": {
+   "region": [
+    804,
+    0,
+    42,
+    65
+   ],
+   "offset": [
+    31,
+    84
+   ],
+   "source_box": [
+    333,
+    30,
+    440,
+    190
+   ]
+  },
+  "idle1": {
+   "region": [
+    848,
+    0,
+    41,
+    65
+   ],
+   "offset": [
+    32,
+    84
+   ],
+   "source_box": [
+    432,
+    31,
+    539,
+    192
+   ]
+  },
+  "idle2": {
+   "region": [
+    722,
+    0,
+    39,
+    66
+   ],
+   "offset": [
+    34,
+    83
+   ],
+   "source_box": [
+    537,
+    30,
+    637,
+    192
+   ]
+  },
+  "idle3": {
+   "region": [
+    763,
+    0,
+    39,
+    66
+   ],
+   "offset": [
+    35,
+    83
+   ],
+   "source_box": [
+    633,
+    29,
+    733,
+    192
+   ]
+  },
+  "idle4": {
+   "region": [
+    630,
+    0,
+    39,
+    67
+   ],
+   "offset": [
+    34,
+    82
+   ],
+   "source_box": [
+    727,
+    27,
+    829,
+    192
+   ]
+  },
+  "run0": {
+   "region": [
+    891,
+    0,
+    53,
+    65
+   ],
+   "offset": [
+    20,
+    85
+   ],
+   "source_box": [
+    827,
+    34,
+    961,
+    193
+   ]
+  },
+  "run1": {
+   "region": [
+    242,
+    161,
+    43,
+    60
+   ],
+   "offset": [
+    31,
+    89
+   ],
+   "source_box": [
+    959,
+    36,
+    1069,
+    186
+   ]
+  },
+  "run2": {
+   "region": [
+    137,
+    161,
+    48,
+    62
+   ],
+   "offset": [
+    26,
+    87
+   ],
+   "source_box": [
+    1063,
+    41,
+    1185,
+    192
+   ]
+  },
+  "run3": {
+   "region": [
+    946,
+    0,
+    50,
+    65
+   ],
+   "offset": [
+    25,
+    84
+   ],
+   "source_box": [
+    1172,
+    32,
+    1299,
+    191
+   ]
+  },
+  "jump": {
+   "region": [
+    87,
+    161,
+    48,
+    62
+   ],
+   "offset": [
+    26,
+    87
+   ],
+   "source_box": [
+    1297,
+    17,
+    1420,
+    169
+   ]
+  },
+  "fall": {
+   "region": [
+    213,
+    0,
+    43,
+    73
+   ],
+   "offset": [
+    32,
+    76
+   ],
+   "source_box": [
+    1418,
+    16,
+    1528,
+    194
+   ]
+  },
+  "atk_windup": {
+   "region": [
+    426,
+    161,
+    60,
+    57
+   ],
+   "offset": [
+    22,
+    93
+   ],
+   "source_box": [
+    334,
+    204,
+    484,
+    346
+   ]
+  },
+  "atk_thrust": {
+   "region": [
+    545,
+    161,
+    79,
+    53
+   ],
+   "offset": [
+    20,
+    96
+   ],
+   "source_box": [
+    490,
+    213,
+    686,
+    347
+   ]
+  },
+  "atk_slash": {
+   "region": [
+    0,
+    161,
+    85,
+    62
+   ],
+   "offset": [
+    16,
+    89
+   ],
+   "source_box": [
+    649,
+    211,
+    860,
+    363
+   ]
+  },
+  "atk_crescent": {
+   "region": [
+    258,
+    0,
+    89,
+    69
+   ],
+   "offset": [
+    11,
+    83
+   ],
+   "source_box": [
+    835,
+    192,
+    1057,
+    359
+   ]
+  },
+  "atk_lunge": {
+   "region": [
+    287,
+    161,
+    73,
+    58
+   ],
+   "offset": [
+    14,
+    91
+   ],
+   "source_box": [
+    1062,
+    212,
+    1240,
+    355
+   ]
+  },
+  "atk_finisher": {
+   "region": [
+    86,
+    0,
+    125,
+    73
+   ],
+   "offset": [
+    12,
+    80
+   ],
+   "source_box": [
+    1240,
+    198,
+    1530,
+    372
+   ]
+  },
+  "guard": {
+   "region": [
+    563,
+    0,
+    65,
+    67
+   ],
+   "offset": [
+    24,
+    82
+   ],
+   "source_box": [
+    346,
+    359,
+    507,
+    524
+   ]
+  },
+  "hurt": {
+   "region": [
+    671,
+    0,
+    49,
+    66
+   ],
+   "offset": [
+    31,
+    83
+   ],
+   "source_box": [
+    507,
+    363,
+    631,
+    524
+   ]
+  },
+  "knockback": {
+   "region": [
+    362,
+    161,
+    62,
+    58
+   ],
+   "offset": [
+    22,
+    91
+   ],
+   "source_box": [
+    631,
+    378,
+    783,
+    522
+   ]
+  },
+  "down_face": {
+   "region": [
+    779,
+    161,
+    60,
+    35
+   ],
+   "offset": [
+    23,
+    114
+   ],
+   "source_box": [
+    775,
+    444,
+    924,
+    536
+   ]
+  },
+  "crouch": {
+   "region": [
+    488,
+    161,
+    55,
+    55
+   ],
+   "offset": [
+    19,
+    94
+   ],
+   "source_box": [
+    925,
+    402,
+    1062,
+    540
+   ]
+  },
+  "skill_stance": {
+   "region": [
+    349,
+    0,
+    72,
+    69
+   ],
+   "offset": [
+    30,
+    81
+   ],
+   "source_box": [
+    328,
+    521,
+    505,
+    688
+   ]
+  },
+  "skill_charge": {
+   "region": [
+    423,
+    0,
+    55,
+    68
+   ],
+   "offset": [
+    23,
+    81
+   ],
+   "source_box": [
+    492,
+    523,
+    633,
+    689
+   ]
+  },
+  "down_back": {
+   "region": [
+    626,
+    161,
+    78,
+    53
+   ],
+   "offset": [
+    9,
+    96
+   ],
+   "source_box": [
+    636,
+    550,
+    830,
+    684
+   ]
+  },
+  "dodge": {
+   "region": [
+    706,
+    161,
+    71,
+    46
+   ],
+   "offset": [
+    0,
+    103
+   ],
+   "source_box": [
+    828,
+    572,
+    1002,
+    691
+   ]
+  },
+  "skill_spin": {
+   "region": [
+    480,
+    0,
+    81,
+    68
+   ],
+   "offset": [
+    13,
+    91
+   ],
+   "source_box": [
+    1006,
+    544,
+    1204,
+    710
+   ]
+  },
+  "ult_charge": {
+   "region": [
+    187,
+    161,
+    53,
+    62
+   ],
+   "offset": [
+    29,
+    94
+   ],
+   "source_box": [
+    1213,
+    552,
+    1346,
+    708
+   ]
+  },
+  "ult_pillar": {
+   "region": [
+    0,
+    0,
+    84,
+    159
+   ],
+   "offset": [
+    8,
+    0
+   ],
+   "source_box": [
+    1345,
+    345,
+    1532,
+    714
+   ]
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "idle0",
+    "idle1",
+    "idle2",
+    "idle3",
+    "idle4",
+    "idle3",
+    "idle2",
+    "idle1"
+   ],
+   "fps": 7,
+   "loop": true
+  },
+  "walk": {
+   "frames": [
+    "run0",
+    "run1",
+    "run2",
+    "run3"
+   ],
+   "fps": 7,
+   "loop": true
+  },
+  "run": {
+   "frames": [
+    "run0",
+    "run1",
+    "run2",
+    "run3"
+   ],
+   "fps": 11,
+   "loop": true
+  },
+  "jump": {
+   "frames": [
+    "jump"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "fall": {
+   "frames": [
+    "fall"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "land": {
+   "frames": [
+    "crouch"
+   ],
+   "fps": 12,
+   "loop": false
+  },
+  "attack1": {
+   "frames": [
+    "atk_windup",
+    "atk_thrust"
+   ],
+   "fps": 14,
+   "loop": false
+  },
+  "attack2": {
+   "frames": [
+    "atk_slash"
+   ],
+   "fps": 10,
+   "loop": false
+  },
+  "attack3": {
+   "frames": [
+    "atk_lunge",
+    "atk_finisher"
+   ],
+   "fps": 12,
+   "loop": false
+  },
+  "air_attack": {
+   "frames": [
+    "atk_slash"
+   ],
+   "fps": 10,
+   "loop": false
+  },
+  "heavy_charge": {
+   "frames": [
+    "skill_stance"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "heavy": {
+   "frames": [
+    "atk_crescent"
+   ],
+   "fps": 8,
+   "loop": false
+  },
+  "dodge": {
+   "frames": [
+    "crouch",
+    "dodge",
+    "dodge"
+   ],
+   "fps": 16,
+   "loop": false
+  },
+  "hurt": {
+   "frames": [
+    "hurt"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "death": {
+   "frames": [
+    "hurt",
+    "knockback",
+    "down_face"
+   ],
+   "fps": 7,
+   "loop": false
+  },
+  "skill": {
+   "frames": [
+    "skill_charge",
+    "skill_spin"
+   ],
+   "fps": 10,
+   "loop": false
+  },
+  "ultimate": {
+   "frames": [
+    "ult_charge",
+    "ult_pillar"
+   ],
+   "fps": 4,
+   "loop": false
+  },
+  "guard": {
+   "frames": [
+    "guard"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

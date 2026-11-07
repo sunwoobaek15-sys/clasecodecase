@@ -1,0 +1,135 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/effects/verdan/verdan_fx_atlas.png" id="1_1qwji"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2bssv"]
+atlas = ExtResource("1_1qwji")
+region = Rect2(85, 0, 49, 77)
+margin = Rect2(24, 4, 47, 5)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q7ej7"]
+atlas = ExtResource("1_1qwji")
+region = Rect2(216, 0, 75, 73)
+margin = Rect2(10, 8, 21, 9)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_naibs"]
+atlas = ExtResource("1_1qwji")
+region = Rect2(543, 0, 54, 56)
+margin = Rect2(21, 25, 42, 26)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pnpmy"]
+atlas = ExtResource("1_1qwji")
+region = Rect2(445, 0, 96, 68)
+margin = Rect2(0, 13, 0, 14)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2kmdm"]
+atlas = ExtResource("1_1qwji")
+region = Rect2(599, 0, 61, 46)
+margin = Rect2(18, 36, 35, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fwstn"]
+atlas = ExtResource("1_1qwji")
+region = Rect2(0, 0, 83, 81)
+margin = Rect2(7, 0, 13, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g5bmv"]
+atlas = ExtResource("1_1qwji")
+region = Rect2(136, 0, 78, 75)
+margin = Rect2(9, 6, 18, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2kcyc"]
+atlas = ExtResource("1_1qwji")
+region = Rect2(391, 0, 52, 70)
+margin = Rect2(22, 11, 44, 12)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v2eay"]
+atlas = ExtResource("1_1qwji")
+region = Rect2(293, 0, 96, 72)
+margin = Rect2(0, 9, 0, 10)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2bssv")
+}],
+"loop": 0,
+"name": &"green_burst",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q7ej7")
+}],
+"loop": 0,
+"name": &"ground_burst",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_naibs")
+}],
+"loop": 0,
+"name": &"leaf_spiral",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pnpmy")
+}],
+"loop": 0,
+"name": &"leaf_swirl",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2kmdm")
+}],
+"loop": 0,
+"name": &"log",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fwstn")
+}],
+"loop": 0,
+"name": &"magic_circle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g5bmv")
+}],
+"loop": 0,
+"name": &"nature_circle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2kcyc")
+}],
+"loop": 0,
+"name": &"root_spike",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v2eay")
+}],
+"loop": 0,
+"name": &"root_wave",
+"speed": 1.0
+}]
+metadata/anchor = Vector2(48, 81)
+metadata/cell = Vector2(96, 82)
+metadata/source_sheet = "art_source/original/04_boss_verdan.png"

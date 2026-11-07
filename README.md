@@ -148,3 +148,10 @@ tests/ranking.test.js 랭킹·부정 사용 검사 테스트 (규칙대로 한 �
 
 - 테스트: `npm test` (Node 20 이상, 추가 설치 없음) — TOKEN 계산표, 하루 제한, STREAK, 보너스, 상점, 업그레이드, 수정·삭제, 저장 데이터 복구, 랭킹 순위·부정 사용 검사·저장 확인값을 확인해요.
 - 그림 파일 없이 모든 건물·장식·탈것을 코드(SVG)로 그려요.
+
+## 이 저장소의 다른 프로젝트
+
+| 폴더 | 내용 |
+| --- | --- |
+| [`chronicle/`](chronicle/README.md) | **CHRONICLE: THE LOST WORLD** — Godot 4 기반 Android 픽셀 아트 액션 RPG (Phase 1 전투 프로토타입) |
+| [`dice-gentleman/`](dice-gentleman/README.md) | **THE DICE GENTLEMAN** — 단일 HTML 심리 공포 주사위 보스전 |

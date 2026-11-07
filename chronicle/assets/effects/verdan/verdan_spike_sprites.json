@@ -1,0 +1,44 @@
+{
+ "name": "verdan_spike",
+ "source_sheet": "art_source/original/04_boss_verdan.png",
+ "kind": "fx",
+ "scale": 0.34,
+ "atlas": "res://assets/effects/verdan/verdan_spike_atlas.png",
+ "cell": [
+  40,
+  53
+ ],
+ "anchor": [
+  20,
+  53
+ ],
+ "frames": {
+  "root_spike": {
+   "region": [
+    0,
+    0,
+    40,
+    53
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    1185,
+    436,
+    1300,
+    594
+   ]
+  }
+ },
+ "animations": {
+  "root_spike": {
+   "frames": [
+    "root_spike"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

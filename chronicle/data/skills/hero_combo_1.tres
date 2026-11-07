@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"combo1"
+display_name = "청월 연격 I"
+animation = &"attack1"
+duration = 0.3
+active_start = 0.07
+active_end = 0.15
+chain_time = 0.1
+cancel_time = 0.15
+damage_multiplier = 1.0
+knockback = Vector2(110, -30)
+hit_stop = 0.035
+stagger = 8.0
+shake = 0.0
+hitbox = Rect2(4, -46, 48, 36)
+step_speed = 90.0
+step_time = 0.08

@@ -1,0 +1,18 @@
+{
+ "verdan_fx": {
+  "frames": 8,
+  "cell": [
+   96,
+   82
+  ],
+  "animations": 8
+ },
+ "verdan_spike": {
+  "frames": 1,
+  "cell": [
+   40,
+   53
+  ],
+  "animations": 1
+ }
+}

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_stats.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"forest_slime_elite"
+display_name = "자수정 슬라임 (강화형)"
+max_hp = 120
+contact_damage = 9
+attack_damage = 12
+move_speed = 26.0
+chase_speed = 48.0
+aggro_range = 220.0
+lose_range = 360.0
+attack_range = 52.0
+shot_range = 230.0
+attack_cooldown = 1.5
+knockback_resist = 0.6
+poise = 30.0
+heal_drop_chance = 1.0

@@ -1,0 +1,219 @@
+{
+ "name": "verdan_fx",
+ "source_sheet": "art_source/original/04_boss_verdan.png",
+ "kind": "fx",
+ "scale": 0.45,
+ "atlas": "res://assets/effects/verdan/verdan_fx_atlas.png",
+ "cell": [
+  96,
+  82
+ ],
+ "anchor": [
+  48,
+  81
+ ],
+ "frames": {
+  "log": {
+   "region": [
+    545,
+    0,
+    61,
+    46
+   ],
+   "offset": [
+    18,
+    36
+   ],
+   "source_box": [
+    542,
+    420,
+    700,
+    530
+   ]
+  },
+  "root_wave": {
+   "region": [
+    293,
+    0,
+    96,
+    72
+   ],
+   "offset": [
+    0,
+    9
+   ],
+   "source_box": [
+    1152,
+    428,
+    1365,
+    594
+   ]
+  },
+  "magic_circle": {
+   "region": [
+    0,
+    0,
+    83,
+    81
+   ],
+   "offset": [
+    7,
+    0
+   ],
+   "source_box": [
+    373,
+    600,
+    556,
+    792
+   ]
+  },
+  "ground_burst": {
+   "region": [
+    216,
+    0,
+    75,
+    73
+   ],
+   "offset": [
+    10,
+    8
+   ],
+   "source_box": [
+    556,
+    600,
+    726,
+    792
+   ]
+  },
+  "leaf_swirl": {
+   "region": [
+    391,
+    0,
+    96,
+    68
+   ],
+   "offset": [
+    0,
+    13
+   ],
+   "source_box": [
+    2,
+    832,
+    214,
+    998
+   ]
+  },
+  "leaf_spiral": {
+   "region": [
+    489,
+    0,
+    54,
+    56
+   ],
+   "offset": [
+    21,
+    25
+   ],
+   "source_box": [
+    527,
+    839,
+    634,
+    958
+   ]
+  },
+  "nature_circle": {
+   "region": [
+    136,
+    0,
+    78,
+    75
+   ],
+   "offset": [
+    9,
+    6
+   ],
+   "source_box": [
+    887,
+    820,
+    1044,
+    983
+   ]
+  },
+  "green_burst": {
+   "region": [
+    85,
+    0,
+    49,
+    77
+   ],
+   "offset": [
+    24,
+    4
+   ],
+   "source_box": [
+    1051,
+    813,
+    1173,
+    997
+   ]
+  }
+ },
+ "animations": {
+  "log": {
+   "frames": [
+    "log"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "root_wave": {
+   "frames": [
+    "root_wave"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "magic_circle": {
+   "frames": [
+    "magic_circle"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "ground_burst": {
+   "frames": [
+    "ground_burst"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "leaf_swirl": {
+   "frames": [
+    "leaf_swirl"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "leaf_spiral": {
+   "frames": [
+    "leaf_spiral"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "nature_circle": {
+   "frames": [
+    "nature_circle"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "green_burst": {
+   "frames": [
+    "green_burst"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

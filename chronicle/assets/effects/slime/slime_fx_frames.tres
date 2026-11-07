@@ -1,0 +1,135 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/effects/slime/slime_fx_atlas.png" id="1_cubwq"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cq518"]
+atlas = ExtResource("1_cubwq")
+region = Rect2(547, 0, 26, 25)
+margin = Rect2(30, 31, 60, 60)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_66tvc"]
+atlas = ExtResource("1_cubwq")
+region = Rect2(80, 0, 68, 74)
+margin = Rect2(8, 6, 18, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0kd7l"]
+atlas = ExtResource("1_cubwq")
+region = Rect2(0, 0, 78, 85)
+margin = Rect2(4, 0, 8, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bbtg6"]
+atlas = ExtResource("1_cubwq")
+region = Rect2(443, 0, 27, 27)
+margin = Rect2(29, 30, 59, 58)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_snaqc"]
+atlas = ExtResource("1_cubwq")
+region = Rect2(150, 0, 73, 55)
+margin = Rect2(6, 16, 13, 30)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7bfm5"]
+atlas = ExtResource("1_cubwq")
+region = Rect2(355, 0, 86, 32)
+margin = Rect2(0, 27, 0, 53)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rlqwq"]
+atlas = ExtResource("1_cubwq")
+region = Rect2(472, 0, 73, 27)
+margin = Rect2(6, 30, 13, 58)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7ubqp"]
+atlas = ExtResource("1_cubwq")
+region = Rect2(286, 0, 67, 40)
+margin = Rect2(9, 23, 19, 45)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cu7t3"]
+atlas = ExtResource("1_cubwq")
+region = Rect2(225, 0, 59, 41)
+margin = Rect2(14, 23, 27, 44)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cq518")
+}],
+"loop": 0,
+"name": &"ball",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_66tvc")
+}],
+"loop": 0,
+"name": &"burst",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0kd7l")
+}],
+"loop": 0,
+"name": &"crescent",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bbtg6")
+}],
+"loop": 0,
+"name": &"droplet",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_snaqc")
+}],
+"loop": 0,
+"name": &"pillar",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7bfm5")
+}],
+"loop": 0,
+"name": &"puddle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rlqwq")
+}],
+"loop": 0,
+"name": &"puddle_small",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7ubqp")
+}],
+"loop": 0,
+"name": &"splash",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cu7t3")
+}],
+"loop": 0,
+"name": &"splash_tall",
+"speed": 1.0
+}]
+metadata/anchor = Vector2(43, 43)
+metadata/cell = Vector2(86, 85)
+metadata/source_sheet = "art_source/original/02_forest_slime.png"

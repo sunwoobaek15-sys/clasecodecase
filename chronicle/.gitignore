@@ -1,0 +1,8 @@
+# Godot 4 cache (re-created on import)
+.godot/
+# Export output and Android build template
+/build/
+/android/
+export_credentials.cfg
+# Python caches from the asset tools
+tools/__pycache__/

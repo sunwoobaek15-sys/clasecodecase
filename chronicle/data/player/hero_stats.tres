@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="PlayerStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player_stats.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+max_hp = 120
+max_mp = 60.0
+mp_regen = 3.0
+mp_on_hit = 2.0
+attack = 10
+crit_chance = 0.1
+crit_multiplier = 1.5
+run_speed = 125.0
+walk_speed = 62.0
+jump_velocity = 365.0
+dodge_speed = 310.0
+dodge_time = 0.24
+dodge_iframes = 0.28
+dodge_cooldown = 0.42
+hurt_stun = 0.3
+hurt_iframes = 1.0
+ult_max = 100.0
+ult_per_damage = 0.28
+ult_per_hit_taken = 6.0

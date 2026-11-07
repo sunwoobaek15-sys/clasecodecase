@@ -1,0 +1,169 @@
+{
+ "name": "slime_art",
+ "source_sheet": "art_source/original/02_forest_slime.png",
+ "kind": "art",
+ "scale": 0.31,
+ "atlas": "res://assets/enemies/forest_slime/art/slime_art_atlas.png",
+ "cell": [
+  84,
+  73
+ ],
+ "anchor": [
+  42,
+  72
+ ],
+ "frames": {
+  "elite": {
+   "region": [
+    86,
+    0,
+    58,
+    47
+   ],
+   "offset": [
+    13,
+    25
+   ],
+   "source_box": [
+    312,
+    666,
+    508,
+    829
+   ]
+  },
+  "boss_slime": {
+   "region": [
+    0,
+    0,
+    84,
+    73
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    509,
+    584,
+    789,
+    832
+   ]
+  },
+  "icon_paw": {
+   "region": [
+    181,
+    0,
+    25,
+    29
+   ],
+   "offset": [
+    30,
+    43
+   ],
+   "source_box": [
+    1153,
+    883,
+    1237,
+    981
+   ]
+  },
+  "icon_skull": {
+   "region": [
+    208,
+    0,
+    25,
+    28
+   ],
+   "offset": [
+    30,
+    44
+   ],
+   "source_box": [
+    1243,
+    892,
+    1327,
+    984
+   ]
+  },
+  "icon_heart": {
+   "region": [
+    235,
+    0,
+    23,
+    21
+   ],
+   "offset": [
+    30,
+    51
+   ],
+   "source_box": [
+    1330,
+    904,
+    1407,
+    974
+   ]
+  },
+  "icon_curse": {
+   "region": [
+    146,
+    0,
+    33,
+    35
+   ],
+   "offset": [
+    25,
+    37
+   ],
+   "source_box": [
+    1409,
+    873,
+    1518,
+    988
+   ]
+  }
+ },
+ "animations": {
+  "elite": {
+   "frames": [
+    "elite"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "boss_slime": {
+   "frames": [
+    "boss_slime"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "icon_paw": {
+   "frames": [
+    "icon_paw"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "icon_skull": {
+   "frames": [
+    "icon_skull"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "icon_heart": {
+   "frames": [
+    "icon_heart"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "icon_curse": {
+   "frames": [
+    "icon_curse"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

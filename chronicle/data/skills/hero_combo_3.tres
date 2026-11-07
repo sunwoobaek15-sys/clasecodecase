@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"combo3"
+display_name = "청월 연격 III"
+animation = &"attack3"
+duration = 0.46
+active_start = 0.12
+active_end = 0.24
+chain_time = 0.4
+cancel_time = 0.26
+damage_multiplier = 1.9
+knockback = Vector2(240, -120)
+hit_stop = 0.08
+stagger = 22.0
+shake = 2.5
+hitbox = Rect2(0, -64, 76, 66)
+step_speed = 160.0
+step_time = 0.12

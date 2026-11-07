@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"heavy"
+display_name = "청월 대참"
+animation = &"heavy"
+duration = 0.55
+active_start = 0.06
+active_end = 0.2
+chain_time = 0.5
+cancel_time = 0.32
+damage_multiplier = 3.4
+knockback = Vector2(320, -160)
+hit_stop = 0.12
+stagger = 45.0
+shake = 4.0
+hitbox = Rect2(-10, -72, 96, 76)
+step_speed = 120.0
+step_time = 0.1
