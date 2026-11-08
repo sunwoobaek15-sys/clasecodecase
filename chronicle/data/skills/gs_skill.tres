@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/hero/spike_burst.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"gs_skill"
+display_name = "대지 가르기"
+animation = &"skill"
+duration = 0.6
+active_start = 0.18
+active_end = 0.2
+chain_time = 0.55
+cancel_time = 0.4
+damage_multiplier = 0.6
+knockback = Vector2(180, -150)
+hit_stop = 0.05
+stagger = 30.0
+shake = 2.0
+hitbox = Rect2(6, -30, 30, 30)
+step_speed = 0.0
+step_time = 0.0
+mp_cost = 18.0
+cooldown = 4.0
+projectile_multiplier = 1.8
+skill_kind = &"shockwave"
+skill_count = 6
+fx_tex = ExtResource("2_fx_tex")
+fx_tint = Color(1.0, 0.62, 0.35, 1)

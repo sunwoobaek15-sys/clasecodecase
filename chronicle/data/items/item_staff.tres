@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/staff.png" id="2_icon"]
+[ext_resource type="Resource" path="res://data/items/weapon_staff.tres" id="3_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_staff"
+display_name = "성운 지팡이"
+description = "별빛 마력탄을 쏘는 지팡이. 멀리서 싸우며, 스킬 '별빛 폭발'은 앞쪽에 큰 폭발을 일으킨다."
+type = 1
+icon = ExtResource("2_icon")
+max_stack = 1
+price = 600
+unique = true
+bonuses = {"attack": 5, "max_mp": 30, "skill_damage_pct": 0.25}
+weapon = ExtResource("3_weapon")
+recipe = {"gold": 600, "item_sky_feather": 12, "item_ether": 3}

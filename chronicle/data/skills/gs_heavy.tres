@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/arc_heavy.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"gs_heavy"
+display_name = "천붕참"
+animation = &"heavy"
+duration = 0.75
+active_start = 0.1
+active_end = 0.3
+chain_time = 0.7
+cancel_time = 0.45
+damage_multiplier = 4.6
+knockback = Vector2(380, -200)
+hit_stop = 0.14
+stagger = 60.0
+shake = 5.0
+hitbox = Rect2(-24, -80, 120, 84)
+step_speed = 100.0
+step_time = 0.1
+anim_speed = 0.7
+fx_tex = ExtResource("2_fx_tex")
+fx_scale = 1.6
+fx_offset = Vector2(40, -38)

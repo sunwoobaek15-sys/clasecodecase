@@ -54,10 +54,6 @@ const BASE_ENTRIES := [
 	{"id": &"sky_dragon", "cat": &"boss", "name": "폭풍의 수호룡 템페스타", "region": "하늘의 폐허",
 	 "tex": "res://assets/bosses/sky_dragon/art/full_art.png",
 	 "desc": "하늘의 신전을 지키는 폭풍의 용. 폭풍 구슬, 급강하, 낙뢰를 다루며 체력이 절반 이하가 되면 강풍까지 부른다. (전용 디자인이 나오기 전까지 펫 시트의 용 디자인을 사용)"},
-	{"id": &"weapon_greatsword", "cat": &"weapon", "name": "대검", "future": true, "desc": "준비 중인 무기 (Phase 4)"},
-	{"id": &"weapon_dual", "cat": &"weapon", "name": "쌍검", "future": true, "desc": "준비 중인 무기 (Phase 4)"},
-	{"id": &"weapon_staff", "cat": &"weapon", "name": "지팡이", "future": true, "desc": "준비 중인 무기 (Phase 4)"},
-	{"id": &"weapon_spear", "cat": &"weapon", "name": "창", "future": true, "desc": "준비 중인 무기 (Phase 4)"},
 	{"id": &"relic_placeholder", "cat": &"relic", "name": "유물", "future": true,
 	 "desc": "유물 시스템은 Phase 4에서 추가됩니다."},
 ]

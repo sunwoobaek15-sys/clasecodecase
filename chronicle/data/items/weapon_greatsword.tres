@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/weapon_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/skills/gs_combo1.tres" id="2_combo_1"]
+[ext_resource type="Resource" path="res://data/skills/gs_combo2.tres" id="3_combo_2"]
+[ext_resource type="Resource" path="res://data/skills/gs_air.tres" id="4_air_attack"]
+[ext_resource type="Resource" path="res://data/skills/gs_heavy.tres" id="5_heavy_attack"]
+[ext_resource type="Resource" path="res://data/skills/gs_skill.tres" id="6_skill"]
+[ext_resource type="Resource" path="res://data/skills/hero_ultimate.tres" id="7_ultimate"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"greatsword"
+display_name = "파천대검"
+description = "느리지만 한 방이 무거운 대검. 2연격, 넓은 범위, 강한 경직."
+combo_1 = ExtResource("2_combo_1")
+combo_2 = ExtResource("3_combo_2")
+air_attack = ExtResource("4_air_attack")
+heavy_attack = ExtResource("5_heavy_attack")
+skill = ExtResource("6_skill")
+ultimate = ExtResource("7_ultimate")

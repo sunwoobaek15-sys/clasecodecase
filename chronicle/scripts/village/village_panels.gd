@@ -80,7 +80,7 @@ class ShopPanel extends ModalPanel:
 ## 대장간 — enhance owned equipment.
 class SmithPanel extends ModalPanel:
 	func _init() -> void:
-		super("브론의 대장간", Vector2(580, 300))
+		super("브론의 대장간 — 강화 · 제작", Vector2(580, 300))
 
 	func refresh() -> void:
 		clear_content()
@@ -107,6 +107,32 @@ class SmithPanel extends ModalPanel:
 			var equipped := Profile.equipment.values().has(id)
 			add_row(item.icon, "%s%s" % [Profile.item_label(id), "  (장착 중)" if equipped else ""], sub, btn,
 					_enhance.bind(id), Profile.can_enhance(id))
+		_add_craft_section()
+
+	func _add_craft_section() -> void:
+		content.add_child(UiKit.label("무기 제작", 11, UiKit.GOLD, true))
+		var any := false
+		for id in ItemDB.all():
+			var item := ItemDB.get_item(id)
+			if item.recipe.is_empty():
+				continue
+			any = true
+			var owned := Profile.owns(item.id)
+			var sub := "%s\n재료: %s" % [item.description, Profile.recipe_text(item)]
+			var miss := Profile.craft_missing(item.id)
+			if not owned and miss != "":
+				sub += "  (부족: %s)" % miss
+			add_row(item.icon, item.display_name + ("  (보유)" if owned else ""), sub, "보유" if owned else "제작",
+					_craft.bind(item.id), Profile.can_craft(item.id))
+		if not any:
+			content.add_child(UiKit.label("제작할 수 있는 무기가 없어요.", 11, UiKit.DIM))
+
+	func _craft(id: StringName) -> void:
+		if Profile.craft(id):
+			Events.toast.emit("제작 완료! %s (가방에서 장착하세요)" % ItemDB.get_item(id).display_name)
+			FX.shake(2.5, 0.2)
+			SaveSystem.save_game()
+		refresh()
 
 	func _enhance(id: StringName) -> void:
 		if Profile.enhance_item(id):

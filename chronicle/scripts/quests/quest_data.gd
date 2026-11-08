@@ -5,7 +5,8 @@ extends Resource
 ## objectives: [{"type": "kill", "target": "any", "count": 10, "text": "..."}]
 ##   event objectives (counted when they happen):
 ##     kill (target = enemy id, "slime" or "any"), boss (enemy id),
-##     clear_stage (stage id), talk (npc id), enhance, harvest, chest (stage id)
+##     clear_stage (stage id), talk (npc id), enhance, harvest, chest (stage id),
+##     craft (item id or "any")
 ##   state objectives (read from the current game state):
 ##     level, restore (facility id), restore_count, pet_count, codex_count, chest_count,
 ##     collect (item id; taken from the bag when the quest is handed in)

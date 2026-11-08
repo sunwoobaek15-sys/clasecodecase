@@ -56,6 +56,10 @@ var _ghost_timer: float = 0.0
 var _combo_timer: float = 0.0
 var _ult_ticks: int = 0
 var _skill_fired: bool = false
+var _hits_done: int = 0
+var _next_hit_t: float = 0.0
+var _ranged_fired: bool = false
+var _fx_done: bool = false
 var _landing_lock: float = 0.0
 var _fall_speed: float = 0.0
 var _last_safe_pos: Vector2 = Vector2.ZERO
@@ -376,7 +380,7 @@ func _emit_mp() -> void:
 
 func _make_hit(a: AttackData, mult: float) -> HitData:
 	var h := HitData.new()
-	var crit := randf() < stats.crit_chance
+	var crit := randf() < stats.crit_chance + a.crit_bonus
 	var dmg := float(stats.attack) * mult * Profile.damage_multiplier(a.id) * randf_range(0.92, 1.08)
 	if crit:
 		dmg *= stats.crit_multiplier
@@ -478,9 +482,13 @@ func _start_attack(a: AttackData, mult: float) -> void:
 	_attack = a
 	_attack_mult = mult
 	_hit_active = false
+	_hits_done = 0
+	_ranged_fired = false
+	_fx_done = false
 	attack_hitbox.deactivate()
 	attack_hitbox.set_rect(a.hitbox)
 	play_anim(a.animation, true)
+	sprite.speed_scale = a.anim_speed
 
 
 func _enter_attack() -> void:
@@ -497,23 +505,41 @@ func _enter_attack() -> void:
 func _exit_attack() -> void:
 	_hit_active = false
 	attack_hitbox.deactivate()
+	sprite.speed_scale = 1.0
 
 
 ## Shared timing for attack, heavy and skill states. Returns true when done.
 func _run_attack_timing(delta: float) -> bool:
 	var a := _attack
 	var t := fsm.time_in_state
-	if is_on_floor():
-		if t < a.step_time and not _enemy_in_front(26.0):
+	var dashing := a.skill_kind == &"dash" and fsm.current == &"skill"
+	if is_on_floor() or dashing:
+		if t < a.step_time and (dashing or not _enemy_in_front(26.0)):
 			velocity.x = facing * a.step_speed
+			if dashing:
+				velocity.y = 0.0
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, stats.ground_friction * delta)
 	else:
 		_move_horizontal(delta, stats.air_accel * 0.5, 0.7)
 	if t >= a.active_start and t < a.active_end:
+		if not _fx_done:
+			_fx_done = true
+			_attack_fx(a)
+		if a.projectile_tex != null and fsm.current != &"skill" and not _ranged_fired:
+			_ranged_fired = true
+			_fire_projectiles(a, a.projectile_multiplier if a.projectile_multiplier > 0.0 else _attack_mult)
 		if not _hit_active:
 			_hit_active = true
+			_hits_done = 1
+			_next_hit_t = t + a.hit_interval
 			attack_hitbox.activate(_make_hit(a, _attack_mult))
+		elif a.hits > 1 and _hits_done < a.hits and t >= _next_hit_t:
+			# multi-hit attack: a fresh hit (the hitbox forgets who it hit)
+			attack_hitbox.deactivate()
+			attack_hitbox.activate(_make_hit(a, _attack_mult))
+			_hits_done += 1
+			_next_hit_t += a.hit_interval
 	elif _hit_active:
 		_hit_active = false
 		attack_hitbox.deactivate()
@@ -673,20 +699,129 @@ func _enter_skill() -> void:
 		set_facing(move_axis)
 	velocity.x = 0.0
 	_start_attack(a, a.damage_multiplier)
+	if a.skill_kind == &"dash":
+		invuln_time = maxf(invuln_time, a.step_time + 0.1)
 	FX.burst(VORTEX_TEX, global_position + Vector2(0, -26), 0.3, 0.2, 0.7, true, false, 5)
 
 
 func _st_skill(delta: float) -> StringName:
 	if not _skill_fired and fsm.time_in_state >= _attack.active_start:
 		_skill_fired = true
-		_spawn_crescent()
+		match _attack.skill_kind:
+			&"shockwave":
+				_spawn_shockwave(_attack)
+			&"nova":
+				_spawn_nova(_attack)
+			&"dash":
+				pass  # the rush itself is the attack (step + multi-hit hitbox)
+			_:
+				_spawn_crescent()
 	if _run_attack_timing(delta):
 		return &"ground" if is_on_floor() else &"air"
 	return &""
 
 
+## Slash / thrust / magic effect of the weapon when an attack becomes active.
+func _attack_fx(a: AttackData) -> void:
+	if a.fx_tex == null:
+		return
+	var at := global_position + Vector2(a.fx_offset.x * facing, a.fx_offset.y)
+	var s := FX.burst(a.fx_tex, at, 0.24, a.fx_scale * 0.8, a.fx_scale * 1.1, true, facing < 0, 40)
+	if s:
+		s.self_modulate = a.fx_tint
+
+
+## Ranged attacks (staff bolts) and multi-projectile skills.
+func _fire_projectiles(a: AttackData, mult: float) -> void:
+	var tex: Texture2D = a.projectile_tex if a.projectile_tex != null else CRESCENT_TEX
+	var n := maxi(1, a.projectile_count)
+	for i in n:
+		var ang := (float(i) - float(n - 1) / 2.0) * a.projectile_spread
+		var p := Projectile.new()
+		p.texture = tex
+		p.lifetime = a.projectile_lifetime if a.projectile_lifetime > 0.0 else 0.7
+		p.pierce = a.projectile_pierce
+		p.collide_with_world = not a.projectile_pierce
+		p.additive = true
+		p.face_velocity = true
+		p.hit_rect = Rect2(-10, -10, 20, 20)
+		p.z_index = 40
+		p.modulate = a.fx_tint
+		var h := _make_hit(a, mult)
+		var from := global_position + Vector2(facing * 22, -24)
+		var dir := (_aim_assist(from, 280.0) if fsm.current != &"skill" else Vector2(facing, 0)).rotated(ang * facing)
+		p.setup(from, dir * maxf(a.projectile_speed, 200.0), h, Hitbox.LAYER_ENEMY_HURTBOX, self)
+		p.hit_landed.connect(_on_attack_landed)
+		FX._parent().add_child(p)
+
+
+## Direction from `from` to the nearest enemy in front (within `reach` px and
+## a 65 degree cone); straight ahead when there is none. Lets staff bolts hit
+## small slimes on the ground and flying monsters.
+func _aim_assist(from: Vector2, reach: float) -> Vector2:
+	var best := Vector2(facing, 0)
+	var best_d := reach
+	for e in get_tree().get_nodes_in_group(&"enemies"):
+		var en := e as Enemy
+		if en == null or en.is_dead or not en.is_inside_tree() or not en.visible:
+			continue
+		var aim_at := en.global_position + Vector2(0, -minf(en.body_height * 0.5, 30.0))
+		if en.motion_mode == CharacterBody2D.MOTION_MODE_FLOATING:
+			aim_at = en.global_position  # flyers are centred on their origin
+		var d := aim_at - from
+		if d.x * facing <= 0.0 or d.length() > best_d:
+			continue
+		var dir := d.normalized()
+		if absf(dir.angle_to(Vector2(facing, 0))) > deg_to_rad(65.0):
+			continue
+		best_d = d.length()
+		best = dir
+	return best
+
+
+## Greatsword skill: blasts run forward along the ground one after another.
+func _spawn_shockwave(a: AttackData) -> void:
+	var dir := facing
+	var origin := global_position
+	var tex: Texture2D = a.fx_tex if a.fx_tex != null else SPIKE_TEX
+	for i in maxi(1, a.skill_count):
+		var at := origin + Vector2(dir * (34.0 + i * 34.0), 0.0)
+		var h := _make_hit(a, a.projectile_multiplier if a.projectile_multiplier > 0.0 else a.damage_multiplier)
+		get_tree().create_timer(0.07 * i, false).timeout.connect(func() -> void:
+			if not is_inside_tree():
+				return
+			var hb := Hitbox.blast(FX._parent(), at, Rect2(-18, -40, 36, 40), h, Hitbox.LAYER_ENEMY_HURTBOX, 0.1, self)
+			hb.landed.connect(_on_attack_landed)
+			var s := FX.burst(tex, at + Vector2(0, -20), 0.3, 0.6, 1.0, true, dir < 0, 40)
+			if s:
+				s.self_modulate = a.fx_tint
+			FX.shake(1.5, 0.08))
+
+
+## Staff skill: a magic circle appears in front, then explodes.
+func _spawn_nova(a: AttackData) -> void:
+	var at := global_position + Vector2(facing * a.skill_range, -8.0)
+	var circle := FX.burst(CIRCLE_TEX, at + Vector2(0, 4), 0.35, 0.4, 1.2, true, false, 5)
+	if circle:
+		circle.self_modulate = a.fx_tint
+	var h := _make_hit(a, a.projectile_multiplier if a.projectile_multiplier > 0.0 else a.damage_multiplier)
+	var tex: Texture2D = a.fx_tex if a.fx_tex != null else SPIKE_TEX
+	get_tree().create_timer(0.3, false).timeout.connect(func() -> void:
+		if not is_inside_tree():
+			return
+		var hb := Hitbox.blast(FX._parent(), at, Rect2(-62, -76, 124, 84), h, Hitbox.LAYER_ENEMY_HURTBOX, 0.12, self)
+		hb.landed.connect(_on_attack_landed)
+		var s := FX.burst(tex, at + Vector2(0, -30), 0.45, 0.6, 1.4, true, false, 40)
+		if s:
+			s.self_modulate = a.fx_tint
+		FX.shake(3.0, 0.2))
+
+
 func _spawn_crescent() -> void:
 	var a := weapon.skill
+	if a.projectile_tex != null or a.projectile_count > 1:
+		_fire_projectiles(a, a.projectile_multiplier if a.projectile_multiplier > 0.0 else a.damage_multiplier)
+		return
 	var p := Projectile.new()
 	p.texture = CRESCENT_TEX
 	p.lifetime = a.projectile_lifetime if a.projectile_lifetime > 0.0 else 0.8

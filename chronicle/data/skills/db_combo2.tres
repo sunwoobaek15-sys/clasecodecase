@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/slash_twin.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"db_combo2"
+display_name = "쌍월 연참 II"
+animation = &"attack2"
+duration = 0.24
+active_start = 0.04
+active_end = 0.16
+chain_time = 0.08
+cancel_time = 0.1
+damage_multiplier = 0.6
+knockback = Vector2(80, -30)
+hit_stop = 0.02
+stagger = 6.0
+shake = 0.0
+hitbox = Rect2(-4, -54, 54, 50)
+step_speed = 100.0
+step_time = 0.06
+anim_speed = 1.5
+hits = 2
+hit_interval = 0.06
+crit_bonus = 0.15
+fx_tex = ExtResource("2_fx_tex")
+fx_offset = Vector2(26, -34)

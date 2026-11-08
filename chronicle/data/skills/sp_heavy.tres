@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/arc_heavy.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"sp_heavy"
+display_name = "용미 휩쓸기"
+animation = &"heavy"
+duration = 0.62
+active_start = 0.1
+active_end = 0.3
+chain_time = 0.58
+cancel_time = 0.38
+damage_multiplier = 3.6
+knockback = Vector2(300, -160)
+hit_stop = 0.1
+stagger = 45.0
+shake = 3.5
+hitbox = Rect2(-60, -56, 180, 52)
+step_speed = 60.0
+step_time = 0.1
+fx_tex = ExtResource("2_fx_tex")
+fx_scale = 1.4
+fx_tint = Color(1.0, 0.9, 0.5, 1)
+fx_offset = Vector2(30, -30)

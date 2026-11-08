@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/dual_blades.png" id="2_icon"]
+[ext_resource type="Resource" path="res://data/items/weapon_dual_blades.tres" id="3_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_dual_blades"
+display_name = "쌍월"
+description = "가벼운 쌍검. 한 번에 여러 번 베고 치명타가 잘 터진다. 스킬 '질풍난무'는 무적 돌진 연타."
+type = 1
+icon = ExtResource("2_icon")
+max_stack = 1
+price = 500
+unique = true
+bonuses = {"attack": 6, "crit_chance": 0.08, "dodge_cooldown": 0.05}
+weapon = ExtResource("3_weapon")
+recipe = {"gold": 500, "item_clock_cog": 8, "item_sky_feather": 6}

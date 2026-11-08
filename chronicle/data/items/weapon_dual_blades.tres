@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/weapon_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/skills/db_combo1.tres" id="2_combo_1"]
+[ext_resource type="Resource" path="res://data/skills/db_combo2.tres" id="3_combo_2"]
+[ext_resource type="Resource" path="res://data/skills/db_combo3.tres" id="4_combo_3"]
+[ext_resource type="Resource" path="res://data/skills/db_air.tres" id="5_air_attack"]
+[ext_resource type="Resource" path="res://data/skills/db_heavy.tres" id="6_heavy_attack"]
+[ext_resource type="Resource" path="res://data/skills/db_skill.tres" id="7_skill"]
+[ext_resource type="Resource" path="res://data/skills/hero_ultimate.tres" id="8_ultimate"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"dual_blades"
+display_name = "쌍월"
+description = "가벼운 쌍검. 빠른 연타와 높은 치명타."
+combo_1 = ExtResource("2_combo_1")
+combo_2 = ExtResource("3_combo_2")
+combo_3 = ExtResource("4_combo_3")
+air_attack = ExtResource("5_air_attack")
+heavy_attack = ExtResource("6_heavy_attack")
+skill = ExtResource("7_skill")
+ultimate = ExtResource("8_ultimate")

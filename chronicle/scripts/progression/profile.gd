@@ -207,13 +207,27 @@ func defense() -> float:
 
 
 func damage_multiplier(attack_id: StringName) -> float:
-	if attack_id in BASIC_ATTACKS:
-		return 1.0 + mod(&"basic_damage_pct")
-	if attack_id == &"skill" or attack_id == &"crescent":
-		return 1.0 + mod(&"skill_damage_pct")
-	if attack_id == &"ultimate":
-		return 1.0 + mod(&"ult_damage_pct")
+	match attack_category(attack_id):
+		&"basic":
+			return 1.0 + mod(&"basic_damage_pct")
+		&"skill":
+			return 1.0 + mod(&"skill_damage_pct")
+		&"ultimate":
+			return 1.0 + mod(&"ult_damage_pct")
 	return 1.0
+
+
+## "basic", "skill", "ultimate" or "" for an attack id of any weapon
+## (sword: combo1/air_slash/heavy/skill, others: gs_combo1, sp_skill, ...).
+static func attack_category(attack_id: StringName) -> StringName:
+	var id := String(attack_id)
+	if attack_id in BASIC_ATTACKS or id.contains("_combo") or id.ends_with("_air") or id.ends_with("_heavy"):
+		return &"basic"
+	if id == "skill" or id == "crescent" or id.ends_with("_skill"):
+		return &"skill"
+	if id == "ultimate":
+		return &"ultimate"
+	return &""
 
 
 func skill_cooldown_reduction() -> float:
@@ -322,6 +336,56 @@ func item_label(id: StringName) -> String:
 		return ""
 	var lv := enhance_level(id)
 	return item.display_name if lv <= 0 else "%s +%d" % [item.display_name, lv]
+
+
+# --------------------------------------------------------------- crafting ---
+## Text of what is missing for a blacksmith recipe, or "" when craftable.
+func craft_missing(id: StringName) -> String:
+	var item := ItemDB.get_item(id)
+	if item == null or item.recipe.is_empty():
+		return "제작할 수 없는 물건"
+	var miss: PackedStringArray = []
+	for key in item.recipe:
+		var need := int(item.recipe[key])
+		if str(key) == "gold":
+			if gold < need:
+				miss.append("골드 %d" % (need - gold))
+		else:
+			var have := inventory.count(StringName(str(key)))
+			if have < need:
+				var mat := ItemDB.get_item(StringName(str(key)))
+				miss.append("%s %d" % [mat.display_name if mat else str(key), need - have])
+	return ", ".join(miss)
+
+
+func can_craft(id: StringName) -> bool:
+	return not owns(id) and craft_missing(id) == "" and inventory.space_for(id) > 0
+
+
+func craft(id: StringName) -> bool:
+	if not can_craft(id):
+		return false
+	var item := ItemDB.get_item(id)
+	for key in item.recipe:
+		if str(key) == "gold":
+			gold -= int(item.recipe[key])
+		else:
+			inventory.remove(StringName(str(key)), int(item.recipe[key]))
+	inventory.add(id, 1)
+	Events.item_crafted.emit(id)
+	changed.emit()
+	return true
+
+
+static func recipe_text(item: ItemData) -> String:
+	var parts: PackedStringArray = []
+	for key in item.recipe:
+		if str(key) == "gold":
+			parts.append("%dG" % int(item.recipe[key]))
+		else:
+			var mat := ItemDB.get_item(StringName(str(key)))
+			parts.append("%s x%d" % [mat.display_name if mat else str(key), int(item.recipe[key])])
+	return " + ".join(parts)
 
 
 ## Refunds every skill point (priest at the training ground).

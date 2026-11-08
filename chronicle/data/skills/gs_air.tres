@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/arc_heavy.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"gs_air"
+display_name = "내려 가르기"
+animation = &"air_attack"
+duration = 0.42
+active_start = 0.08
+active_end = 0.24
+chain_time = 0.4
+cancel_time = 0.26
+damage_multiplier = 1.6
+knockback = Vector2(140, 80)
+hit_stop = 0.06
+stagger = 18.0
+shake = 1.5
+hitbox = Rect2(-10, -64, 72, 70)
+step_speed = 0.0
+step_time = 0.0
+anim_speed = 0.8
+fx_tex = ExtResource("2_fx_tex")
+fx_scale = 0.9

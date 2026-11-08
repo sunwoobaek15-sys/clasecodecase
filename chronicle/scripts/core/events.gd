@@ -35,6 +35,7 @@ signal pause_requested
 # --- village / quests (Phase 3) ---------------------------------------------
 signal npc_talked(npc_id: StringName)
 signal item_enhanced(item_id: StringName, level: int)
+signal item_crafted(item_id: StringName)
 signal farm_harvested(count: int)
 signal interact_target_changed(target: Node)
 signal chest_opened(chest_id: String, stage_id: String)

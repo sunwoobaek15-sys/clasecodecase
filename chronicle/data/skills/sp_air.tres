@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/thrust.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"sp_air"
+display_name = "낙룡격"
+animation = &"air_attack"
+duration = 0.4
+active_start = 0.06
+active_end = 0.3
+chain_time = 0.38
+cancel_time = 0.24
+damage_multiplier = 1.4
+knockback = Vector2(90, -200)
+hit_stop = 0.05
+stagger = 14.0
+shake = 1.5
+hitbox = Rect2(-14, -20, 40, 46)
+step_speed = 0.0
+step_time = 0.0
+fx_tex = ExtResource("2_fx_tex")
+fx_offset = Vector2(24, -10)

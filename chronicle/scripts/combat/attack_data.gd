@@ -27,7 +27,33 @@ extends Resource
 @export var step_time: float = 0.0
 @export var mp_cost: float = 0.0
 @export var cooldown: float = 0.0
-## Optional projectile (skills): damage multiplier, speed and lifetime.
+## Optional projectile: damage multiplier, speed and lifetime. On normal
+## attacks a projectile_tex makes the attack ranged (staff bolts).
 @export var projectile_multiplier: float = 0.0
 @export var projectile_speed: float = 0.0
 @export var projectile_lifetime: float = 0.0
+@export var projectile_tex: Texture2D
+@export var projectile_count: int = 1
+@export var projectile_spread: float = 0.0
+@export var projectile_pierce: bool = false
+
+# --- Phase 4: weapon identity ------------------------------------------------
+## Playback speed of the hero animation (greatsword slow, dual blades fast).
+@export var anim_speed: float = 1.0
+## Several hits inside the active window (dual blades, spear double thrust).
+@export var hits: int = 1
+@export var hit_interval: float = 0.0
+## Extra critical chance for this attack.
+@export var crit_bonus: float = 0.0
+## Slash / thrust effect shown when the attack becomes active.
+@export var fx_tex: Texture2D
+@export var fx_tint: Color = Color(1, 1, 1, 1)
+@export var fx_scale: float = 1.0
+@export var fx_offset: Vector2 = Vector2(30, -30)
+## Skills only: "projectile" (default), "dash" (rush forward hitting along
+## the way, invulnerable), "shockwave" (blasts running along the ground) or
+## "nova" (delayed explosion in front of the hero).
+@export var skill_kind: StringName = &"projectile"
+## shockwave: number of blasts / nova: distance in front of the hero.
+@export var skill_count: int = 5
+@export var skill_range: float = 90.0

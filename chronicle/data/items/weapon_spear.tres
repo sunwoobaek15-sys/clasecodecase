@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/weapon_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/skills/sp_combo1.tres" id="2_combo_1"]
+[ext_resource type="Resource" path="res://data/skills/sp_combo2.tres" id="3_combo_2"]
+[ext_resource type="Resource" path="res://data/skills/sp_combo3.tres" id="4_combo_3"]
+[ext_resource type="Resource" path="res://data/skills/sp_air.tres" id="5_air_attack"]
+[ext_resource type="Resource" path="res://data/skills/sp_heavy.tres" id="6_heavy_attack"]
+[ext_resource type="Resource" path="res://data/skills/sp_skill.tres" id="7_skill"]
+[ext_resource type="Resource" path="res://data/skills/hero_ultimate.tres" id="8_ultimate"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"spear"
+display_name = "용아창"
+description = "긴 창. 멀리 닿는 찌르기와 관통 돌진."
+combo_1 = ExtResource("2_combo_1")
+combo_2 = ExtResource("3_combo_2")
+combo_3 = ExtResource("4_combo_3")
+air_attack = ExtResource("5_air_attack")
+heavy_attack = ExtResource("6_heavy_attack")
+skill = ExtResource("7_skill")
+ultimate = ExtResource("8_ultimate")

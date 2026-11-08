@@ -21,6 +21,8 @@ enum Type { CONSUMABLE, WEAPON, ARMOR, ACCESSORY, MATERIAL }
 @export var bonuses: Dictionary = {}
 ## Move set for weapons (different weapons fight differently).
 @export var weapon: WeaponData
+## Blacksmith recipe: {"gold": 300, "item_slime_gel": 15}. Empty = not craftable.
+@export var recipe: Dictionary = {}
 
 
 func is_equipment() -> bool:

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/magic_bolt.png" id="2_projectile_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"st_heavy"
+display_name = "성운구"
+animation = &"heavy"
+duration = 0.6
+active_start = 0.14
+active_end = 0.18
+chain_time = 0.55
+cancel_time = 0.36
+damage_multiplier = 0.6
+knockback = Vector2(220, -120)
+hit_stop = 0.06
+stagger = 20.0
+shake = 2.0
+hitbox = Rect2(4, -40, 24, 24)
+step_speed = 0.0
+step_time = 0.0
+projectile_tex = ExtResource("2_projectile_tex")
+projectile_multiplier = 1.6
+projectile_speed = 240.0
+projectile_lifetime = 1.0
+projectile_count = 3
+projectile_spread = 0.18
+projectile_pierce = true

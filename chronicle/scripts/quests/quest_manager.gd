@@ -17,7 +17,7 @@ signal quest_ready(q: QuestData)
 signal quest_finished(q: QuestData)
 
 const DIR := "res://data/quests"
-const EVENT_TYPES := [&"kill", &"boss", &"clear_stage", &"talk", &"enhance", &"harvest", &"chest"]
+const EVENT_TYPES := [&"kill", &"boss", &"clear_stage", &"talk", &"enhance", &"harvest", &"chest", &"craft"]
 
 var quests: Array[QuestData] = []
 var state: Dictionary = {}   ## id -> {"status": String, "progress": Array, "date": String}
@@ -33,6 +33,7 @@ func _ready() -> void:
 	Events.enemy_killed.connect(_on_enemy_killed)
 	Events.npc_talked.connect(func(id: StringName) -> void: notify(&"talk", str(id)))
 	Events.item_enhanced.connect(func(_id: StringName, _lv: int) -> void: notify(&"enhance", ""))
+	Events.item_crafted.connect(func(id: StringName) -> void: notify(&"craft", str(id)))
 	Events.farm_harvested.connect(func(_n: int) -> void: notify(&"harvest", ""))
 	Events.stage_cleared.connect(func(s: Dictionary) -> void: notify(&"clear_stage", str(s.get("stage_id", ""))))
 	Events.chest_opened.connect(func(_id: String, stage: String) -> void: notify(&"chest", stage))

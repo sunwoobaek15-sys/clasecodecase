@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_sub_craft"
+title = "새 무기의 탄생"
+type = 1
+description = "브론이 새 무기를 만들어 보고 싶어 한다. 대장간에서 무기를 하나 제작하자. (대검·창·쌍검·지팡이)"
+giver = &"smith_bron"
+objectives = [{"type": "craft", "target": "any", "count": 1, "text": "무기 제작"}]
+requires = Array[StringName]([])
+requires_facility = &"smithy"
+reward_exp = 80
+reward_gold = 150
+reward_items = {"item_slime_gel": 5}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 19

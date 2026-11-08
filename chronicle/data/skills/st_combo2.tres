@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/magic_bolt.png" id="2_projectile_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"st_combo2"
+display_name = "별빛 탄 II"
+animation = &"attack2"
+duration = 0.36
+active_start = 0.1
+active_end = 0.14
+chain_time = 0.12
+cancel_time = 0.16
+damage_multiplier = 0.5
+knockback = Vector2(90, -30)
+hit_stop = 0.03
+stagger = 6.0
+shake = 0.0
+hitbox = Rect2(4, -40, 24, 24)
+step_speed = 0.0
+step_time = 0.0
+projectile_tex = ExtResource("2_projectile_tex")
+projectile_multiplier = 0.9
+projectile_speed = 300.0
+projectile_lifetime = 0.8
+projectile_count = 2
+projectile_spread = 0.12

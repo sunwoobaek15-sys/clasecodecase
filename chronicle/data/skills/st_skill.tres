@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/chronos/star_burst.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"st_skill"
+display_name = "별빛 폭발"
+animation = &"skill"
+duration = 0.5
+active_start = 0.12
+active_end = 0.14
+chain_time = 0.45
+cancel_time = 0.32
+damage_multiplier = 0.4
+knockback = Vector2(160, -200)
+hit_stop = 0.06
+stagger = 30.0
+shake = 3.0
+hitbox = Rect2(4, -40, 24, 24)
+step_speed = 0.0
+step_time = 0.0
+mp_cost = 20.0
+cooldown = 4.5
+projectile_multiplier = 3.4
+skill_kind = &"nova"
+skill_range = 96.0
+fx_tex = ExtResource("2_fx_tex")
+fx_tint = Color(0.85, 0.6, 1.25, 1)

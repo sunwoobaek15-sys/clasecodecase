@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/greatsword.png" id="2_icon"]
+[ext_resource type="Resource" path="res://data/items/weapon_greatsword.tres" id="3_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_greatsword"
+display_name = "파천대검"
+description = "느리지만 묵직한 대검. 2연격과 넓은 베기, 스킬 '대지 가르기'는 땅을 따라 충격파를 보낸다."
+type = 1
+icon = ExtResource("2_icon")
+max_stack = 1
+price = 300
+unique = true
+bonuses = {"attack": 10}
+weapon = ExtResource("3_weapon")
+recipe = {"gold": 300, "item_slime_gel": 15}

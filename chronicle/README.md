@@ -5,8 +5,9 @@ Android용 가로 화면 픽셀 아트 액션 RPG (Godot 4 · GDScript).
 
 **현재 상태: Phase 3 완료 (3-1 · 3-2 · 3-3)** — 지역 3개(잊혀진 숲 · 무너진 시계 도시 · 하늘의 폐허)와 보스 3종
 (베르단 · 크로노스 · 템페스타), 허브 마을 '루멘'(NPC 8명·퀘스트 27개·재건 6곳·펫 5종·도감), 지역마다 숨겨진 보물까지
-1부 이야기를 처음부터 끝까지 플레이할 수 있습니다. 다음은 Phase 4(무기·유물·전직·사운드·그래픽).
-상세: [3-3](docs/PHASE3_3_REPORT.md) · [3-2](docs/PHASE3_2_REPORT.md) · [3-1](docs/PHASE3_REPORT.md) · [Phase 2](docs/PHASE2_REPORT.md) · [Phase 1](docs/PHASE1_REPORT.md)
+1부 이야기를 처음부터 끝까지 플레이할 수 있습니다. **Phase 4-1(무기 4종: 대검·쌍검·지팡이·창, 대장간 제작) 완료.**
+다음은 4-2(유물·전직), 4-3(사운드), 4-4(그래픽).
+상세: [4-1](docs/PHASE4_REPORT.md) · [3-3](docs/PHASE3_3_REPORT.md) · [3-2](docs/PHASE3_2_REPORT.md) · [3-1](docs/PHASE3_REPORT.md) · [Phase 2](docs/PHASE2_REPORT.md) · [Phase 1](docs/PHASE1_REPORT.md)
 
 <p>
 <img src="docs/screenshots/01_title.png" width="400" alt="타이틀">
@@ -52,6 +53,13 @@ PC에서는 마우스 클릭이 터치로 처리되어 화면의 터치 버튼�
 브랜치를 고르고 `/ (root)`로 배포하면 폰 브라우저에서 `https://<계정>.github.io/<저장소>/chronicle/web/` 주소로 바로 플레이할 수 있습니다.
 (첫 로딩에 수십 초, 가로 화면 권장.) 다시 만들기: `godot --headless --path . --export-release Web web/index.html`
 (웹 내보내기 템플릿 필요). 터치·화면 배치만 확인하는 용도이며 Android 실기기 성능 검증은 아닙니다.
+
+## Phase 4-1 구현 내용 (무기 4종)
+
+- **파천대검**(느린 2연격·큰 범위, 스킬 대지 가르기 충격파), **쌍월**(빠른 다단히트·치명, 스킬 무적 돌진 연타),
+  **성운 지팡이**(원거리 마력탄·조준 보조, 스킬 별빛 폭발), **용아창**(긴 찌르기, 스킬 관통 돌진).
+- 대장간 **제작**: 지역 재료(슬라임 젤·태엽 부품·하늘 깃털)와 골드로 만듭니다. 서브 퀘스트 '새 무기의 탄생'.
+- 참고 이미지에 무기 동작이 없어 주인공 동작 프레임은 공용이고, 판정·속도·콤보·이펙트·스킬로 차이를 냅니다.
 
 ## Phase 3-3 구현 내용 (지역 3 · 템페스타 · 숨겨진 장소)
 
@@ -134,6 +142,7 @@ python3 tools/build_environment.py   # 3. 타일·배경·소품·UI 아이콘 (
 python3 tools/build_village.py       #    마을 건물·땅·배경 (절차 생성)
 python3 tools/build_clock_city.py    #    시계 도시 타일·배경·함정·톱니 파수꾼, 태엽 슬라임 색 변환
 python3 tools/build_sky_ruins.py     #    하늘의 폐허 아트, 템페스타·구름 슬라임 색 변환 (build_sprites 다음에)
+python3 tools/build_weapons.py       #    무기 4종 아이콘·공격 이펙트
 python3 tools/build_npc_variants.py  #    경비병(시트에 없음) = 주인공형 NPC 색 변형
 godot --headless --path . --import
 godot --headless --path . -s res://tools/build_sprite_frames.gd   # 4. JSON → SpriteFrames(.tres)
@@ -142,7 +151,7 @@ godot --headless --path . -s res://tools/build_sprite_frames.gd   # 4. JSON → 
 ## 테스트
 
 ```bash
-# 자동 테스트 (94개)
+# 자동 테스트 (104개)
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn
 
 # 자동 플레이 봇: 타이틀 → 1-1 클리어 → 마을(대화·복구·상점·메뉴·월드맵)까지 진행 (성공 시 종료 코드 0)
@@ -152,6 +161,8 @@ godot --headless --path . --fixed-fps 60 -- --bot
 godot --headless --path . --fixed-fps 60 -- --bot --stage=clock_1
 # 하늘의 폐허만: Lv11 영웅으로 3-1을 바로 시작해 템페스타를 쓰러뜨림
 godot --headless --path . --fixed-fps 60 -- --bot --stage=sky_1
+# 다른 무기로: 예) 창으로 1-1 → 마을
+godot --headless --path . --fixed-fps 60 -- --bot --weapon=item_spear
 
 # 화면 캡처 포함 (렌더러 필요, 리눅스 서버에서는 xvfb-run)
 godot --path . --fixed-fps 60 -- --bot --screenshots=/tmp/shots

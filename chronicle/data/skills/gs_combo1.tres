@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/arc_heavy.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"gs_combo1"
+display_name = "파천 베기 I"
+animation = &"attack2"
+duration = 0.5
+active_start = 0.18
+active_end = 0.3
+chain_time = 0.3
+cancel_time = 0.34
+damage_multiplier = 1.9
+knockback = Vector2(200, -90)
+hit_stop = 0.07
+stagger = 24.0
+shake = 2.0
+hitbox = Rect2(-4, -62, 80, 62)
+step_speed = 70.0
+step_time = 0.1
+anim_speed = 0.65
+fx_tex = ExtResource("2_fx_tex")
+fx_offset = Vector2(30, -32)

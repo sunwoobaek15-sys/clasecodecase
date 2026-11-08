@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/slash_twin.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"db_heavy"
+display_name = "회오리 베기"
+animation = &"heavy"
+duration = 0.55
+active_start = 0.08
+active_end = 0.4
+chain_time = 0.5
+cancel_time = 0.36
+damage_multiplier = 0.75
+knockback = Vector2(150, -110)
+hit_stop = 0.03
+stagger = 10.0
+shake = 1.5
+hitbox = Rect2(-40, -64, 80, 66)
+step_speed = 40.0
+step_time = 0.2
+anim_speed = 1.2
+hits = 5
+hit_interval = 0.07
+crit_bonus = 0.15
+fx_tex = ExtResource("2_fx_tex")
+fx_scale = 1.5
+fx_offset = Vector2(0, -34)

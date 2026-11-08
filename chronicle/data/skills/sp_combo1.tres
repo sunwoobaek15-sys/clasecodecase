@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/effects/weapons/thrust.png" id="2_fx_tex"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"sp_combo1"
+display_name = "용아 찌르기"
+animation = &"attack1"
+duration = 0.32
+active_start = 0.08
+active_end = 0.18
+chain_time = 0.12
+cancel_time = 0.16
+damage_multiplier = 1.1
+knockback = Vector2(150, -30)
+hit_stop = 0.04
+stagger = 10.0
+shake = 0.0
+hitbox = Rect2(8, -40, 100, 38)
+step_speed = 60.0
+step_time = 0.08
+anim_speed = 1.1
+fx_tex = ExtResource("2_fx_tex")
+fx_offset = Vector2(56, -32)

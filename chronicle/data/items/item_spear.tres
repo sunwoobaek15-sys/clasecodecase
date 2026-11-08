@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/spear.png" id="2_icon"]
+[ext_resource type="Resource" path="res://data/items/weapon_spear.tres" id="3_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_spear"
+display_name = "용아창"
+description = "멀리 닿는 찌르기의 창. 스킬 '관통 돌진'으로 적을 꿰뚫으며 돌진한다."
+type = 1
+icon = ExtResource("2_icon")
+max_stack = 1
+price = 400
+unique = true
+bonuses = {"attack": 8, "crit_chance": 0.04}
+weapon = ExtResource("3_weapon")
+recipe = {"gold": 400, "item_clock_cog": 12}

@@ -13,6 +13,7 @@ extends Node
 ##           --stage=clock_1   start a mid-game hero (Lv.7, forest gear) directly
 ##                             in stage 2-1 and finish when Chronos is beaten
 ##           --stage=sky_1     same for stage 3-1 (Lv.11, + Chronos' watch)
+##           --weapon=ITEM_ID  play with another weapon (e.g. item_spear)
 ##           --timeout=SECONDS  give up after this much game time (default 900)
 
 const BUTTONS: Array[StringName] = [&"jump", &"attack", &"dodge", &"skill", &"ultimate"]
@@ -183,6 +184,11 @@ func _physics_process(delta: float) -> void:
 			else:
 				_log("title -> 게임 시작")
 				Game.new_game()
+				var wid := StringName(str(Game.cmd_options.get("weapon", "")))
+				if wid != &"" and ItemDB.get_item(wid) != null:
+					Profile.inventory.add(wid, 1)
+					Profile.equip(wid)
+					_log("weapon: %s" % ItemDB.get_item(wid).display_name)
 	elif scene.is_in_group(&"stage"):
 		_play(scene, real)
 	elif scene.name == "VillageScene" and not _tour_started and _scene_t > 1.0:
@@ -692,6 +698,11 @@ func _fight(p: Player, target: Node2D, _delta: float) -> void:
 	else:
 		_axis(0.0)
 	var dy := target.global_position.y - p.global_position.y
+	if dy > 12.0 and not is_boss and p.is_on_floor():
+		# target stands lower (we are on a ledge): step down to it
+		_axis(dir)
+		_release(&"attack")
+		return
 	if dy < -30.0 and p.is_on_floor() and _jump_cooldown <= 0.0:
 		_jump_cooldown = 0.6
 		_tap(&"jump")
