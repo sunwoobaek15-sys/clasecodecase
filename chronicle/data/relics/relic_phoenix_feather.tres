@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/phoenix_feather.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_phoenix_feather"
+display_name = "불사조의 깃털"
+description = "쓰러질 때 한 번 불꽃이 되어 다시 일으켜 준다. (스테이지마다 1번)"
+icon = ExtResource("2_icon")
+rarity = 3
+bonuses = {"revive": 1}
+source = "메인 퀘스트 '폭풍의 수호자' 보상"
+price = 0
+order = 19

@@ -1,6 +1,6 @@
 extends Node
 ## Persistent hero data (autoload "Profile"): level, EXP, gold, inventory,
-## equipment, skill ranks and stage progress.
+## equipment, skill ranks, relics, advanced class (job) and stage progress.
 ##
 ## Equipment bonuses and skill ranks use one set of stat keys and are summed
 ## into a single modifier table; build_stats() turns the base PlayerStats into
@@ -36,9 +36,17 @@ const STAT_KEYS := {
 	&"gold_pct": "골드 획득",
 	&"exp_pct": "경험치 획득",
 	&"magnet": "아이템 끌어오기 범위",
+	&"crit_damage_pct": "치명타 피해",
+	&"lifesteal_pct": "입힌 피해만큼 HP 흡수",
+	&"heal_on_kill": "처치할 때 HP 회복",
+	&"mp_on_kill": "처치할 때 MP 회복",
+	&"potion_heal": "물약 회복량",
+	&"ult_start_pct": "시작할 때 궁극기 게이지",
+	&"revive": "쓰러질 때 부활 (스테이지마다)",
 }
 const PERCENT_KEYS := [&"defense_pct", &"crit_chance", &"basic_damage_pct", &"skill_damage_pct",
-		&"ult_damage_pct", &"ult_gain_pct", &"gold_pct", &"exp_pct"]
+		&"ult_damage_pct", &"ult_gain_pct", &"gold_pct", &"exp_pct", &"crit_damage_pct", &"lifesteal_pct",
+		&"ult_start_pct"]
 const SECONDS_KEYS := [&"skill_cooldown", &"dodge_cooldown", &"dodge_iframes"]
 const BASIC_ATTACKS := [&"combo1", &"combo2", &"combo3", &"air_slash", &"heavy"]
 ## Blacksmith enhancement (+1 .. +5): bonus per level by slot, and its cost.
@@ -49,6 +57,11 @@ const ENHANCE_BONUS := {
 	&"accessory": {&"max_mp": 3.0, &"crit_chance": 0.01},
 }
 const ENHANCE_MATERIAL := &"item_slime_gel"
+## Relics: slots equipped at once (one more after the job advancement).
+const BASE_RELIC_SLOTS := 3
+## Changing an already chosen job at the priest.
+const JOB_CHANGE_COST := 500
+const JOB_LEVEL := 12
 
 var level: int = 1
 var xp: int = 0
@@ -60,6 +73,9 @@ var inventory := Inventory.new()
 var cleared_stages: Array[String] = []
 var enhance: Dictionary = {}       ## item id -> +level (blacksmith)
 var opened_chests: Dictionary = {} ## hidden chest id -> true
+var relics: Dictionary = {}        ## owned relic id -> true
+var relic_equipped: Array[StringName] = []
+var job: StringName = &""          ## advanced class (JobData id), &"" = none
 var skill_tree: Array[SkillNodeData] = []
 
 
@@ -81,6 +97,9 @@ func reset(starting_kit: bool = true) -> void:
 	cleared_stages.clear()
 	enhance.clear()
 	opened_chests.clear()
+	relics.clear()
+	relic_equipped.clear()
+	job = &""
 	inventory.clear()
 	if starting_kit:
 		equipment[&"weapon"] = &"item_sword_cheongwol"
@@ -157,10 +176,17 @@ func _on_enemy_killed(enemy: Node) -> void:
 
 
 # --------------------------------------------------------------- modifiers ---
-## Sum of equipment (with blacksmith levels), skill ranks, the active pet's
-## passive and the priest's blessing.
+## Sum of equipment (with blacksmith levels), skill ranks, equipped relics,
+## the job, the active pet's passive and the priest's blessing.
 func modifiers() -> Dictionary:
 	var m := {}
+	for rid in relic_equipped:
+		var relic := RelicDB.get_relic(rid)
+		if relic != null:
+			_add_bonuses(m, relic.bonuses)
+	var jd := JobData.find(job)
+	if jd != null:
+		_add_bonuses(m, jd.bonuses)
 	for slot in SLOTS:
 		var item := ItemDB.get_item(equipment.get(slot, &""))
 		if item != null:
@@ -185,6 +211,11 @@ func modifiers() -> Dictionary:
 	return m
 
 
+static func _add_bonuses(m: Dictionary, bonuses: Dictionary) -> void:
+	for key in bonuses:
+		m[StringName(key)] = float(m.get(StringName(key), 0.0)) + float(bonuses[key])
+
+
 func mod(key: StringName) -> float:
 	return float(modifiers().get(key, 0.0))
 
@@ -197,6 +228,7 @@ func build_stats(base: PlayerStats) -> PlayerStats:
 	s.attack = base.attack + (level - 1) * ATTACK_PER_LEVEL + int(m.get(&"attack", 0.0))
 	s.max_mp = base.max_mp + (level - 1) * MP_PER_LEVEL + float(m.get(&"max_mp", 0.0))
 	s.crit_chance = clampf(base.crit_chance + float(m.get(&"crit_chance", 0.0)), 0.0, 0.75)
+	s.crit_multiplier = base.crit_multiplier + float(m.get(&"crit_damage_pct", 0.0))
 	s.dodge_cooldown = maxf(0.15, base.dodge_cooldown - float(m.get(&"dodge_cooldown", 0.0)))
 	s.dodge_iframes = base.dodge_iframes + float(m.get(&"dodge_iframes", 0.0))
 	return s
@@ -251,6 +283,8 @@ static func describe_stat(key: StringName, value: float) -> String:
 		return "%s %.2f초" % [label, value]
 	if key == &"hp_regen":
 		return "%s +%.1f" % [label, value]
+	if key == &"revive":
+		return "%s %d번" % [label, roundi(value)]
 	return "%s +%d" % [label, roundi(value)]
 
 
@@ -432,9 +466,116 @@ func use_consumable(id: StringName, player: Player) -> bool:
 	if not (needs_hp or needs_mp) or not inventory.remove(id, 1):
 		return false
 	if item.heal_hp > 0:
-		player.heal(item.heal_hp)
+		player.heal(item.heal_hp + roundi(mod(&"potion_heal")))
 	if item.heal_mp > 0:
 		player.restore_mana(item.heal_mp)
+	return true
+
+
+# ------------------------------------------------------------------ relics ---
+func relic_slots() -> int:
+	return BASE_RELIC_SLOTS + (1 if job != &"" else 0)
+
+
+func owns_relic(id: StringName) -> bool:
+	return relics.has(id)
+
+
+func is_relic_equipped(id: StringName) -> bool:
+	return relic_equipped.has(id)
+
+
+## Adds a relic to the collection and equips it if a slot is free.
+## False if unknown or already owned.
+func add_relic(id: StringName, silent: bool = false) -> bool:
+	var relic := RelicDB.get_relic(id)
+	if relic == null or relics.has(id):
+		return false
+	relics[id] = true
+	var equipped := false
+	if relic_equipped.size() < relic_slots():
+		relic_equipped.append(id)
+		equipped = true
+	Events.relic_obtained.emit(id)
+	if not silent:
+		Events.toast.emit("유물 획득: %s%s" % [relic.display_name, "  (장착)" if equipped else ""])
+	changed.emit()
+	return true
+
+
+func equip_relic(id: StringName) -> bool:
+	if not relics.has(id) or relic_equipped.has(id) or relic_equipped.size() >= relic_slots():
+		return false
+	relic_equipped.append(id)
+	changed.emit()
+	return true
+
+
+func unequip_relic(id: StringName) -> bool:
+	if not relic_equipped.has(id):
+		return false
+	relic_equipped.erase(id)
+	changed.emit()
+	return true
+
+
+## Gives an item or a relic (quest rewards, chests, drops, the shop).
+## Returns how many were taken. A relic already owned becomes gold.
+func give(id: StringName, count: int = 1) -> int:
+	if RelicDB.exists(id):
+		if add_relic(id):
+			return 1
+		var g := RelicDB.get_relic(id).duplicate_gold()
+		add_gold(g)
+		Events.toast.emit("이미 가진 유물이라 %dG로 바꿨어요." % g)
+		return 1
+	return inventory.add(id, count)
+
+
+## Display name / icon of an item or relic id.
+static func loot_name(id: StringName) -> String:
+	var relic := RelicDB.get_relic(id)
+	if relic != null:
+		return "유물 '%s'" % relic.display_name
+	var item := ItemDB.get_item(id)
+	return item.display_name if item != null else str(id)
+
+
+static func loot_icon(id: StringName) -> Texture2D:
+	var relic := RelicDB.get_relic(id)
+	if relic != null:
+		return relic.icon
+	var item := ItemDB.get_item(id)
+	return item.icon if item != null else null
+
+
+# --------------------------------------------------------------------- job ---
+func job_data() -> JobData:
+	return JobData.find(job)
+
+
+## "" when the hero may take this job now, else the reason.
+func job_blocker(job_id: StringName) -> String:
+	if JobData.find(job_id) == null:
+		return "알 수 없는 직업"
+	if job_id == job:
+		return "지금의 직업"
+	if level < JOB_LEVEL:
+		return "레벨 %d 필요" % JOB_LEVEL
+	if job != &"" and gold < JOB_CHANGE_COST:
+		return "골드 %d 필요" % JOB_CHANGE_COST
+	return ""
+
+
+## The first job is free; changing it later costs JOB_CHANGE_COST.
+func set_job(job_id: StringName) -> bool:
+	if job_blocker(job_id) != "":
+		return false
+	if job != &"":
+		gold -= JOB_CHANGE_COST
+	job = job_id
+	Events.job_changed.emit(job_id)
+	changed.emit()
 	return true
 
 
@@ -463,6 +604,9 @@ func to_dict() -> Dictionary:
 		"cleared_stages": Array(cleared_stages),
 		"enhance": _enhance_dict(),
 		"chests": opened_chests.keys().map(func(k: Variant) -> String: return str(k)),
+		"relics": relics.keys().map(func(k: Variant) -> String: return str(k)),
+		"relic_equipped": Array(relic_equipped).map(func(k: Variant) -> String: return str(k)),
+		"job": str(job),
 	}
 
 
@@ -511,6 +655,21 @@ func from_dict(d: Dictionary) -> void:
 	if typeof(ch) == TYPE_ARRAY:
 		for c in ch:
 			opened_chests[str(c)] = true
+	relics.clear()
+	relic_equipped.clear()
+	var rl: Variant = d.get("relics", [])
+	if typeof(rl) == TYPE_ARRAY:
+		for r in rl:
+			if RelicDB.exists(StringName(str(r))):
+				relics[StringName(str(r))] = true
+	var jid := StringName(str(d.get("job", "")))
+	job = jid if JobData.find(jid) != null else &""
+	var re: Variant = d.get("relic_equipped", [])
+	if typeof(re) == TYPE_ARRAY:
+		for r in re:
+			var rid := StringName(str(r))
+			if relics.has(rid) and not relic_equipped.has(rid) and relic_equipped.size() < relic_slots():
+				relic_equipped.append(rid)
 	cleared_stages.clear()
 	var cs: Variant = d.get("cleared_stages", [])
 	if typeof(cs) == TYPE_ARRAY:

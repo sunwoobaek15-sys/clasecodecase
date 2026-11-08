@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/village_key.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_village_key"
+display_name = "마을의 열쇠"
+description = "다시 살아난 마을이 영웅에게 건네는 열쇠."
+icon = ExtResource("2_icon")
+rarity = 2
+bonuses = {"max_hp": 25, "max_mp": 15, "potion_heal": 15}
+source = "업적 '마을의 부활'"
+price = 0
+order = 27

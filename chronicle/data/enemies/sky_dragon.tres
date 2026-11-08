@@ -21,4 +21,4 @@ poise = 170.0
 heal_drop_chance = 0.0
 exp_reward = 650
 gold_reward = 320
-drops = [{"id": &"item_storm_armor", "chance": 1.0, "count": 1}, {"id": &"item_potion_small", "chance": 1.0, "count": 3}, {"id": &"item_ether", "chance": 1.0, "count": 3}]
+drops = [{"id": &"item_storm_armor", "chance": 1.0, "count": 1}, {"id": &"item_potion_small", "chance": 1.0, "count": 3}, {"id": &"item_ether", "chance": 1.0, "count": 3}, {"id": &"relic_storm_scale", "chance": 1.0, "count": 1}]

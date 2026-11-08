@@ -1,6 +1,7 @@
 class_name MenuTabs
 extends RefCounted
-## Extra tabs of the character menu (Phase 3): pets, quests, codex.
+## Extra tabs of the character menu: pets, quests, codex (Phase 3) and
+## relics (Phase 4-2).
 
 
 static func _icon(tex: Texture2D, size: Vector2) -> TextureRect:
@@ -248,5 +249,144 @@ class CodexTab extends HBoxContainer:
 			_info.text = "%s%s%s\n\n%s" % [e["name"], region, extra, e["desc"]]
 		elif e.get("future", false):
 			_info.text = "%s\n\n%s" % [e["name"], e["desc"]]
+		elif e.has("hint") and str(e["hint"]) != "":
+			_info.text = "???\n\n아직 기록되지 않았다.\n얻는 곳: %s" % e["hint"]
 		else:
 			_info.text = "???\n\n아직 기록되지 않았다."
+
+
+## 유물 — equipped relic slots, the collection (30), details, equip/unequip.
+class RelicTab extends HBoxContainer:
+	var _slots: VBoxContainer
+	var _grid: GridContainer
+	var _art: TextureRect
+	var _name: Label
+	var _info: Label
+	var _btn: Button
+	var _count: Label
+	var _owned: Label
+	var _selected: StringName = &""
+
+	func _ready() -> void:
+		name = "유물"
+		add_theme_constant_override("separation", 8)
+		var left := VBoxContainer.new()
+		left.custom_minimum_size = Vector2(176, 0)
+		left.add_theme_constant_override("separation", 3)
+		_count = UiKit.label("", 11, UiKit.GOLD, true)
+		left.add_child(_count)
+		_owned = UiKit.label("", 11, UiKit.DIM)
+		left.add_child(_owned)
+		_slots = VBoxContainer.new()
+		_slots.add_theme_constant_override("separation", 3)
+		left.add_child(_slots)
+		add_child(left)
+		var mid := ScrollContainer.new()
+		mid.custom_minimum_size = Vector2(214, 214)
+		mid.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		add_child(mid)
+		_grid = GridContainer.new()
+		_grid.columns = 5
+		_grid.add_theme_constant_override("h_separation", 2)
+		_grid.add_theme_constant_override("v_separation", 2)
+		mid.add_child(_grid)
+		var right := VBoxContainer.new()
+		right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		right.add_theme_constant_override("separation", 4)
+		var top := HBoxContainer.new()
+		_art = MenuTabs._icon(null, Vector2(48, 48))
+		top.add_child(_art)
+		_name = UiKit.label("", 12, UiKit.TEXT, true)
+		_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_name.custom_minimum_size = Vector2(110, 0)
+		_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		top.add_child(_name)
+		right.add_child(top)
+		_info = UiKit.label("", 11)
+		_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_info.custom_minimum_size = Vector2(170, 0)
+		right.add_child(_info)
+		_btn = UiKit.button("장착", _on_button, 120)
+		right.add_child(_btn)
+		add_child(right)
+
+	func refresh() -> void:
+		_count.text = "장착 %d / %d" % [Profile.relic_equipped.size(), Profile.relic_slots()]
+		_owned.text = "모은 유물 %d / %d" % [Profile.relics.size(), RelicDB.all().size()]
+		for c in _slots.get_children():
+			c.queue_free()
+		for i in Profile.relic_slots():
+			var b := Button.new()
+			b.focus_mode = Control.FOCUS_NONE
+			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			b.custom_minimum_size = Vector2(176, 30)
+			b.expand_icon = false
+			if i < Profile.relic_equipped.size():
+				var r := RelicDB.get_relic(Profile.relic_equipped[i])
+				b.icon = r.icon
+				b.text = r.display_name
+				b.pressed.connect(_pick.bind(r.id))
+			else:
+				b.text = "  (빈 칸)"
+				b.disabled = true
+			_slots.add_child(b)
+		if Profile.job == &"":
+			var hint := UiKit.label("전직하면 유물 칸이 하나 늘어나요.", 11, UiKit.DIM)
+			hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			hint.custom_minimum_size = Vector2(176, 0)
+			_slots.add_child(hint)
+		for c in _grid.get_children():
+			c.queue_free()
+		for r in RelicDB.all():
+			var owned := Profile.owns_relic(r.id)
+			var b := Button.new()
+			b.focus_mode = Control.FOCUS_NONE
+			b.custom_minimum_size = Vector2(40, 40)
+			b.expand_icon = true
+			b.icon = r.icon if owned else null
+			b.text = "" if owned else "?"
+			if Profile.is_relic_equipped(r.id):
+				b.modulate = Color(1.15, 1.1, 0.8)
+			b.pressed.connect(_pick.bind(r.id))
+			_grid.add_child(b)
+		if _selected == &"" and not Profile.relic_equipped.is_empty():
+			_selected = Profile.relic_equipped[0]
+		_show()
+
+	func _pick(id: StringName) -> void:
+		_selected = id
+		_show()
+
+	func _show() -> void:
+		var r := RelicDB.get_relic(_selected)
+		if r == null:
+			_art.texture = null
+			_name.text = ""
+			_info.text = "유물은 보스·숨겨진 보물·퀘스트·업적·몬스터에게서 얻는 장신구예요. 장착한 유물의 효과만 적용돼요."
+			_btn.visible = false
+			return
+		var owned := Profile.owns_relic(r.id)
+		_art.texture = r.icon
+		_art.modulate = Color(1, 1, 1) if owned else Color(0, 0, 0, 0.75)
+		_name.text = ("%s\n[%s]" % [r.display_name, r.rarity_name()]) if owned else "???"
+		_name.label_settings.font_color = r.rarity_color() if owned else UiKit.DIM
+		if owned:
+			_info.text = "%s\n\n%s\n얻은 곳: %s" % [r.bonus_text(), r.description, r.source]
+		else:
+			_info.text = "아직 찾지 못한 유물\n얻는 곳: %s" % r.source
+		_btn.visible = owned
+		if Profile.is_relic_equipped(r.id):
+			_btn.text = "해제"
+			_btn.disabled = false
+		else:
+			_btn.text = "장착"
+			_btn.disabled = Profile.relic_equipped.size() >= Profile.relic_slots()
+			if _btn.disabled:
+				_btn.text = "칸이 가득 참"
+
+	func _on_button() -> void:
+		if Profile.is_relic_equipped(_selected):
+			Profile.unequip_relic(_selected)
+		else:
+			Profile.equip_relic(_selected)
+		refresh()

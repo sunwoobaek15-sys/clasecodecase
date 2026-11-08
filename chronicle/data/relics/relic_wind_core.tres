@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/wind_core.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_wind_core"
+display_name = "바람의 핵"
+description = "바람 정령의 심장. 회피할 때 바람이 몸을 감싼다."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"dodge_iframes": 0.05}
+source = "하늘의 폐허 · 바람 정령이 가끔 떨어뜨림"
+price = 0
+order = 13

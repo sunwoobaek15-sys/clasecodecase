@@ -36,4 +36,4 @@ clear_text = "숲의 수호자 베르단을 쓰러뜨리고
 시간의 핵 조각을 되찾았다!"
 slime_theme = "forest"
 chest_gold = 60
-chest_items = {"item_ether": 2}
+chest_items = {"item_ether": 2, "relic_forest_charm": 1}

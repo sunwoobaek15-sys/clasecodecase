@@ -21,4 +21,4 @@ poise = 0.0
 heal_drop_chance = 0.25
 exp_reward = 5
 gold_reward = 2
-drops = [{"id": &"item_slime_gel", "chance": 0.3, "count": 1}]
+drops = [{"id": &"item_slime_gel", "chance": 0.3, "count": 1}, {"id": &"relic_leaf_charm", "chance": 0.04, "count": 1}]

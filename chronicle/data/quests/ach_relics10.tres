@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ach_relics10"
+title = "유물 수집가"
+type = 3
+description = "유물 10개를 모았다."
+giver = &""
+objectives = [{"type": "relic_count", "target": "", "count": 10, "text": "유물 10개"}]
+requires = Array[StringName]([])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 300
+reward_items = {"relic_star_compass": 1}
+reward_pet = &""
+auto_accept = true
+turn_in = false
+order = 39

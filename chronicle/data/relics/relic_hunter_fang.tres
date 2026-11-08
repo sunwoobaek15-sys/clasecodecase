@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/hunter_fang.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_hunter_fang"
+display_name = "사냥꾼의 송곳니"
+description = "수많은 몬스터를 쓰러뜨린 사냥꾼의 증표."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"basic_damage_pct": 0.1}
+source = "업적 '숲의 사냥꾼'"
+price = 0
+order = 23

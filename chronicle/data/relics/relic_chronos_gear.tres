@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/chronos_gear.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_chronos_gear"
+display_name = "크로노스의 톱니"
+description = "시간의 지배자를 움직이던 톱니. 시작부터 궁극기 게이지가 차 있다."
+icon = ExtResource("2_icon")
+rarity = 2
+bonuses = {"ult_start_pct": 0.25, "ult_gain_pct": 0.1}
+source = "무너진 시계 도시 · 크로노스 첫 처치"
+price = 0
+order = 10

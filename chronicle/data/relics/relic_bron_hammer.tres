@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/bron_hammer.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_bron_hammer"
+display_name = "브론의 망치 장식"
+description = "대장장이 브론이 직접 깎은 작은 망치 장식."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"attack": 4}
+source = "서브 퀘스트 '정밀한 부품'(브론) 보상"
+price = 0
+order = 18

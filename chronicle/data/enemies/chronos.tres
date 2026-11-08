@@ -21,4 +21,4 @@ poise = 140.0
 heal_drop_chance = 0.0
 exp_reward = 400
 gold_reward = 200
-drops = [{"id": &"item_chronos_watch", "chance": 1.0, "count": 1}, {"id": &"item_potion_small", "chance": 1.0, "count": 3}, {"id": &"item_ether", "chance": 1.0, "count": 2}]
+drops = [{"id": &"item_chronos_watch", "chance": 1.0, "count": 1}, {"id": &"item_potion_small", "chance": 1.0, "count": 3}, {"id": &"item_ether", "chance": 1.0, "count": 2}, {"id": &"relic_chronos_gear", "chance": 1.0, "count": 1}]

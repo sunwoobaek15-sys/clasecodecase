@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/first_victory.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_first_victory"
+display_name = "첫 승리의 훈장"
+description = "처음으로 수호자를 넘어선 날을 기념하는 훈장."
+icon = ExtResource("2_icon")
+rarity = 0
+bonuses = {"attack": 2, "max_hp": 10}
+source = "업적 '숲을 지킨 자'"
+price = 0
+order = 22

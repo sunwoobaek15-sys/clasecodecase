@@ -21,4 +21,4 @@ poise = 0.0
 heal_drop_chance = 0.35
 exp_reward = 24
 gold_reward = 9
-drops = [{"id": &"item_sky_feather", "chance": 0.4, "count": 1}, {"id": &"item_potion_small", "chance": 0.1, "count": 1}]
+drops = [{"id": &"item_sky_feather", "chance": 0.4, "count": 1}, {"id": &"item_potion_small", "chance": 0.1, "count": 1}, {"id": &"relic_cloud_drop", "chance": 0.04, "count": 1}]

@@ -17,7 +17,7 @@ signal quest_ready(q: QuestData)
 signal quest_finished(q: QuestData)
 
 const DIR := "res://data/quests"
-const EVENT_TYPES := [&"kill", &"boss", &"clear_stage", &"talk", &"enhance", &"harvest", &"chest", &"craft"]
+const EVENT_TYPES := [&"kill", &"boss", &"clear_stage", &"talk", &"enhance", &"harvest", &"chest", &"craft", &"job"]
 
 var quests: Array[QuestData] = []
 var state: Dictionary = {}   ## id -> {"status": String, "progress": Array, "date": String}
@@ -37,6 +37,7 @@ func _ready() -> void:
 	Events.farm_harvested.connect(func(_n: int) -> void: notify(&"harvest", ""))
 	Events.stage_cleared.connect(func(s: Dictionary) -> void: notify(&"clear_stage", str(s.get("stage_id", ""))))
 	Events.chest_opened.connect(func(_id: String, stage: String) -> void: notify(&"chest", stage))
+	Events.job_changed.connect(func(id: StringName) -> void: notify(&"job", str(id)))
 	for sig in [Profile.changed, Village.changed, Pets.changed, Codex.changed]:
 		(sig as Signal).connect(queue_refresh)
 	reset()
@@ -160,6 +161,8 @@ func progress(q: QuestData, i: int) -> int:
 			return mini(need, Codex.count_known())
 		&"chest_count":
 			return mini(need, Profile.opened_chests.size())
+		&"relic_count":
+			return mini(need, Profile.relics.size())
 		&"collect":
 			return mini(need, Profile.inventory.count(StringName(target)))
 	return 0
@@ -205,7 +208,7 @@ func _finish(q: QuestData) -> void:
 	if q.reward_gold > 0:
 		Profile.add_gold(q.reward_gold)
 	for item_id in q.reward_items:
-		Profile.inventory.add(StringName(str(item_id)), int(q.reward_items[item_id]))
+		Profile.give(StringName(str(item_id)), int(q.reward_items[item_id]))
 	if q.reward_exp > 0:
 		Profile.add_exp(q.reward_exp)
 	if q.reward_pet != &"":

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/verdan_seed.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_verdan_seed"
+display_name = "베르단의 씨앗"
+description = "숲의 수호자가 남긴 씨앗. 안쪽에서 시간의 빛이 흐른다."
+icon = ExtResource("2_icon")
+rarity = 2
+bonuses = {"max_hp": 30, "hp_regen": 2}
+source = "잊혀진 숲 · 베르단 첫 처치"
+price = 0
+order = 5

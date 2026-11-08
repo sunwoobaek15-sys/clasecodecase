@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/star_compass.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_star_compass"
+display_name = "별의 나침반"
+description = "잃어버린 세계의 별자리를 가리키는 나침반."
+icon = ExtResource("2_icon")
+rarity = 3
+bonuses = {"attack": 5, "crit_chance": 0.05, "skill_damage_pct": 0.1}
+source = "업적 '유물 수집가' (유물 10개)"
+price = 0
+order = 28

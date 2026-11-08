@@ -14,6 +14,8 @@ extends Node
 ##                             in stage 2-1 and finish when Chronos is beaten
 ##           --stage=sky_1     same for stage 3-1 (Lv.11, + Chronos' watch)
 ##           --weapon=ITEM_ID  play with another weapon (e.g. item_spear)
+##           --job=JOB_ID      take a job first (blade_master, guardian_knight, chronomancer)
+##           --relics=A,B,C    collect and equip these relics first
 ##           --timeout=SECONDS  give up after this much game time (default 900)
 
 const BUTTONS: Array[StringName] = [&"jump", &"attack", &"dodge", &"skill", &"ultimate"]
@@ -180,6 +182,7 @@ func _physics_process(delta: float) -> void:
 			if direct != "":
 				_log("title -> %s (mid-game hero)" % direct)
 				_prepare_mid_game_hero(direct)
+				_apply_build_options()
 				Game.start_stage(direct)
 			else:
 				_log("title -> 게임 시작")
@@ -189,11 +192,28 @@ func _physics_process(delta: float) -> void:
 					Profile.inventory.add(wid, 1)
 					Profile.equip(wid)
 					_log("weapon: %s" % ItemDB.get_item(wid).display_name)
+				_apply_build_options()
 	elif scene.is_in_group(&"stage"):
 		_play(scene, real)
 	elif scene.name == "VillageScene" and not _tour_started and _scene_t > 1.0:
 		_tour_started = true
 		_village_tour(scene)
+
+
+## --job / --relics: a hero built with Phase 4-2 content.
+func _apply_build_options() -> void:
+	var jid := StringName(str(Game.cmd_options.get("job", "")))
+	if jid != &"":
+		Profile.level = maxi(Profile.level, Profile.JOB_LEVEL)
+		Profile.set_job(jid)
+		_log("job: %s" % Profile.job)
+	var rl := str(Game.cmd_options.get("relics", ""))
+	for r in rl.split(",", false):
+		var rid := StringName(r.strip_edges())
+		if not rid.begins_with("relic_"):
+			rid = StringName("relic_" + str(rid))
+		if Profile.add_relic(rid, true):
+			_log("relic: %s%s" % [rid, "" if Profile.is_relic_equipped(rid) else " (not equipped)"])
 
 
 func _play(stage: Node, delta: float) -> void:
@@ -429,6 +449,7 @@ func _finish(ok: bool, why: String) -> void:
 		float(run.get("time", 0.0)), _deaths, int(run.get("kills", 0)), int(run.get("damage_dealt", 0)),
 		int(run.get("damage_taken", 0)), int(run.get("max_combo", 0)), str(_boss_seen_phase2)])
 	print("[bot] hits taken by attack: ", _hit_tags)
+	print("[bot] relics %d: %s, job '%s'" % [Profile.relics.size(), str(Profile.relics.keys()), Profile.job])
 	await get_tree().create_timer(0.3, true, false, true).timeout
 	get_tree().quit(0 if ok else 1)
 

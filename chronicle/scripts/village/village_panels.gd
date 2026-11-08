@@ -1,6 +1,7 @@
 class_name VillagePanels
 extends RefCounted
-## The four village windows. Each is a ModalPanel subclass built in code.
+## The village windows (restore, shop, smithy, world map, job advancement).
+## Each is a ModalPanel subclass built in code.
 
 
 ## 마을 재건 — list of facilities with cost and restore button.
@@ -32,6 +33,7 @@ class RestorePanel extends ModalPanel:
 ## 상점 — buy consumables, sell spare items.
 class ShopPanel extends ModalPanel:
 	const STOCK := [&"item_potion_small", &"item_ether", &"item_pet_treat"]
+	const RELIC_STOCK := [&"relic_herb_pouch", &"relic_vampire_ring"]
 
 	func _init() -> void:
 		super("카이로의 상점", Vector2(580, 300))
@@ -45,6 +47,13 @@ class ShopPanel extends ModalPanel:
 			add_row(item.icon, "%s  ·  %dG" % [item.display_name, item.price],
 					"%s  (보유 %d)" % [item.description, Profile.inventory.count(id)], "구매",
 					_buy.bind(id), Profile.gold >= item.price and Profile.inventory.space_for(id) > 0)
+		content.add_child(UiKit.label("유물", 11, UiKit.GOLD, true))
+		for id in RELIC_STOCK:
+			var relic := RelicDB.get_relic(id)
+			var owned := Profile.owns_relic(id)
+			add_row(relic.icon, "%s  ·  %dG" % [relic.display_name, relic.price],
+					"[%s] %s" % [relic.rarity_name(), relic.bonus_text()], "보유" if owned else "구매",
+					_buy_relic.bind(id), not owned and Profile.gold >= relic.price)
 		content.add_child(UiKit.label("판매 (절반 가격)", 11, UiKit.GOLD, true))
 		var any := false
 		var seen := {}
@@ -68,6 +77,14 @@ class ShopPanel extends ModalPanel:
 		if Profile.gold >= item.price and Profile.inventory.add(id, 1) == 1:
 			Profile.add_gold(-item.price)
 			Events.toast.emit("%s 구매" % item.display_name)
+		refresh()
+
+	func _buy_relic(id: StringName) -> void:
+		var relic := RelicDB.get_relic(id)
+		if not Profile.owns_relic(id) and Profile.gold >= relic.price:
+			Profile.add_gold(-relic.price)
+			Profile.add_relic(id)
+			SaveSystem.save_game()
 		refresh()
 
 	func _sell(id: StringName) -> void:
@@ -214,3 +231,38 @@ class WorldMapPanel extends ModalPanel:
 	func _go(stage_id: String) -> void:
 		close()
 		Game.start_stage(stage_id)
+
+
+## 전직 — the priest's three paths (first choice free, later changes cost gold).
+class JobPanel extends ModalPanel:
+	func _init() -> void:
+		super("성소의 시험 — 전직", Vector2(580, 300))
+
+	func refresh() -> void:
+		clear_content()
+		var cur := Profile.job_data()
+		header_info.text = "Lv.%d · %dG  " % [Profile.level, Profile.gold]
+		var head := "지금의 직업: %s" % (cur.display_name if cur != null else "없음 (청월의 검사)")
+		if cur == null:
+			head += "  ·  첫 전직은 무료, 유물 칸 +1"
+		else:
+			head += "  ·  직업 바꾸기 %dG" % Profile.JOB_CHANGE_COST
+		content.add_child(UiKit.label(head, 11, UiKit.GOLD, true))
+		for j in JobData.all():
+			var block := Profile.job_blocker(j.id)
+			var sub := "%s
+%s
+어울리는 무기: %s" % [j.description, j.bonus_text(), j.suits]
+			if block != "" and j.id != Profile.job:
+				sub += "  (%s)" % block
+			var btn := "현재" if j.id == Profile.job else ("전직" if cur == null else "바꾸기")
+			add_row(j.icon, j.display_name, sub, btn, _pick.bind(j.id), block == "")
+
+	func _pick(id: StringName) -> void:
+		var first := Profile.job == &""
+		if Profile.set_job(id):
+			var j := JobData.find(id)
+			Events.toast.emit("전직! 이제 %s입니다.%s" % [j.display_name, "  (유물 칸 +1)" if first else ""])
+			FX.shake(2.5, 0.2)
+			SaveSystem.save_game()
+		refresh()

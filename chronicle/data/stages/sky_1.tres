@@ -35,4 +35,4 @@ clear_text = "폭풍의 수호룡 템페스타를 잠재우고
 세 번째 시간의 핵 조각을 되찾았다!"
 slime_theme = "cloud"
 chest_gold = 200
-chest_items = {"item_sky_feather": 3, "item_pet_treat": 2}
+chest_items = {"item_sky_feather": 3, "item_pet_treat": 2, "relic_storm_feather": 1}

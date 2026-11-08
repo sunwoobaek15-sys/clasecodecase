@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/mia_ribbon.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_mia_ribbon"
+display_name = "미아의 리본"
+description = "마을 관리인 미아가 고마움의 표시로 건넨 리본."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"exp_pct": 0.1, "gold_pct": 0.1}
+source = "메인 퀘스트 '세 개의 조각' 보상"
+price = 0
+order = 20

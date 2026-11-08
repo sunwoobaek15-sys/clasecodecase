@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="JobData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/job_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/jobs/blade_master.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"blade_master"
+display_name = "검성"
+description = "검의 길을 끝까지 걷는 자. 기본 공격과 치명타가 강해지고 궁극기 피해가 커진다."
+icon = ExtResource("2_icon")
+bonuses = {"attack": 6, "basic_damage_pct": 0.15, "crit_chance": 0.05, "crit_damage_pct": 0.2, "ult_damage_pct": 0.2}
+suits = "청월검 · 파천대검 · 쌍월"
+order = 1

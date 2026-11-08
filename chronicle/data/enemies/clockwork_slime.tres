@@ -21,4 +21,4 @@ poise = 0.0
 heal_drop_chance = 0.35
 exp_reward = 16
 gold_reward = 6
-drops = [{"id": &"item_clock_cog", "chance": 0.5, "count": 1}, {"id": &"item_slime_gel", "chance": 0.3, "count": 1}, {"id": &"item_potion_small", "chance": 0.08, "count": 1}]
+drops = [{"id": &"item_clock_cog", "chance": 0.5, "count": 1}, {"id": &"item_slime_gel", "chance": 0.3, "count": 1}, {"id": &"item_potion_small", "chance": 0.08, "count": 1}, {"id": &"relic_brass_spring", "chance": 0.04, "count": 1}]

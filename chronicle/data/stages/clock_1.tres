@@ -36,4 +36,4 @@ clear_text = "시간의 지배자 크로노스를 쓰러뜨리고
 두 번째 시간의 핵 조각을 되찾았다!"
 slime_theme = "clockwork"
 chest_gold = 120
-chest_items = {"item_pet_treat": 2, "item_ether": 1}
+chest_items = {"item_pet_treat": 2, "item_ether": 1, "relic_clock_hand": 1}

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/guardian_rune.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_guardian_rune"
+display_name = "수호상의 룬"
+description = "수호상 이마에 새겨져 있던 룬 돌."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"defense_pct": 0.05}
+source = "하늘의 폐허 · 폐허 수호상이 가끔 떨어뜨림"
+price = 0
+order = 14

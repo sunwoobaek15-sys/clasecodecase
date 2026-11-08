@@ -143,9 +143,10 @@ func spawn_drops() -> void:
 		var d: Dictionary = entry
 		var id := StringName(str(d.get("id", "")))
 		var item := ItemDB.get_item(id)
-		if item == null or randf() > float(d.get("chance", 1.0)):
+		var relic := RelicDB.exists(id)
+		if (item == null and not relic) or randf() > float(d.get("chance", 1.0)):
 			continue
-		if item.unique and Profile.owns(id):
+		if (relic and Profile.owns_relic(id)) or (item != null and item.unique and Profile.owns(id)):
 			continue
 		var drop := ITEM_DROP_SCENE.instantiate() as Pickup
 		drop.item_id = id

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/traveler_coin.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_traveler_coin"
+display_name = "여행자의 동전"
+description = "그림자 여행자가 던져 준 낡은 동전. 행운이 따른다."
+icon = ExtResource("2_icon")
+rarity = 0
+bonuses = {"gold_pct": 0.15}
+source = "메인 퀘스트 '다음 여정' 보상"
+price = 0
+order = 17

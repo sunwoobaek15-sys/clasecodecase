@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/vampire_ring.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_vampire_ring"
+display_name = "흡혈 반지"
+description = "붉은 보석이 박힌 반지. 입힌 피해의 일부를 HP로 되돌린다."
+icon = ExtResource("2_icon")
+rarity = 2
+bonuses = {"lifesteal_pct": 0.03}
+source = "카이로의 상점 (1500G)"
+price = 1500
+order = 30

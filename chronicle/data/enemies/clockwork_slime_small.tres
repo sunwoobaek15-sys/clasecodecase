@@ -21,4 +21,4 @@ poise = 0.0
 heal_drop_chance = 0.3
 exp_reward = 10
 gold_reward = 4
-drops = [{"id": &"item_clock_cog", "chance": 0.3, "count": 1}]
+drops = [{"id": &"item_clock_cog", "chance": 0.3, "count": 1}, {"id": &"relic_tiny_cog", "chance": 0.04, "count": 1}]

@@ -60,8 +60,8 @@ func _on_body(body: Node) -> void:
 		Profile.add_gold(gold)
 		parts.append("%dG" % gold)
 	for id in items:
-		var item := ItemDB.get_item(StringName(str(id)))
-		if item != null and Profile.inventory.add(item.id, int(items[id])) > 0:
-			parts.append("%s x%d" % [item.display_name, int(items[id])])
+		var iid := StringName(str(id))
+		if (ItemDB.exists(iid) or RelicDB.exists(iid)) and Profile.give(iid, int(items[id])) > 0:
+			parts.append(Profile.loot_name(iid) if RelicDB.exists(iid) else "%s x%d" % [Profile.loot_name(iid), int(items[id])])
 	Events.toast.emit("숨겨진 보물 발견! " + ", ".join(parts))
 	Events.chest_opened.emit(chest_id, stage_id)

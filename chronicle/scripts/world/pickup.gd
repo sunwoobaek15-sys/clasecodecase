@@ -1,7 +1,7 @@
 class_name Pickup
 extends Area2D
-## Collectable: heal orb (HP + MP), an inventory item drop, or the Time Core
-## fragment (stage goal).
+## Collectable: heal orb (HP + MP), an inventory item or relic drop, or the
+## Time Core fragment (stage goal).
 ## Falls to the ground, bobs, and is collected when the player touches it.
 
 signal collected(pickup: Pickup)
@@ -15,6 +15,7 @@ enum Kind { HEAL, TIME_CORE, ITEM }
 @export var item_id: StringName = &""
 @export var item_count: int = 1
 var _full_warned: float = 0.0
+var _relic_glow: Color = Color(0, 0, 0, 0)  ## relic drops pulse in their rarity colour
 
 var _vy: float = -110.0
 var _t: float = 0.0
@@ -31,10 +32,14 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	_t = randf() * TAU
 	if kind == Kind.ITEM:
-		var item := ItemDB.get_item(item_id)
-		if item != null:
-			sprite.texture = item.icon
+		var tex := Profile.loot_icon(item_id)
+		if tex != null:
+			sprite.texture = tex
 		lifetime = 0.0
+		var relic := RelicDB.get_relic(item_id)
+		if relic != null:
+			_relic_glow = relic.rarity_color()
+			sprite.scale = Vector2(1.25, 1.25)
 
 
 func _physics_process(delta: float) -> void:
@@ -53,7 +58,8 @@ func _physics_process(delta: float) -> void:
 		global_position += motion
 	sprite.position.y = sin(_t * 4.0) * 2.0
 	if kind == Kind.ITEM:
-		sprite.modulate = Color(1, 1, 1).lerp(Color(1.4, 1.4, 1.2), 0.5 + 0.5 * sin(_t * 5.0))
+		var hi := Color(1.4, 1.4, 1.2) if _relic_glow.a <= 0.0 else _relic_glow * 1.6
+		sprite.modulate = Color(1, 1, 1).lerp(hi, 0.5 + 0.5 * sin(_t * 5.0))
 	_full_warned = maxf(0.0, _full_warned - delta)
 	if kind == Kind.TIME_CORE:
 		sprite.rotation = sin(_t * 2.0) * 0.08
@@ -86,6 +92,14 @@ func _on_body_entered(body: Node) -> void:
 func collect_item() -> bool:
 	if _collected or kind != Kind.ITEM:
 		return false
+	if RelicDB.exists(item_id):
+		Profile.give(item_id, 1)  # toasts by itself
+		item_count = 0
+		_collected = true
+		FX.spark(global_position, Color(1.0, 0.85, 1.0), true)
+		collected.emit(self)
+		queue_free()
+		return true
 	var item := ItemDB.get_item(item_id)
 	var added := Profile.inventory.add(item_id, item_count) if item != null else 0
 	if added <= 0:

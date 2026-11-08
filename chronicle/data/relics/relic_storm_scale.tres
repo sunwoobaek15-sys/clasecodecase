@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/storm_scale.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_storm_scale"
+display_name = "폭풍의 비늘"
+description = "폭풍의 수호룡에게서 떨어진 비늘. 아직 번개가 튄다."
+icon = ExtResource("2_icon")
+rarity = 2
+bonuses = {"attack": 6, "crit_chance": 0.03}
+source = "하늘의 폐허 · 템페스타 첫 처치"
+price = 0
+order = 16

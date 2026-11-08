@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/forest_charm.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_forest_charm"
+display_name = "숲의 수호 부적"
+description = "숲의 정령들이 여행자에게 건네던 나무 부적."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"defense_pct": 0.04}
+source = "잊혀진 숲 · 숨겨진 보물 상자"
+price = 0
+order = 4

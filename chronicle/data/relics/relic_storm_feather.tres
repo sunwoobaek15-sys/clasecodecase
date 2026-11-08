@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/storm_feather.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_storm_feather"
+display_name = "폭풍 깃털"
+description = "번개를 머금은 깃털. 기술에 전기가 실린다."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"skill_damage_pct": 0.12}
+source = "하늘의 폐허 · 숨겨진 보물 상자"
+price = 0
+order = 15

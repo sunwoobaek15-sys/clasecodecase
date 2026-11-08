@@ -2,8 +2,9 @@ extends Node
 ## Bestiary / collection book (autoload "Codex").
 ##
 ## Categories: monsters, bosses, weapons, pets, relics. Monsters and bosses
-## are recorded when defeated, weapons and pets when obtained. Entries marked
-## "future" belong to content that is not in the game yet (shown as "준비 중").
+## are recorded when defeated, weapons, pets and relics when obtained. Entries
+## marked "future" belong to content that is not in the game yet (shown as
+## "준비 중"). An entry's "hint" is shown while it is still unknown.
 ## The library's scholar pays a reward for every recorded entry.
 
 signal changed
@@ -13,7 +14,8 @@ const REWARD_PER_ENTRY := 10
 const CATEGORIES := [
 	[&"monster", "몬스터"], [&"boss", "보스"], [&"weapon", "무기"], [&"pet", "펫"], [&"relic", "유물"],
 ]
-## Static entries. Weapons and pets are added from ItemDB / PetDB at start.
+## Static entries. Weapons, pets and relics are added from ItemDB / PetDB /
+## RelicDB at start.
 const BASE_ENTRIES := [
 	{"id": &"forest_slime", "cat": &"monster", "name": "숲의 정령 슬라임", "region": "잊혀진 숲",
 	 "tex": "res://assets/enemies/forest_slime/slime_frames.tres",
@@ -54,8 +56,6 @@ const BASE_ENTRIES := [
 	{"id": &"sky_dragon", "cat": &"boss", "name": "폭풍의 수호룡 템페스타", "region": "하늘의 폐허",
 	 "tex": "res://assets/bosses/sky_dragon/art/full_art.png",
 	 "desc": "하늘의 신전을 지키는 폭풍의 용. 폭풍 구슬, 급강하, 낙뢰를 다루며 체력이 절반 이하가 되면 강풍까지 부른다. (전용 디자인이 나오기 전까지 펫 시트의 용 디자인을 사용)"},
-	{"id": &"relic_placeholder", "cat": &"relic", "name": "유물", "future": true,
-	 "desc": "유물 시스템은 Phase 4에서 추가됩니다."},
 ]
 
 var entries: Array[Dictionary] = []
@@ -69,6 +69,7 @@ func _ready() -> void:
 	Events.enemy_killed.connect(_on_enemy_killed)
 	Profile.changed.connect(_check_owned, CONNECT_DEFERRED)
 	Pets.pet_obtained.connect(func(id: StringName) -> void: discover(id))
+	Events.relic_obtained.connect(func(id: StringName) -> void: discover(id, true))
 
 
 func _build_entries() -> void:
@@ -91,7 +92,11 @@ func _build_entries() -> void:
 			entries.append(e.duplicate())
 	for pet in PetDB.all():
 		entries.append({"id": pet.id, "cat": &"pet", "name": pet.display_name, "desc": pet.description,
-				"icon": pet.art})
+				"icon": pet.art, "hint": pet.unlock_hint})
+	for relic in RelicDB.all():
+		entries.append({"id": relic.id, "cat": &"relic", "name": relic.display_name, "icon": relic.icon,
+				"desc": "[%s] %s\n%s\n얻는 곳: %s" % [relic.rarity_name(), relic.bonus_text(), relic.description, relic.source],
+				"hint": relic.source})
 
 
 func reset() -> void:
@@ -197,9 +202,10 @@ func _on_enemy_killed(enemy: Node) -> void:
 
 func _check_owned(silent: bool = false) -> void:
 	for e in entries:
-		if e["cat"] == &"weapon" and not e.get("future", false) and not known.has(e["id"]):
-			if Profile.owns(e["id"]):
-				discover(e["id"], silent)
+		if known.has(e["id"]) or e.get("future", false):
+			continue
+		if (e["cat"] == &"weapon" and Profile.owns(e["id"])) or (e["cat"] == &"relic" and Profile.owns_relic(e["id"])):
+			discover(e["id"], silent)
 
 
 # ------------------------------------------------------------- save data ---

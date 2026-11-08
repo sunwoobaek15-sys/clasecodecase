@@ -216,7 +216,7 @@ func _build_ui() -> void:
 	overlay.add_child(dialogue)
 	dialogue.closed.connect(_on_modal_closed)
 	for spec in [["restore", VillagePanels.RestorePanel], ["shop", VillagePanels.ShopPanel],
-			["smith", VillagePanels.SmithPanel], ["map", VillagePanels.WorldMapPanel]]:
+			["smith", VillagePanels.SmithPanel], ["map", VillagePanels.WorldMapPanel], ["job", VillagePanels.JobPanel]]:
 		var p: ModalPanel = (spec[1] as GDScript).new()
 		overlay.add_child(p)
 		p.closed.connect(_on_modal_closed)
@@ -358,7 +358,7 @@ func _choices_for(nd: NpcData) -> Array:
 		&"merchant_kairo":
 			c.append({"text": "상점", "call": open_panel.bind("shop")})
 		&"smith_bron":
-			c.append({"text": "장비 강화", "call": open_panel.bind("smith")})
+			c.append({"text": "장비 강화 · 무기 제작", "call": open_panel.bind("smith")})
 		&"scholar_edel":
 			var n := Codex.unclaimed_count()
 			if n > 0:
@@ -367,6 +367,8 @@ func _choices_for(nd: NpcData) -> Array:
 		&"witch_lyra":
 			c.append({"text": "펫 돌보기", "call": open_menu_tab.bind("펫")})
 		&"priest_serena":
+			if Profile.job != &"" or Quests.status(&"q_sub_job") in ["active", "ready", "done"]:
+				c.append({"text": "전직 (직업 선택)" if Profile.job == &"" else "직업 바꾸기", "call": open_panel.bind("job")})
 			if not Village.blessing:
 				c.append({"text": "축복 받기 (%dG)" % Village.BLESSING_COST, "call": _blessing})
 			c.append({"text": "스킬 초기화 (무료)", "call": _reset_skills})

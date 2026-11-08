@@ -4,10 +4,10 @@ Android용 가로 화면 픽셀 아트 액션 RPG (Godot 4 · GDScript).
 시간의 핵이 부서져 떠다니는 섬들로 갈라진 세계에서, 기억을 잃은 검사가 핵 조각을 모읍니다.
 
 **현재 상태: Phase 3 완료 (3-1 · 3-2 · 3-3)** — 지역 3개(잊혀진 숲 · 무너진 시계 도시 · 하늘의 폐허)와 보스 3종
-(베르단 · 크로노스 · 템페스타), 허브 마을 '루멘'(NPC 8명·퀘스트 27개·재건 6곳·펫 5종·도감), 지역마다 숨겨진 보물까지
-1부 이야기를 처음부터 끝까지 플레이할 수 있습니다. **Phase 4-1(무기 4종: 대검·쌍검·지팡이·창, 대장간 제작) 완료.**
-다음은 4-2(유물·전직), 4-3(사운드), 4-4(그래픽).
-상세: [4-1](docs/PHASE4_REPORT.md) · [3-3](docs/PHASE3_3_REPORT.md) · [3-2](docs/PHASE3_2_REPORT.md) · [3-1](docs/PHASE3_REPORT.md) · [Phase 2](docs/PHASE2_REPORT.md) · [Phase 1](docs/PHASE1_REPORT.md)
+(베르단 · 크로노스 · 템페스타), 허브 마을 '루멘'(NPC 8명·퀘스트 31개·재건 6곳·펫 5종·도감), 지역마다 숨겨진 보물까지
+1부 이야기를 처음부터 끝까지 플레이할 수 있습니다. **Phase 4-1(무기 4종: 대검·쌍검·지팡이·창, 대장간 제작),
+4-2(유물 30종, 전직 3직업) 완료.** 다음은 4-3(사운드), 4-4(그래픽).
+상세: [4-2](docs/PHASE4_2_REPORT.md) · [4-1](docs/PHASE4_REPORT.md) · [3-3](docs/PHASE3_3_REPORT.md) · [3-2](docs/PHASE3_2_REPORT.md) · [3-1](docs/PHASE3_REPORT.md) · [Phase 2](docs/PHASE2_REPORT.md) · [Phase 1](docs/PHASE1_REPORT.md)
 
 <p>
 <img src="docs/screenshots/01_title.png" width="400" alt="타이틀">
@@ -24,6 +24,8 @@ Android용 가로 화면 픽셀 아트 액션 RPG (Godot 4 · GDScript).
 <img src="docs/screenshots/26_time_frozen.png" width="400" alt="시간 정지">
 <img src="docs/screenshots/33_updraft.png" width="400" alt="하늘의 폐허 상승 기류">
 <img src="docs/screenshots/38_lightning.png" width="400" alt="템페스타 낙뢰">
+<img src="docs/screenshots/51_relic_tab.png" width="400" alt="유물">
+<img src="docs/screenshots/52_job_panel.png" width="400" alt="전직">
 </p>
 
 ## 실행
@@ -53,6 +55,14 @@ PC에서는 마우스 클릭이 터치로 처리되어 화면의 터치 버튼�
 브랜치를 고르고 `/ (root)`로 배포하면 폰 브라우저에서 `https://<계정>.github.io/<저장소>/chronicle/web/` 주소로 바로 플레이할 수 있습니다.
 (첫 로딩에 수십 초, 가로 화면 권장.) 다시 만들기: `godot --headless --path . --export-release Web web/index.html`
 (웹 내보내기 템플릿 필요). 터치·화면 배치만 확인하는 용도이며 Android 실기기 성능 검증은 아닙니다.
+
+## Phase 4-2 구현 내용 (유물 · 전직)
+
+- **유물 30종**: 가방과 따로 모으는 패시브 장신구. 유물 칸 3개(전직 후 4개), 캐릭터 화면 '유물' 탭에서 장착.
+  보스 첫 처치, 지역별 숨겨진 보물, 몬스터 드물게, 퀘스트·업적 보상, 상점에서 얻습니다. 등급 4단계, 도감 '유물' 30칸.
+- 효과: 능력치, 5초 재생, 처치 시 HP/MP, 흡혈, 물약 회복량, 시작 궁극기 게이지, **부활(불사조의 깃털)** 등.
+- **전직**: 크로노스 처치 후 사제 세레나의 '새로운 길' → 레벨 12에 **검성 / 수호기사 / 시간술사** 중 선택(첫 전직 무료, 변경 500G).
+  직업은 능력치·패시브 보너스이며 외형 변화는 없습니다. 유물 아이콘·직업 문장은 임시 아트입니다.
 
 ## Phase 4-1 구현 내용 (무기 4종)
 
@@ -120,9 +130,9 @@ chronicle/
 ├── scripts/  core/ player/ combat/ enemies/ bosses/ world/ village/ ui/ effects/ inventory/
 │             progression/ quests/ pets/ save/
 ├── assets/   characters/ enemies/ bosses/ npcs/ pets/ effects/ environments/ ui/ (weapons/ audio/: 다음 단계)
-├── data/     items/ skills/(tree/) enemies/ player/ levels/ quests/ pets/ npcs/ village/
+├── data/     items/ skills/(tree/) enemies/ player/ levels/ quests/ pets/ npcs/ village/ stages/ relics/ jobs/
 ├── tests/    자동 테스트 (test_*.gd)
-├── docs/     ASSET_ANALYSIS.md, PHASE1~3 보고서 (PHASE3_2_REPORT.md 포함), screenshots/
+├── docs/     ASSET_ANALYSIS.md, PHASE1~4 보고서 (PHASE4_2_REPORT.md 포함), screenshots/
 ├── tools/    에셋 파이프라인 (Python + Godot 스크립트)
 └── art_source/  original/ (첨부 원본, 수정 금지) cleaned/ preview/
 ```
@@ -151,7 +161,7 @@ godot --headless --path . -s res://tools/build_sprite_frames.gd   # 4. JSON → 
 ## 테스트
 
 ```bash
-# 자동 테스트 (104개)
+# 자동 테스트 (113개)
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn
 
 # 자동 플레이 봇: 타이틀 → 1-1 클리어 → 마을(대화·복구·상점·메뉴·월드맵)까지 진행 (성공 시 종료 코드 0)
@@ -163,6 +173,8 @@ godot --headless --path . --fixed-fps 60 -- --bot --stage=clock_1
 godot --headless --path . --fixed-fps 60 -- --bot --stage=sky_1
 # 다른 무기로: 예) 창으로 1-1 → 마을
 godot --headless --path . --fixed-fps 60 -- --bot --weapon=item_spear
+# 직업·유물을 갖춘 영웅으로: 예) 검성 + 공격 유물로 하늘의 폐허
+godot --headless --path . --fixed-fps 60 -- --bot --stage=sky_1 --job=blade_master --relics=storm_scale,amethyst
 
 # 화면 캡처 포함 (렌더러 필요, 리눅스 서버에서는 xvfb-run)
 godot --path . --fixed-fps 60 -- --bot --screenshots=/tmp/shots
@@ -175,3 +187,4 @@ godot --path . --fixed-fps 60 -- --bot --screenshots=/tmp/shots
 - 지형·배경·UI 아이콘·마을 건물: `tools/build_environment.py`, `tools/build_village.py`로 생성한 임시 아트 (Phase 4에서 교체 예정).
 - 경비병 NPC: 참고 시트에 디자인이 없어 주인공형 NPC를 색만 바꾼 임시 디자인.
 - 지역 3 보스 템페스타: 참고 시트에 디자인이 없어 펫 시트의 드래곤을 보스 크기·폭풍 색으로 바꾼 임시 디자인.
+- 무기 4종 아이콘·이펙트(`tools/build_weapons.py`), 유물 30종 아이콘·직업 문장(`tools/build_relics.py`): 참고 시트에 없어 직접 그린 임시 아트.

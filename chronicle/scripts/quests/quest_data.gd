@@ -6,9 +6,9 @@ extends Resource
 ##   event objectives (counted when they happen):
 ##     kill (target = enemy id, "slime" or "any"), boss (enemy id),
 ##     clear_stage (stage id), talk (npc id), enhance, harvest, chest (stage id),
-##     craft (item id or "any")
+##     craft (item id or "any"), job (job id or "any")
 ##   state objectives (read from the current game state):
-##     level, restore (facility id), restore_count, pet_count, codex_count, chest_count,
+##     level, restore (facility id), restore_count, pet_count, codex_count, chest_count, relic_count,
 ##     collect (item id; taken from the bag when the quest is handed in)
 
 enum Type { MAIN, SUB, DAILY, ACHIEVEMENT }
@@ -44,9 +44,11 @@ func reward_text() -> String:
 	if reward_gold > 0:
 		parts.append("%dG" % reward_gold)
 	for id in reward_items:
-		var item := ItemDB.get_item(StringName(str(id)))
-		if item != null:
-			parts.append("%s x%d" % [item.display_name, int(reward_items[id])])
+		var rid := StringName(str(id))
+		if RelicDB.exists(rid):
+			parts.append(Profile.loot_name(rid))
+		elif ItemDB.exists(rid):
+			parts.append("%s x%d" % [Profile.loot_name(rid), int(reward_items[id])])
 	if reward_pet != &"":
 		var pet := PetDB.get_pet(reward_pet)
 		if pet != null:

@@ -5,7 +5,8 @@ extends Node2D
 ##
 ##   follow -> idle (hero stands still) -> sleep (after SLEEP_AFTER s)
 ## Abilities (PetData.active):
-##   regen    heals the hero every 5 s (amount = hp_regen modifier)
+##   regen    its hp_regen passive heals the hero every 5 s (the tick itself
+##            runs in Player, so relics and jobs with hp_regen work too)
 ##   fireball shoots a small fireball at the nearest monster every 6 s
 ##   magnet   pulls dropped items and heal orbs towards the hero
 
@@ -13,7 +14,6 @@ const FOLLOW_DIST := 26.0
 const FLY_HEIGHT := 36.0
 const SLEEP_AFTER := 8.0
 const TELEPORT_DIST := 260.0
-const REGEN_EVERY := 5.0
 const FIREBALL_EVERY := 6.0
 const FIREBALL_RANGE := 210.0
 const FIREBALL_TEX := preload("res://assets/effects/pets/pet_fireball.png")
@@ -162,14 +162,6 @@ func _run_ability(delta: float) -> void:
 	if player.is_dead:
 		return
 	match data.active:
-		&"regen":
-			_ability_t += delta
-			if _ability_t >= REGEN_EVERY:
-				_ability_t = 0.0
-				var amount := roundi(Profile.mod(&"hp_regen"))
-				if amount > 0 and player.hp < player.max_hp:
-					player.heal(amount)
-					FX.heal_number(player.global_position + Vector2(0, -60), amount)
 		&"fireball":
 			_ability_t += delta
 			if _ability_t >= FIREBALL_EVERY:

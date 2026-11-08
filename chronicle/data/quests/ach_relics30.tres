@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ach_relics30"
+title = "잃어버린 세계의 보물"
+type = 3
+description = "유물 30개를 모두 모았다."
+giver = &""
+objectives = [{"type": "relic_count", "target": "", "count": 30, "text": "유물 30개"}]
+requires = Array[StringName]([])
+requires_facility = &""
+reward_exp = 500
+reward_gold = 1000
+reward_items = {}
+reward_pet = &""
+auto_accept = true
+turn_in = false
+order = 40

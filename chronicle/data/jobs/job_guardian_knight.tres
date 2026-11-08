@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="JobData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/job_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/jobs/guardian_knight.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"guardian_knight"
+display_name = "수호기사"
+description = "누구보다 오래 버티는 방패. 체력과 방어가 크게 오르고 물약과 재생이 강해진다."
+icon = ExtResource("2_icon")
+bonuses = {"max_hp": 60, "defense_pct": 0.08, "hp_regen": 3, "potion_heal": 20}
+suits = "파천대검 · 용아창"
+order = 2

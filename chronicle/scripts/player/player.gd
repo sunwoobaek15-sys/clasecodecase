@@ -24,6 +24,8 @@ const CIRCLE_TEX := preload("res://assets/effects/hero/magic_circle.png")
 const VORTEX_TEX := preload("res://assets/effects/hero/vortex.png")
 const PILLAR_TEX := preload("res://assets/effects/hero/light_pillar.png")
 const ULT_TICKS: Array[float] = [0.42, 0.62, 0.82, 1.02]
+const REGEN_EVERY := 5.0
+const REVIVE_HEAL := 0.4
 
 @export var stats: PlayerStats
 @export var weapon: WeaponData
@@ -37,6 +39,12 @@ var move_axis: float = 0.0
 var combo_hits: int = 0
 var kill_y: float = 100000.0  ## falling below this costs HP and respawns
 var combo_attacks: Array[AttackData] = []
+## Phoenix feather revives left in this stage (Profile modifier "revive").
+var revives_left: int = 0
+
+var _regen_t: float = 0.0
+var _lifesteal_acc: float = 0.0
+var _revive_pending: bool = false
 
 var _buffer: Dictionary = {}
 var _coyote: float = 0.0
@@ -92,6 +100,10 @@ func _ready() -> void:
 	max_hp = stats.max_hp
 	super._ready()
 	mp = stats.max_mp
+	# Relics / job: starting ultimate gauge and revives for this stage.
+	ult = stats.ult_max * clampf(Profile.mod(&"ult_start_pct"), 0.0, 1.0)
+	revives_left = roundi(Profile.mod(&"revive"))
+	Events.enemy_killed.connect(_on_enemy_killed)
 	Profile.changed.connect(refresh_stats)
 	Profile.leveled_up.connect(_on_level_up)
 	if weapon != null:
@@ -220,8 +232,31 @@ func take_hit(hit: HitData) -> bool:
 	var d := Profile.defense()
 	if d > 0.0 and hit.tag != &"fall":
 		hit.damage = maxi(1, roundi(hit.damage * (1.0 - d)))
+	_check_revive(hit)
 	apply_damage(hit)
+	_finish_revive()
 	return true
+
+
+## Phoenix feather: a lethal hit leaves 1 HP instead, then the hero heals
+## REVIVE_HEAL of max HP with a moment of invulnerability.
+func _check_revive(hit: HitData) -> void:
+	if revives_left > 0 and hit.damage >= hp:
+		revives_left -= 1
+		hit.damage = maxi(0, hp - 1)
+		_revive_pending = true
+
+
+func _finish_revive() -> void:
+	if not _revive_pending or is_dead:
+		return
+	_revive_pending = false
+	heal(roundi(max_hp * REVIVE_HEAL))
+	invuln_time = 2.0
+	_blink_time = 2.0
+	FX.burst(PILLAR_TEX, global_position + Vector2(0, -30), 0.7, 0.8, 1.4, true, false, 5)
+	FX.floating_text("부활!", global_position + Vector2(0, -body_height - 20), Color(1.0, 0.6, 0.3), 16)
+	Events.toast.emit("불사조의 깃털이 타올라 다시 일어섰다!")
 
 
 func _buffered(action: StringName) -> bool:
@@ -274,6 +309,7 @@ func _tick_timers(delta: float) -> void:
 	if _skill_cd > 0.0 and weapon and weapon.skill:
 		_skill_cd = maxf(0.0, _skill_cd - delta)
 		Events.player_cooldown_changed.emit(&"skill", _skill_cd, _skill_cd_total)
+	_tick_regen(delta)
 	if not is_dead and mp < stats.max_mp:
 		mp = minf(stats.max_mp, mp + stats.mp_regen * delta)
 		if absf(mp - _last_mp_emit) >= 0.5 or mp >= stats.max_mp:
@@ -289,6 +325,29 @@ func _tick_timers(delta: float) -> void:
 		visual.modulate.a = 0.35 if fmod(_blink_time, 0.12) < 0.06 else 1.0
 		if _blink_time <= 0.0:
 			visual.modulate.a = 1.0
+
+
+## HP regeneration from pets, relics and the job: every REGEN_EVERY seconds.
+func _tick_regen(delta: float) -> void:
+	_regen_t += delta
+	if _regen_t < REGEN_EVERY:
+		return
+	_regen_t = 0.0
+	var amount := roundi(Profile.mod(&"hp_regen"))
+	if amount > 0 and not is_dead and hp < max_hp:
+		heal(amount)
+
+
+## Relics / job: HP and MP when a monster falls.
+func _on_enemy_killed(_enemy: Node) -> void:
+	if is_dead:
+		return
+	var h := roundi(Profile.mod(&"heal_on_kill"))
+	if h > 0 and hp < max_hp:
+		heal(h)
+	var m := Profile.mod(&"mp_on_kill")
+	if m > 0.0:
+		restore_mana(m)
 
 
 func _gravity_enabled() -> bool:
@@ -330,7 +389,9 @@ func fall_out() -> void:
 	invuln_time = 0.0
 	velocity = Vector2.ZERO
 	global_position = _last_safe_pos
+	_check_revive(h)
 	apply_damage(h)
+	_finish_revive()
 	if not is_dead:
 		invuln_time = 1.0
 		_blink_time = 1.0
@@ -892,6 +953,7 @@ func _on_attack_landed(_target: Hurtbox, hit: HitData) -> void:
 		_emit_mp()
 		add_ult(hit.damage * stats.ult_per_damage * Profile.ult_gain_multiplier())
 	Game.add_stat("damage_dealt", hit.damage)
+	_lifesteal(hit.damage)
 	combo_hits += 1
 	_combo_timer = 2.0
 	Events.player_combo_changed.emit(combo_hits)
@@ -901,6 +963,23 @@ func _on_attack_landed(_target: Hurtbox, hit: HitData) -> void:
 	FX.shake(hit.shake, 0.14)
 	FX.spark(hit.position, Color(0.7, 0.86, 1.0), hit.critical)
 	Game.vibrate(12)
+
+
+## Vampire ring: a share of the damage dealt comes back as HP (fractions
+## add up between hits; healed quietly, shown once it is worth a number).
+func _lifesteal(damage: int) -> void:
+	var pct := Profile.mod(&"lifesteal_pct")
+	if pct <= 0.0 or is_dead or hp >= max_hp:
+		return
+	_lifesteal_acc += damage * pct
+	if _lifesteal_acc < 1.0:
+		return
+	var n := int(_lifesteal_acc)
+	_lifesteal_acc -= n
+	hp = mini(max_hp, hp + n)
+	health_changed.emit(hp, max_hp)
+	if n >= 3:
+		FX.heal_number(global_position + Vector2(0, -body_height), n)
 
 
 func _on_hurt(hit: HitData) -> void:

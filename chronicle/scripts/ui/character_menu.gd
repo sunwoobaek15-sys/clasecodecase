@@ -23,6 +23,7 @@ var _selected_id: StringName = &""
 var _selected_slot: StringName = &""
 var _skill_rows: VBoxContainer
 var _sp_label: Label
+var _title: Label
 
 
 func _ready() -> void:
@@ -50,7 +51,8 @@ func _ready() -> void:
 	root.add_theme_constant_override("separation", 4)
 	panel.add_child(root)
 	var header := HBoxContainer.new()
-	header.add_child(UiKit.label("청월의 검사", 22, UiKit.GOLD, true, 4))
+	_title = UiKit.label("청월의 검사", 22, UiKit.GOLD, true, 4)
+	header.add_child(_title)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
@@ -63,7 +65,7 @@ func _ready() -> void:
 	_build_stats_tab()
 	_build_items_tab()
 	_build_skills_tab()
-	for tab in [MenuTabs.PetTab.new(), MenuTabs.QuestTab.new(), MenuTabs.CodexTab.new()]:
+	for tab in [MenuTabs.RelicTab.new(), MenuTabs.PetTab.new(), MenuTabs.QuestTab.new(), MenuTabs.CodexTab.new()]:
 		_tabs.add_child(tab)
 		_extra_tabs.append(tab)
 	Profile.changed.connect(_refresh)
@@ -86,7 +88,7 @@ func close() -> void:
 	closed.emit()
 
 
-## Selects a tab by its title ("상태", "장비·가방", "스킬", "펫", "퀘스트", "도감").
+## Selects a tab by its title ("상태", "장비·가방", "스킬", "유물", "펫", "퀘스트", "도감").
 func show_tab(title: String) -> void:
 	for i in _tabs.get_tab_count():
 		if _tabs.get_tab_title(i) == title:
@@ -110,6 +112,8 @@ func _build_stats_tab() -> void:
 	_exp_bar.show_percentage = false
 	box.add_child(_exp_bar)
 	_stats_label = UiKit.label("", 11)
+	_stats_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_stats_label.custom_minimum_size = Vector2(560, 0)
 	box.add_child(_stats_label)
 	_tabs.add_child(box)
 
@@ -187,6 +191,12 @@ func _refresh_stats() -> void:
 	_stats_label.text = "최대 HP  %d\n최대 MP  %d\n공격력  %d\n받는 피해 감소  %d%%\n치명타 확률  %d%%\n회피 재사용 대기  %.2f초" % [
 		s.max_hp, roundi(s.max_mp), s.attack, roundi(Profile.defense() * 100.0),
 		roundi(s.crit_chance * 100.0), s.dodge_cooldown]
+	var jd := Profile.job_data()
+	_title.text = "청월의 검사" if jd == null else "청월의 검사 · %s" % jd.display_name
+	if jd != null:
+		_stats_label.text += "\n\n직업  %s  (%s)" % [jd.display_name, jd.bonus_text()]
+	_stats_label.text += "\n유물  %d / %d 장착  (모은 유물 %d)" % [Profile.relic_equipped.size(), Profile.relic_slots(),
+			Profile.relics.size()]
 	var pet := Pets.active_pet()
 	if pet != null:
 		_stats_label.text += "\n\n펫  %s Lv.%d  (%s)" % [pet.display_name, Pets.level_of(pet.id), pet.bonus_text(Pets.level_of(pet.id))]

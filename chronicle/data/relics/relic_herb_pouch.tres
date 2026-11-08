@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/herb_pouch.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_herb_pouch"
+display_name = "약초 주머니"
+description = "물약에 섞어 마시면 더 많이 회복되는 약초."
+icon = ExtResource("2_icon")
+rarity = 0
+bonuses = {"potion_heal": 20}
+source = "카이로의 상점 (400G)"
+price = 400
+order = 29

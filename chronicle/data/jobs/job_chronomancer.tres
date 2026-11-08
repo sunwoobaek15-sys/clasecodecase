@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="JobData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/job_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/jobs/chronomancer.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"chronomancer"
+display_name = "시간술사"
+description = "시간의 흐름을 다루는 술사. 스킬 피해가 커지고 재사용 대기가 줄며 처치할 때 MP를 얻는다."
+icon = ExtResource("2_icon")
+bonuses = {"max_mp": 30, "skill_damage_pct": 0.25, "skill_cooldown": 0.5, "mp_on_kill": 4}
+suits = "성운 지팡이 · 청월검"
+order = 3

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/librarian_quill.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_librarian_quill"
+display_name = "학자의 깃펜"
+description = "에델이 아끼던 깃펜. 배운 것을 잊지 않게 해 준다."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"exp_pct": 0.15}
+source = "업적 '살아있는 도감'"
+price = 0
+order = 25

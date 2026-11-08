@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_sub_job"
+title = "새로운 길"
+type = 1
+description = "크로노스를 넘어선 당신에게 세레나가 성소의 시험을 권한다. 레벨 12가 되면 세 가지 길(검성·수호기사·시간술사) 중 하나를 골라 전직하자. 전직하면 유물 칸이 하나 늘어난다."
+giver = &"priest_serena"
+objectives = [{"type": "level", "target": "", "count": 12, "text": "레벨 12 달성"}, {"type": "job", "target": "any", "count": 1, "text": "세레나에게 전직하기"}]
+requires = Array[StringName]([&"q_main_06"])
+requires_facility = &"training"
+reward_exp = 200
+reward_gold = 0
+reward_items = {"relic_time_hourglass": 1}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 21

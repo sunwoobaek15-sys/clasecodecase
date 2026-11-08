@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/pet_bell.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_pet_bell"
+display_name = "펫 방울"
+description = "펫들이 좋아하는 방울. 딸랑거릴 때마다 마음이 놓인다."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"hp_regen": 2}
+source = "업적 '든든한 동료들'"
+price = 0
+order = 24

@@ -21,4 +21,4 @@ poise = 80.0
 heal_drop_chance = 0.0
 exp_reward = 150
 gold_reward = 80
-drops = [{"id": &"item_armor_guardian", "chance": 1.0, "count": 1}, {"id": &"item_ring_time", "chance": 1.0, "count": 1}, {"id": &"item_potion_small", "chance": 1.0, "count": 2}]
+drops = [{"id": &"item_armor_guardian", "chance": 1.0, "count": 1}, {"id": &"item_ring_time", "chance": 1.0, "count": 1}, {"id": &"item_potion_small", "chance": 1.0, "count": 2}, {"id": &"relic_verdan_seed", "chance": 1.0, "count": 1}]

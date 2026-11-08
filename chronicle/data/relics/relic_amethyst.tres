@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/amethyst.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_amethyst"
+display_name = "자수정 조각"
+description = "시간의 결정이 굳어 생긴 보랏빛 조각. 급소가 또렷하게 보인다."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"crit_chance": 0.04}
+source = "잊혀진 숲 · 자수정 슬라임이 가끔 떨어뜨림"
+price = 0
+order = 3

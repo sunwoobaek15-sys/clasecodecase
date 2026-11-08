@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RelicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/relic_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/relics/clock_hand.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"relic_clock_hand"
+display_name = "멈춘 시곗바늘"
+description = "시계탑에서 떨어진 바늘. 쥐고 있으면 기술이 빨리 돌아온다."
+icon = ExtResource("2_icon")
+rarity = 1
+bonuses = {"skill_cooldown": 0.25}
+source = "무너진 시계 도시 · 숨겨진 보물 상자"
+price = 0
+order = 9
