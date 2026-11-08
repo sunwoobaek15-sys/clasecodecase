@@ -143,3 +143,40 @@ func _find_core(st: Node) -> Pickup:
 		if c is Pickup and (c as Pickup).kind == Pickup.Kind.TIME_CORE:
 			return c
 	return null
+
+
+## Regression: on touch screens the ultimate worked only once. The cut-in
+## pauses the game; a finger lifted during the pause was never seen by the
+## touch controls, so the button stayed "held" and ignored the next tap.
+func test_ultimate_twice_with_touch() -> void:
+	var st := _load_stage()
+	await seconds(0.6)
+	var p: Player = st.get("player")
+	var tc := tree().get_first_node_in_group(&"touch_controls")
+	var center: Vector2 = tc.get("buttons")[&"ultimate"]["center"]
+	for round_i in 2:
+		p.add_ult(p.stats.ult_max)
+		await frames(2)
+		_touch(0, center, true)
+		await wait_until(func() -> bool: return p.fsm.current == &"ultimate", 1.0)
+		check_eq(p.fsm.current, &"ultimate", "ultimate #%d starts from the touch button" % (round_i + 1))
+		await wait_until(func() -> bool: return tree().paused, 0.5)
+		_touch(0, center, false)  # finger lifted while the cut-in pauses the game
+		await wait_until(func() -> bool: return not tree().paused and p.fsm.current != &"ultimate", 6.0)
+		check(not bool(tc.get("buttons")[&"ultimate"]["pressed"]), "button released after round %d" % (round_i + 1))
+	# a release that never arrives (e.g. focus loss) does not block the next tap
+	var jump_c: Vector2 = tc.get("buttons")[&"jump"]["center"]
+	_touch(1, jump_c, true)
+	await frames(2)
+	_touch(1, jump_c, true)
+	await frames(2)
+	check(bool(tc.get("buttons")[&"jump"]["pressed"]) and int(tc.get("buttons")[&"jump"]["touch"]) == 1, "stale finger re-bound")
+	_touch(1, jump_c, false)
+
+
+func _touch(index: int, pos: Vector2, pressed: bool) -> void:
+	var ev := InputEventScreenTouch.new()
+	ev.index = index
+	ev.position = pos
+	ev.pressed = pressed
+	tree().root.push_input(ev, true)  # viewport coordinates

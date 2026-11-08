@@ -61,6 +61,10 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_to_group(&"touch_controls")
+	# Keep receiving touches while the game is paused (ultimate cut-in, menus):
+	# a finger lifted during a pause must still release its button, or the
+	# button stays "held" and ignores the next tap (ultimate worked only once).
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	for action in LAYOUT:
 		buttons[action] = {"center": Vector2.ZERO, "radius": 20.0, "pressed": false, "touch": -1,
 				"cooldown": 0.0, "total": 1.0, "enabled": true}
@@ -157,7 +161,12 @@ func _on_cooldown(action: StringName, remaining: float, total: float) -> void:
 
 # ------------------------------------------------------------------ input ---
 func _input(event: InputEvent) -> void:
-	if not is_visible_in_tree() or get_tree().paused:
+	if not is_visible_in_tree():
+		return
+	if get_tree().paused:
+		# paused: only let fingers go (never start an action)
+		if event is InputEventScreenTouch and not (event as InputEventScreenTouch).pressed:
+			_touch_up((event as InputEventScreenTouch).index)
 		return
 	if event is InputEventScreenTouch:
 		var st := event as InputEventScreenTouch
@@ -180,6 +189,10 @@ func _to_local(screen_pos: Vector2) -> Vector2:
 
 ## Returns true if the touch was claimed by a control.
 func _touch_down(index: int, pos: Vector2) -> bool:
+	if _touch_owner.has(index):
+		# we missed this finger's release (e.g. app lost focus): drop the
+		# stale binding before handling the new touch
+		_touch_up(index)
 	var best: StringName = &""
 	var best_d := INF
 	for action in buttons:
