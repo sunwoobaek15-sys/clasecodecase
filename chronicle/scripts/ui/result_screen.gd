@@ -47,7 +47,11 @@ func _on_cleared(stats: Dictionary) -> void:
 	shown = &"clear"
 	_clear()
 	_center(UiKit.label("STAGE CLEAR", 33, UiKit.GOLD, true, 5))
-	_center(UiKit.label("숲의 수호자 베르단을 쓰러뜨리고\n시간의 핵 조각을 되찾았다!", 11, Color(0.85, 1.0, 0.85)))
+	var st := get_tree().get_first_node_in_group(&"stage")
+	var text := "시간의 핵 조각을 되찾았다!"
+	if st != null and st.get(&"data") != null:
+		text = (st.get(&"data") as StageData).clear_text
+	_center(UiKit.label(text, 11, Color(0.85, 1.0, 0.85)))
 	var lines := "플레이 시간  %s\n가한 피해  %d\n최대 콤보  %d HIT\n처치한 적  %d\n쓰러진 횟수  %d" % [
 		UiKit.format_time(float(stats.get("time", 0.0))), int(stats.get("damage_dealt", 0)),
 		int(stats.get("max_combo", 0)), int(stats.get("kills", 0)), int(stats.get("deaths", 0))]

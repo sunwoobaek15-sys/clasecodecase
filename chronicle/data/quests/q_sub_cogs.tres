@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_sub_cogs"
+title = "정밀한 부품"
+type = 1
+description = "브론이 시계 도시의 태엽 부품으로 새 도구를 만들고 싶어 한다. 부품 10개를 모아 오자."
+giver = &"smith_bron"
+objectives = [{"type": "collect", "target": "item_clock_cog", "count": 10, "text": "태엽 부품 모으기"}]
+requires = Array[StringName]([&"q_main_05"])
+requires_facility = &"smithy"
+reward_exp = 0
+reward_gold = 200
+reward_items = {"item_pet_treat": 2}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 15

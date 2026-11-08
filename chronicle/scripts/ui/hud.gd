@@ -72,7 +72,7 @@ func _ready() -> void:
 	toast_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(toast_layer)
 	toast_layer.add_child(_toast_box)
-	_title = UiKit.label("루멘 마을" if Game.location == "village" else "1-1  잊혀진 숲", 22, Color(0.85, 1.0, 0.85), true, 4)
+	_title = UiKit.label("루멘 마을" if Game.location == "village" else Game.stage_title, 22, Color(0.85, 1.0, 0.85), true, 4)
 	_quest_label = UiKit.label("", 11, Color(1.0, 0.93, 0.7))
 	_quest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_quest_label)
@@ -202,6 +202,9 @@ func _on_mp(value: float, maximum: float) -> void:
 
 func _on_boss_phase(p: int) -> void:
 	_boss_phase = p
+	var boss := get_tree().get_first_node_in_group(&"boss")
+	if p == 2 and boss != null and boss.get(&"phase2_art") != null:
+		_show_banner(boss.get(&"phase2_art"), str(boss.get(&"banner_sub")), str(boss.get(&"phase2_name")), "PHASE 2")
 
 
 func _on_boss_defeated(_b: Node) -> void:
@@ -275,18 +278,36 @@ func _build_banner() -> void:
 	_banner.add_child(name2)
 
 
-func _on_boss_intro(_boss: Node) -> void:
+func _on_boss_intro(boss: Node) -> void:
+	_show_banner(boss.get(&"banner_art"), str(boss.get(&"banner_sub")), str(boss.get(&"banner_name")), "WARNING · BOSS")
+	var e := boss as Enemy
+	if e != null and e.stats != null:
+		boss_name = e.stats.display_name
+		_boss_label.text = boss_name
+
+
+func _show_banner(art_tex: Variant, sub: String, title: String, warn_text: String) -> void:
+	var tex: Texture2D = art_tex if art_tex is Texture2D else BOSS_ART
+	var art_rect := _banner.get_node("Art") as TextureRect
+	art_rect.texture = tex
+	art_rect.size = tex.get_size()
+	(_banner.get_node("Sub") as Label).text = sub
+	(_banner.get_node("Name") as Label).text = title
+	(_banner.get_node("Warn") as Label).text = warn_text
 	var vp := get_viewport_rect().size
 	_banner.visible = true
 	_banner.modulate.a = 0.0
 	var art := _banner.get_node("Art") as TextureRect
-	art.position = Vector2(vp.x + 20, 120 - BOSS_ART.get_height() + 10)
+	var art_y := 120.0 - tex.get_height() + 10.0
+	if tex.get_width() > tex.get_height():
+		art_y = 12.0  # wide art (phase banner) sits inside the band
+	art.position = Vector2(vp.x + 20, art_y)
 	(_banner.get_node("Warn") as Label).position = Vector2(vp.x * 0.12, 14)
 	(_banner.get_node("Sub") as Label).position = Vector2(vp.x * 0.12, 40)
 	(_banner.get_node("Name") as Label).position = Vector2(vp.x * 0.12, 56)
 	var t := create_tween()
 	t.tween_property(_banner, "modulate:a", 1.0, 0.25)
-	t.parallel().tween_property(art, "position:x", vp.x - BOSS_ART.get_width() - 30, 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(art, "position:x", vp.x - tex.get_width() - 30, 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	t.tween_interval(1.7)
 	t.tween_property(_banner, "modulate:a", 0.0, 0.4)
 	t.tween_callback(func() -> void: _banner.visible = false)

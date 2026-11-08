@@ -119,8 +119,9 @@ class SmithPanel extends ModalPanel:
 class WorldMapPanel extends ModalPanel:
 	const REGIONS := [
 		{"name": "잊혀진 숲", "sub": "숲의 정령과 고대 나무 베르단", "stage": "forest_1", "stage_name": "1-1 숲의 수호자"},
-		{"name": "무너진 시계 도시", "sub": "시간이 멈춘 도시와 크로노스", "stage": "", "stage_name": "준비 중 (다음 업데이트)"},
-		{"name": "하늘의 폐허", "sub": "구름 위에 떠 있는 옛 신전", "stage": "", "stage_name": "준비 중"},
+		{"name": "무너진 시계 도시", "sub": "시간이 멈춘 도시와 크로노스", "stage": "clock_1", "stage_name": "2-1 시간의 지배자",
+		 "unlock": "q_main_05", "locked": "메인 퀘스트 '다음 여정'을 마치면 열려요", "level": 6},
+		{"name": "하늘의 폐허", "sub": "구름 위에 떠 있는 옛 신전", "stage": "", "stage_name": "준비 중 (Phase 3-3)"},
 	]
 	const COLORS := [Color(0.16, 0.36, 0.24), Color(0.2, 0.24, 0.4), Color(0.34, 0.36, 0.5)]
 
@@ -136,7 +137,7 @@ class WorldMapPanel extends ModalPanel:
 		content.add_child(row)
 		for i in REGIONS.size():
 			var r: Dictionary = REGIONS[i]
-			var open_stage := str(r["stage"]) != ""
+			var open_stage := WorldMapPanel.region_open(r)
 			var card := PanelContainer.new()
 			card.custom_minimum_size = Vector2(176, 210)
 			var sb := StyleBoxFlat.new()
@@ -159,12 +160,29 @@ class WorldMapPanel extends ModalPanel:
 			spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 			col.add_child(spacer)
 			var cleared := open_stage and Profile.cleared_stages.has(str(r["stage"]))
-			col.add_child(UiKit.label(str(r["stage_name"]) + ("  ★클리어" if cleared else ""), 11,
-					Color(0.8, 1.0, 0.8) if cleared else UiKit.TEXT))
+			var status := str(r["stage_name"]) + ("  ★클리어" if cleared else "")
+			if not open_stage and r.has("locked"):
+				status = str(r["locked"])
+			elif open_stage and r.has("level"):
+				status += "\n권장 Lv.%d" % int(r["level"])
+			var st := UiKit.label(status, 11, Color(0.8, 1.0, 0.8) if cleared else UiKit.TEXT)
+			st.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			st.custom_minimum_size = Vector2(156, 0)
+			col.add_child(st)
 			var b := UiKit.button("출발" if open_stage else "잠김", _go.bind(str(r["stage"])), 156)
 			b.disabled = not open_stage
 			col.add_child(b)
 			row.add_child(card)
+
+	## A region with a stage is open when its unlock quest is done (or the
+	## stage was already cleared).
+	static func region_open(r: Dictionary) -> bool:
+		var stage := str(r.get("stage", ""))
+		if stage == "":
+			return false
+		if not r.has("unlock") or Profile.cleared_stages.has(stage):
+			return true
+		return Quests.status(StringName(str(r["unlock"]))) == "done"
 
 	func _go(stage_id: String) -> void:
 		close()

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_stats.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"chronos"
+display_name = "시간의 지배자 크로노스"
+max_hp = 2400
+contact_damage = 8
+attack_damage = 17
+move_speed = 70.0
+chase_speed = 110.0
+aggro_range = 600.0
+lose_range = 2000.0
+attack_range = 60.0
+shot_range = 400.0
+attack_cooldown = 1.0
+knockback_resist = 1.0
+poise = 140.0
+heal_drop_chance = 0.0
+exp_reward = 400
+gold_reward = 200
+drops = [{"id": &"item_chronos_watch", "chance": 1.0, "count": 1}, {"id": &"item_potion_small", "chance": 1.0, "count": 3}, {"id": &"item_ether", "chance": 1.0, "count": 2}]

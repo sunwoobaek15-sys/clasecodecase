@@ -168,8 +168,8 @@ func test_codex_records() -> void:
 	Codex.record_kill(&"forest_slime")
 	check(Codex.is_known(&"forest_slime"), "slime recorded")
 	check_eq(int(Codex.kills[&"forest_slime"]), 2, "kill count")
-	Codex.discover(&"chronos")
-	check(not Codex.is_known(&"chronos"), "future entries cannot be recorded")
+	Codex.discover(&"weapon_greatsword")
+	check(not Codex.is_known(&"weapon_greatsword"), "future entries cannot be recorded")
 	var gold := Profile.gold
 	check_eq(Codex.claim_rewards(), Codex.REWARD_PER_ENTRY, "library reward")
 	check_eq(Profile.gold, gold + Codex.REWARD_PER_ENTRY, "gold paid")

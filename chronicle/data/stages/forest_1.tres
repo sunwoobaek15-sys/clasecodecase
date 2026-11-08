@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/stage_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/forgotten_forest/tiles.png" id="2_tiles"]
+[ext_resource type="Texture2D" path="res://assets/environments/forgotten_forest/bg_sky.png" id="3_sky"]
+[ext_resource type="Texture2D" path="res://assets/environments/forgotten_forest/bg_far.png" id="4_far"]
+[ext_resource type="Texture2D" path="res://assets/environments/forgotten_forest/bg_mid.png" id="5_mid"]
+[ext_resource type="Texture2D" path="res://assets/environments/forgotten_forest/bg_near.png" id="6_near"]
+[ext_resource type="Texture2D" path="res://assets/environments/forgotten_forest/fg_vines.png" id="7_fg"]
+[ext_resource type="Texture2D" path="res://assets/environments/forgotten_forest/arena_wall.png" id="8_wall"]
+[ext_resource type="Texture2D" path="res://assets/bosses/verdan/art/part_bush.png" id="9_bush"]
+[ext_resource type="Texture2D" path="res://assets/bosses/verdan/art/part_rock.png" id="10_rock"]
+[ext_resource type="Texture2D" path="res://assets/bosses/verdan/art/part_rock2.png" id="11_rock2"]
+[ext_resource type="Texture2D" path="res://assets/bosses/verdan/art/part_tree.png" id="12_tree"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/verdan.tscn" id="13_boss"]
+
+[resource]
+script = ExtResource("1_script")
+id = "forest_1"
+title = "1-1  잊혀진 숲"
+region = "잊혀진 숲"
+level_path = "res://data/levels/forest_stage_01.txt"
+tiles = ExtResource("2_tiles")
+bg_sky = ExtResource("3_sky")
+bg_far = ExtResource("4_far")
+bg_mid = ExtResource("5_mid")
+bg_near = ExtResource("6_near")
+foreground = ExtResource("7_fg")
+arena_wall = ExtResource("8_wall")
+props = Array[Texture2D]([ExtResource("9_bush"), ExtResource("10_rock"), ExtResource("11_rock2"), ExtResource("9_bush")])
+tall_prop = ExtResource("12_tree")
+tall_prop_tint = Color(0.72, 0.8, 0.78, 1)
+particles = "forest"
+boss_scene = ExtResource("13_boss")
+clear_text = "숲의 수호자 베르단을 쓰러뜨리고
+시간의 핵 조각을 되찾았다!"
+clockwork_slimes = false

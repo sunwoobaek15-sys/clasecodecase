@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_sub_sentinel"
+title = "파수꾼 정리"
+type = 1
+description = "시계 도시의 톱니 파수꾼 때문에 길이 막혔다. 8대를 부수자."
+giver = &"guard_gareth"
+objectives = [{"type": "kill", "target": "gear_sentinel", "count": 8, "text": "톱니 파수꾼 처치"}]
+requires = Array[StringName]([&"q_main_05"])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 150
+reward_items = {"item_ether": 3}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 16

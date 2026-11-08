@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_stats.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"clockwork_slime_small"
+display_name = "꼬마 태엽 슬라임"
+max_hp = 38
+contact_damage = 7
+attack_damage = 9
+move_speed = 52.0
+chase_speed = 92.0
+aggro_range = 190.0
+lose_range = 320.0
+attack_range = 30.0
+shot_range = 0.0
+attack_cooldown = 1.3
+knockback_resist = 0.0
+poise = 0.0
+heal_drop_chance = 0.3
+exp_reward = 10
+gold_reward = 4
+drops = [{"id": &"item_clock_cog", "chance": 0.3, "count": 1}]

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ach_chronos"
+title = "시간을 되돌린 자"
+type = 3
+description = "시간의 지배자 크로노스를 쓰러뜨렸다."
+giver = &""
+objectives = [{"type": "boss", "target": "chronos", "count": 1, "text": "크로노스 처치"}]
+requires = Array[StringName]([])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 200
+reward_items = {}
+reward_pet = &""
+auto_accept = true
+turn_in = false
+order = 36

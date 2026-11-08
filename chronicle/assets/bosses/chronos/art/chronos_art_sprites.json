@@ -1,0 +1,144 @@
+{
+ "name": "chronos_art",
+ "source_sheet": "art_source/original/06_boss_chronos.png",
+ "kind": "art",
+ "scale": 0.4,
+ "atlas": "res://assets/bosses/chronos/art/chronos_art_atlas.png",
+ "cell": [
+  201,
+  255
+ ],
+ "anchor": [
+  100,
+  254
+ ],
+ "frames": {
+  "full_art": {
+   "region": [
+    0,
+    0,
+    201,
+    255
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    0,
+    0,
+    506,
+    634
+   ]
+  },
+  "portrait": {
+   "region": [
+    430,
+    0,
+    89,
+    89
+   ],
+   "offset": [
+    55,
+    166
+   ],
+   "source_box": [
+    8,
+    782,
+    231,
+    1005
+   ]
+  },
+  "phase2_art": {
+   "region": [
+    203,
+    0,
+    173,
+    94
+   ],
+   "offset": [
+    14,
+    161
+   ],
+   "source_box": [
+    447,
+    776,
+    878,
+    1010
+   ]
+  },
+  "broken_clock": {
+   "region": [
+    521,
+    0,
+    60,
+    76
+   ],
+   "offset": [
+    70,
+    179
+   ],
+   "source_box": [
+    1174,
+    813,
+    1328,
+    1006
+   ]
+  },
+  "pocket_watch": {
+   "region": [
+    378,
+    0,
+    50,
+    89
+   ],
+   "offset": [
+    75,
+    166
+   ],
+   "source_box": [
+    1046,
+    785,
+    1174,
+    1011
+   ]
+  }
+ },
+ "animations": {
+  "full_art": {
+   "frames": [
+    "full_art"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "portrait": {
+   "frames": [
+    "portrait"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "phase2_art": {
+   "frames": [
+    "phase2_art"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "broken_clock": {
+   "frames": [
+    "broken_clock"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "pocket_watch": {
+   "frames": [
+    "pocket_watch"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

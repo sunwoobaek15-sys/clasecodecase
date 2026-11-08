@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/stage_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/tiles.png" id="2_tiles"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/bg_sky.png" id="3_sky"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/bg_far.png" id="4_far"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/bg_mid.png" id="5_mid"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/bg_near.png" id="6_near"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/fg_chains.png" id="7_fg"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/arena_wall.png" id="8_wall"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/gear_small.png" id="9_gear"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/pipe.png" id="10_pipe"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/gear_big.png" id="11_gear_big"]
+[ext_resource type="Texture2D" path="res://assets/environments/clock_city/clock_pole.png" id="12_pole"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/chronos.tscn" id="13_boss"]
+
+[resource]
+script = ExtResource("1_script")
+id = "clock_1"
+title = "2-1  무너진 시계 도시"
+region = "무너진 시계 도시"
+level_path = "res://data/levels/clock_stage_01.txt"
+tiles = ExtResource("2_tiles")
+bg_sky = ExtResource("3_sky")
+bg_far = ExtResource("4_far")
+bg_mid = ExtResource("5_mid")
+bg_near = ExtResource("6_near")
+foreground = ExtResource("7_fg")
+arena_wall = ExtResource("8_wall")
+props = Array[Texture2D]([ExtResource("9_gear"), ExtResource("10_pipe"), ExtResource("11_gear_big"), ExtResource("9_gear")])
+tall_prop = ExtResource("12_pole")
+tall_prop_tint = Color(0.9, 0.9, 1, 1)
+particles = "clock"
+boss_scene = ExtResource("13_boss")
+clear_text = "시간의 지배자 크로노스를 쓰러뜨리고
+두 번째 시간의 핵 조각을 되찾았다!"
+clockwork_slimes = true

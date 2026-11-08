@@ -1,0 +1,163 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/effects/chronos/chronos_fx_atlas.png" id="1_ny0go"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3h8fa"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(194, 0, 78, 74)
+margin = Rect2(14, 18, 28, 37)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xq5cx"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(343, 0, 88, 69)
+margin = Rect2(9, 20, 18, 42)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uup75"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(274, 0, 67, 74)
+margin = Rect2(20, 18, 39, 37)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iq37h"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(583, 0, 45, 58)
+margin = Rect2(31, 26, 61, 53)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5wnlt"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(433, 0, 67, 66)
+margin = Rect2(19, 22, 39, 45)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_heo5l"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(630, 0, 44, 49)
+margin = Rect2(31, 30, 62, 62)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b44dx"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(676, 0, 25, 47)
+margin = Rect2(41, 31, 81, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lgkoq"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(86, 0, 106, 104)
+margin = Rect2(0, 3, 0, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wv8ry"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(703, 0, 1, 1)
+margin = Rect2(53, 55, 105, 110)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4l1nn"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(502, 0, 79, 66)
+margin = Rect2(13, 22, 27, 45)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_om40f"]
+atlas = ExtResource("1_ny0go")
+region = Rect2(0, 0, 84, 111)
+margin = Rect2(11, 0, 22, 0)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3h8fa")
+}],
+"loop": 0,
+"name": &"clock_burst",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xq5cx")
+}],
+"loop": 0,
+"name": &"clock_burst2",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uup75")
+}],
+"loop": 0,
+"name": &"clock_face",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iq37h")
+}],
+"loop": 0,
+"name": &"crescent",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5wnlt")
+}],
+"loop": 0,
+"name": &"crystal_spikes",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_heo5l")
+}],
+"loop": 0,
+"name": &"gear_watch",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b44dx")
+}],
+"loop": 0,
+"name": &"hourglass",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lgkoq")
+}],
+"loop": 0,
+"name": &"purple_burst",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wv8ry")
+}],
+"loop": 0,
+"name": &"shatter",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4l1nn")
+}],
+"loop": 0,
+"name": &"star_burst",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_om40f")
+}],
+"loop": 0,
+"name": &"time_pillar",
+"speed": 1.0
+}]
+metadata/anchor = Vector2(53, 55)
+metadata/cell = Vector2(106, 111)
+metadata/source_sheet = "art_source/original/06_boss_chronos.png"

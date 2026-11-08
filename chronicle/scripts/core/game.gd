@@ -12,7 +12,7 @@ const TITLE_SCENE := "res://scenes/boot/title.tscn"
 const STAGE_SCENE := "res://scenes/world/forest_stage.tscn"
 const VILLAGE_SCENE := "res://scenes/village/village.tscn"
 ## Stage id -> scene. Regions 2 and 3 are listed on the world map as locked.
-const STAGES := {"forest_1": STAGE_SCENE}
+const STAGES := {"forest_1": STAGE_SCENE, "clock_1": "res://scenes/world/clock_stage.tscn"}
 
 ## Keyboard bindings (physical keys) for desktop testing.
 const KEY_BINDINGS := {
@@ -57,6 +57,7 @@ const DEFAULT_SETTINGS := {
 var settings: Dictionary = DEFAULT_SETTINGS.duplicate()
 var checkpoint_id: int = -1   # -1 = stage start
 var current_stage_id: String = "forest_1"
+var stage_title: String = ""
 var location: String = "stage"   # "stage" or "village" (where Continue starts)
 var run: Dictionary = {}
 var bot_mode := false

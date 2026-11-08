@@ -251,7 +251,7 @@ func _on_enemy_killed(enemy: Node) -> void:
 	var e := enemy as Enemy
 	if e == null or e.stats == null:
 		return
-	notify(&"boss" if e is Verdan else &"kill", str(e.stats.id))
+	notify(&"boss" if e.is_in_group(&"boss") else &"kill", str(e.stats.id))
 
 
 func queue_refresh() -> void:

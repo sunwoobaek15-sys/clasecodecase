@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_main_06"
+title = "멈춰버린 시계탑"
+type = 0
+description = "무너진 시계 도시의 시계탑에 시간의 지배자 크로노스가 있다. 그를 쓰러뜨리고 두 번째 핵 조각을 찾자."
+giver = &"traveler_shade"
+objectives = [{"type": "boss", "target": "chronos", "count": 1, "text": "크로노스 처치"}]
+requires = Array[StringName]([&"q_main_05"])
+requires_facility = &""
+reward_exp = 200
+reward_gold = 200
+reward_items = {}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 6

@@ -10,6 +10,8 @@ extends Node
 ## world map). It exits with code 0 when all of that worked, 1 on failure.
 ##
 ## Options:  --screenshots=DIR  save key frames (needs a renderer, not --headless)
+##           --stage=clock_1   start a mid-game hero (Lv.7, forest gear) directly
+##                             in stage 2-1 and finish when Chronos is beaten
 ##           --timeout=SECONDS  give up after this much game time (default 900)
 
 const BUTTONS: Array[StringName] = [&"jump", &"attack", &"dodge", &"skill", &"ultimate"]
@@ -38,6 +40,7 @@ var _result_t: float = 0.0
 var _menu_shots_done: bool = false
 var _menu_busy: bool = false
 var _tour_started: bool = false
+var _started: bool = false
 
 
 func _ready() -> void:
@@ -46,7 +49,7 @@ func _ready() -> void:
 	Events.player_died.connect(_on_player_died)
 	Events.boss_started.connect(func(_b: Node) -> void: _log("boss fight started"))
 	Events.boss_phase_changed.connect(_on_phase)
-	Events.boss_defeated.connect(func(_b: Node) -> void: _log("Verdan defeated"))
+	Events.boss_defeated.connect(func(b: Node) -> void: _log("%s defeated" % b.name))
 	Events.checkpoint_reached.connect(func(_i: int) -> void: _log("checkpoint reached"))
 	Events.stage_cleared.connect(func(_s: Dictionary) -> void: _log("stage cleared"))
 	Events.ultimate_cutin_requested.connect(_on_ultimate)
@@ -77,7 +80,7 @@ func _on_player_died() -> void:
 func _on_phase(p: int) -> void:
 	if p == 2:
 		_boss_seen_phase2 = true
-		_log("Verdan phase 2")
+		_log("boss phase 2")
 		_shot_later("09_boss_phase2", 1.0)
 
 
@@ -169,10 +172,17 @@ func _physics_process(delta: float) -> void:
 	if scene.name == "Title":
 		if _scene_t > 1.5:
 			_shot("01_title")
-		if _scene_t > 2.5:
-			_log("title -> 게임 시작")
-			Game.new_game()
-	elif scene.name == "ForestStage":
+		if _scene_t > 2.5 and not _started:
+			_started = true
+			var direct := str(Game.cmd_options.get("stage", ""))
+			if direct != "":
+				_log("title -> %s (mid-game hero)" % direct)
+				_prepare_mid_game_hero()
+				Game.start_stage(direct)
+			else:
+				_log("title -> 게임 시작")
+				Game.new_game()
+	elif scene.is_in_group(&"stage"):
 		_play(scene, real)
 	elif scene.name == "VillageScene" and not _tour_started and _scene_t > 1.0:
 		_tour_started = true
@@ -188,6 +198,10 @@ func _play(stage: Node, delta: float) -> void:
 			return
 		if rs.get("shown") == &"clear":
 			_shot("10_stage_clear")
+			if (_shots.has("10_stage_clear") or Game.screenshot_dir == "" or DisplayServer.get_name() == "headless") \
+					and _result_t > 1.4 and Game.current_stage_id != "forest_1":
+				_finish(true, "%s cleared" % Game.current_stage_id)
+				return
 			if (_shots.has("10_stage_clear") or Game.screenshot_dir == "" or DisplayServer.get_name() == "headless") \
 					and _result_t > 1.4:
 				_log("result -> 마을로 가기")
@@ -224,11 +238,11 @@ func _play(stage: Node, delta: float) -> void:
 	if _hooked_player != p:
 		_hooked_player = p
 		p.hurt.connect(_on_player_hurt)
-	var boss := stage.get("boss") as Verdan
+	var boss := stage.get("boss") as Enemy
 	_diag_t += delta
-	if _diag_t > 5.0 and boss != null and is_instance_valid(boss) and boss.is_active():
+	if _diag_t > 5.0 and _boss_active(boss):
 		_diag_t = 0.0
-		_log("diag boss=%s hp=%d ph=%d bx=%.0f | p=%s px=%.0f py=%.0f hp=%d floor=%s | evade=%.2f" % [boss.fsm.current, boss.hp, boss.phase, boss.global_position.x, p.fsm.current, p.global_position.x, p.global_position.y, p.hp, str(p.is_on_floor()), _evade_time])
+		_log("diag boss=%s hp=%d ph=%d bx=%.0f | p=%s px=%.0f py=%.0f hp=%d floor=%s | evade=%.2f" % [boss.fsm.current, boss.hp, int(boss.get(&"phase")), boss.global_position.x, p.fsm.current, p.global_position.x, p.global_position.y, p.hp, str(p.is_on_floor()), _evade_time])
 	if _threats(p, stage):
 		return
 	var core := _time_core(stage)
@@ -244,8 +258,12 @@ func _play(stage: Node, delta: float) -> void:
 		_axis(signf(cdx) if absf(cdx) > 4.0 else 0.0)
 		return
 	var target: Node2D = null
-	if boss != null and is_instance_valid(boss) and boss.is_active():
+	if _boss_active(boss):
 		target = boss
+		if boss.has_method(&"afterimage"):
+			var img := boss.call(&"afterimage") as Node2D
+			if img != null and float(img.call(&"remaining")) > 0.6:
+				target = img
 	else:
 		target = _nearest_enemy(p)
 	if target != null:
@@ -422,6 +440,8 @@ func _threats(p: Player, stage: Node) -> bool:
 	var px := p.global_position.x
 	var danger_dirs: Array[float] = []
 	var must_jump := false
+	if _clock_threats(p, stage):
+		return true
 	for n in _effects(stage):
 		if n is RootWave:
 			var w := n as RootWave
@@ -463,6 +483,63 @@ func _threats(p: Player, stage: Node) -> bool:
 	return false
 
 
+## Chronos and the clock city: dodge the closing time-stop ring at the last
+## moment, dodge gear volleys and the staff dash, jump over saw gears.
+func _clock_threats(p: Player, stage: Node) -> bool:
+	var boss := stage.get("boss") as Enemy
+	var px := p.global_position.x
+	var dodge_ready := _dodge_cooldown <= 0.0 and p.is_on_floor()
+	for n in _effects(stage):
+		if n is ChronosParts.TimeStopRing:
+			var ring := n as ChronosParts.TimeStopRing
+			var left := ring.duration * (1.0 - ring.progress())
+			if left < 0.14 and _dodge_cooldown <= 0.0:
+				_dodge_cooldown = 0.5
+				_axis(-signf(boss.global_position.x - p.global_position.x) if boss else 1.0)
+				_tap(&"dodge")
+				_shot("11_time_stop")
+				return true
+			if left < 0.6:
+				_axis(0.0)
+				_release(&"attack")
+				return true
+		elif n is Projectile and boss != null and (n as Projectile).source == boss:
+			var pr := n as Projectile
+			var to := p.global_position + Vector2(0, -20) - pr.global_position
+			if to.length() < 64.0 and pr.velocity.dot(to) > 0.0:
+				if dodge_ready:
+					_dodge_cooldown = 0.5
+					_axis(signf(pr.velocity.x))
+					_tap(&"dodge")
+					return true
+				elif p.is_on_floor() and _jump_cooldown <= 0.0:
+					_jump_cooldown = 0.5
+					_press(&"jump")
+					_release_later_jump()
+					return true
+		elif n is Telegraph and (n as Telegraph).shape == Telegraph.Shape.LINE and boss is Chronos:
+			var t := n as Telegraph
+			var rel := (px - t.global_position.x) * t.direction
+			if rel > -10.0 and rel < t.length + 20.0 and t.progress() > 0.82 and dodge_ready:
+				_dodge_cooldown = 0.5
+				_axis(-float(t.direction))
+				_tap(&"dodge")
+				return true
+	for h in get_tree().get_nodes_in_group(&"hazards"):
+		var saw := h as SawHazard
+		if saw == null:
+			continue
+		var bp := saw.blade_position()
+		var ddx := bp.x - px
+		if absf(bp.y - p.global_position.y) < 30.0 and absf(ddx) < 40.0 and p.is_on_floor() and _jump_cooldown <= 0.0:
+			_jump_cooldown = 0.6
+			_axis(signf(ddx) if absf(ddx) > 4.0 else 1.0)
+			_press(&"jump")
+			_release_later_jump()
+			return true
+	return false
+
+
 func _release_later_jump() -> void:
 	for i in 18:
 		await get_tree().physics_frame
@@ -493,10 +570,35 @@ func _nearest_loot(p: Player, stage: Node) -> Node2D:
 	return best
 
 
+func _boss_active(boss: Enemy) -> bool:
+	return boss != null and is_instance_valid(boss) and bool(boss.call(&"is_active"))
+
+
+## A mid-game hero for testing stage 2-1 directly (about what three forest
+## runs and the first village quests give).
+func _prepare_mid_game_hero() -> void:
+	Game.reset_progress(true)
+	Village.arrived = true
+	Profile.add_exp(30 + 55 + 80 + 105 + 130 + 155)
+	for id in [&"item_sword_forest", &"item_armor_guardian", &"item_ring_time"]:
+		Profile.inventory.add(id, 1)
+		Profile.equip(id)
+	Profile.inventory.add(Profile.POTION_ID, 5)
+	for node in [&"node_combo_mastery", &"node_combo_mastery", &"node_time_blessing", &"node_crescent_mastery", &"node_wind_step", &"node_time_blessing"]:
+		Profile.upgrade_skill(node)
+	Pets.grant(&"spirit_slime")
+
+
 func _nearest_enemy(p: Player) -> Node2D:
 	var best: Node2D = null
 	var best_d := 230.0
 	for e in get_tree().get_nodes_in_group(&"enemies"):
+		if e is GearSentinel and not (e as Enemy).is_dead:
+			var d2 := (e as Node2D).global_position - p.global_position
+			if absf(d2.x) < best_d and absf(d2.y) < 120.0:
+				best_d = absf(d2.x) + 10.0
+				best = e
+			continue
 		if e is Slime and not (e as Slime).is_dead:
 			var d := (e as Node2D).global_position - p.global_position
 			if absf(d.y) > 70.0:
@@ -512,14 +614,23 @@ func _fight(p: Player, target: Node2D, _delta: float) -> void:
 	var dx := target.global_position.x - p.global_position.x
 	var dist := absf(dx)
 	var dir := signf(dx) if dx != 0.0 else 1.0
-	var is_boss := target is Verdan
+	var is_boss := target.is_in_group(&"boss")
 	var near := 30.0 if not is_boss else 52.0
 	var far := 50.0 if not is_boss else 70.0
+	if target is GearSentinel:
+		_fight_sentinel(p, target as GearSentinel, dx, dir)
+		return
+	if target.is_in_group(&"afterimage"):
+		near = 0.0
+		far = 34.0
 	if is_boss:
-		var v := target as Verdan
-		if v.fsm.current in [&"tree_throw", &"forest_wrath", &"phase_shift"]:
+		var v := target as Enemy
+		if v.fsm.current in [&"tree_throw", &"forest_wrath", &"phase_shift", &"time_burst", &"gear_shot"]:
 			far = 80.0
 			near = 64.0
+		if target is Chronos:
+			near = 40.0
+			far = 58.0
 		_shot("07_boss_fight")
 		if p.ult_ready() and dist < 130.0:
 			_tap(&"ultimate")
@@ -553,6 +664,27 @@ func _fight(p: Player, target: Node2D, _delta: float) -> void:
 		_press(&"attack")
 	elif _attack_phase == 2:
 		_release(&"attack")
+
+
+## Gear sentinels hover above the ground: get under them and jump-attack.
+func _fight_sentinel(p: Player, gs: GearSentinel, dx: float, dir: float) -> void:
+	var dist := absf(dx)
+	if dist > 26.0:
+		_axis(dir)
+		_release(&"attack")
+		_jump_if_blocked(p, dir)
+		return
+	_axis(dir * 0.3)
+	if p.is_on_floor() and _jump_cooldown <= 0.0 and gs.global_position.y < p.global_position.y - 30.0:
+		_jump_cooldown = 0.7
+		_press(&"jump")
+		_release_later_jump()
+	if not p.is_on_floor():
+		_attack_phase = (_attack_phase + 1) % 6
+		if _attack_phase == 0:
+			_press(&"attack")
+		elif _attack_phase == 2:
+			_release(&"attack")
 
 
 func _jump_if_blocked(p: Player, dir: float) -> void:

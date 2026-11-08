@@ -3,10 +3,9 @@
 Android용 가로 화면 픽셀 아트 액션 RPG (Godot 4 · GDScript).
 시간의 핵이 부서져 떠다니는 섬들로 갈라진 세계에서, 기억을 잃은 검사가 핵 조각을 모읍니다.
 
-**현재 상태: Phase 3-1 (마을·NPC·퀘스트·마을 복구·펫·도감) 완료** — 스테이지 1-1을 깨면 허브 마을 '루멘'으로
-이어집니다. NPC 8명과 대화하고, 퀘스트를 받고, 무너진 시설 6곳을 되살리고, 펫 5종과 함께 다닐 수 있습니다.
-월드맵의 지역 2·3(시계 도시, 하늘의 폐허)은 다음 단계(3-2, 3-3)에서 열립니다.
-상세: [Phase 3-1](docs/PHASE3_REPORT.md) · [Phase 2](docs/PHASE2_REPORT.md) · [Phase 1](docs/PHASE1_REPORT.md)
+**현재 상태: Phase 3-2 완료** — 지역 1 '잊혀진 숲'(보스 베르단), 허브 마을 '루멘'(NPC·퀘스트·재건·펫·도감),
+지역 2 '무너진 시계 도시'(보스 크로노스, 2페이즈)까지 플레이할 수 있습니다. 지역 3 '하늘의 폐허'는 다음 단계(3-3)입니다.
+상세: [Phase 3-2](docs/PHASE3_2_REPORT.md) · [Phase 3-1](docs/PHASE3_REPORT.md) · [Phase 2](docs/PHASE2_REPORT.md) · [Phase 1](docs/PHASE1_REPORT.md)
 
 <p>
 <img src="docs/screenshots/01_title.png" width="400" alt="타이틀">
@@ -19,6 +18,8 @@ Android용 가로 화면 픽셀 아트 액션 RPG (Godot 4 · GDScript).
 <img src="docs/screenshots/13_dialogue.png" width="400" alt="NPC 대화">
 <img src="docs/screenshots/15_restore.png" width="400" alt="마을 재건">
 <img src="docs/screenshots/18_menu_pets.png" width="400" alt="펫 화면">
+<img src="docs/screenshots/24_chronos_intro.png" width="400" alt="크로노스 등장">
+<img src="docs/screenshots/26_time_frozen.png" width="400" alt="시간 정지">
 </p>
 
 ## 실행
@@ -48,6 +49,13 @@ PC에서는 마우스 클릭이 터치로 처리되어 화면의 터치 버튼�
 브랜치를 고르고 `/ (root)`로 배포하면 폰 브라우저에서 `https://<계정>.github.io/<저장소>/chronicle/web/` 주소로 바로 플레이할 수 있습니다.
 (첫 로딩에 수십 초, 가로 화면 권장.) 다시 만들기: `godot --headless --path . --export-release Web web/index.html`
 (웹 내보내기 템플릿 필요). 터치·화면 배치만 확인하는 용도이며 Android 실기기 성능 검증은 아닙니다.
+
+## Phase 3-2 구현 내용 (지역 2 · 크로노스)
+
+- **스테이지 2-1 '무너진 시계 도시'**: 메인 퀘스트 '다음 여정'을 마치면 월드맵에서 열립니다. 레일 위를 오가는 회전 톱니 함정, 철제 들보 발판, 구덩이.
+- **새 몬스터**: 태엽 슬라임(+소형), 공중에서 톱니를 쏘는 톱니 파수꾼. 새 재료 태엽 부품.
+- **보스 크로노스**: 지팡이 돌진, 시계 톱니 발사, **시간 정지**(좁혀지는 시계 고리가 닫힐 때 회피 못 하면 멈춤), **시간 역행**(잔상을 치지 않으면 되돌아가 회복), **푸른 시간 폭발**. HP 50%에서 보라색 2페이즈(배너·이펙트·속도·탄 수 변경).
+- **구조**: 스테이지를 데이터(`data/stages/*.tres`) 기반으로 일반화. 지역 퀘스트 4개, 도감 4종, 고유 장신구 '크로노스의 회중시계'.
 
 ## Phase 3-1 구현 내용 (마을·NPC·퀘스트·복구·펫·도감)
 
@@ -95,7 +103,7 @@ chronicle/
 ├── assets/   characters/ enemies/ bosses/ npcs/ pets/ effects/ environments/ ui/ (weapons/ audio/: 다음 단계)
 ├── data/     items/ skills/(tree/) enemies/ player/ levels/ quests/ pets/ npcs/ village/
 ├── tests/    자동 테스트 (test_*.gd)
-├── docs/     ASSET_ANALYSIS.md, PHASE1_REPORT.md, PHASE2_REPORT.md, PHASE3_REPORT.md, screenshots/
+├── docs/     ASSET_ANALYSIS.md, PHASE1~3 보고서 (PHASE3_2_REPORT.md 포함), screenshots/
 ├── tools/    에셋 파이프라인 (Python + Godot 스크립트)
 └── art_source/  original/ (첨부 원본, 수정 금지) cleaned/ preview/
 ```
@@ -113,6 +121,7 @@ python3 tools/clean_sheets.py        # 1. 라벨·가짜 배경 제거 → art_s
 python3 tools/build_sprites.py       # 2. 프레임 추출·축소·팔레트·외곽선·정렬 → assets/**/_atlas.png + _sprites.json
 python3 tools/build_environment.py   # 3. 타일·배경·소품·UI 아이콘 (절차 생성)
 python3 tools/build_village.py       #    마을 건물·땅·배경 (절차 생성)
+python3 tools/build_clock_city.py    #    시계 도시 타일·배경·함정·톱니 파수꾼, 태엽 슬라임 색 변환
 python3 tools/build_npc_variants.py  #    경비병(시트에 없음) = 주인공형 NPC 색 변형
 godot --headless --path . --import
 godot --headless --path . -s res://tools/build_sprite_frames.gd   # 4. JSON → SpriteFrames(.tres)
@@ -121,11 +130,14 @@ godot --headless --path . -s res://tools/build_sprite_frames.gd   # 4. JSON → 
 ## 테스트
 
 ```bash
-# 자동 테스트 (75개)
+# 자동 테스트 (83개)
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn
 
 # 자동 플레이 봇: 타이틀 → 1-1 클리어 → 마을(대화·복구·상점·메뉴·월드맵)까지 진행 (성공 시 종료 코드 0)
 godot --headless --path . --fixed-fps 60 -- --bot
+
+# 시계 도시만: Lv7 중반 영웅으로 2-1을 바로 시작해 크로노스를 쓰러뜨림
+godot --headless --path . --fixed-fps 60 -- --bot --stage=clock_1
 
 # 화면 캡처 포함 (렌더러 필요, 리눅스 서버에서는 xvfb-run)
 godot --path . --fixed-fps 60 -- --bot --screenshots=/tmp/shots

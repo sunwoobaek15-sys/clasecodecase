@@ -1,14 +1,12 @@
 extends Node2D
-## Stage 1-1 '잊혀진 숲' (Forgotten Forest).
-## Builds the level from data/levels/forest_stage_01.txt, spawns the player,
-## slimes, signs, checkpoint and Verdan, runs the boss arena and the
-## stage-clear / game-over flow. All UI is added as separate scenes.
+## Generic side-scrolling stage, built from a StageData resource
+## (res://data/stages/*.tres): level map -> tiles, backgrounds, props,
+## enemies, signs, checkpoint, boss arena, stage clear / game over.
+## 1-1 '잊혀진 숲' and 2-1 '무너진 시계 도시' use this same script.
 
-const LEVEL_PATH := "res://data/levels/forest_stage_01.txt"
-const TILES_TEX := preload("res://assets/environments/forgotten_forest/tiles.png")
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const SLIME_SCENE := preload("res://scenes/enemies/slime.tscn")
-const VERDAN_SCENE := preload("res://scenes/bosses/verdan.tscn")
+const SENTINEL_SCENE := preload("res://scenes/enemies/gear_sentinel.tscn")
 const TIME_CORE_SCENE := preload("res://scenes/world/time_core.tscn")
 const HUD_SCENE := preload("res://scenes/ui/hud.tscn")
 const CONTROLS_SCENE := preload("res://scenes/ui/touch_controls.tscn")
@@ -16,25 +14,15 @@ const PAUSE_SCENE := preload("res://scenes/ui/pause_menu.tscn")
 const RESULT_SCENE := preload("res://scenes/ui/result_screen.tscn")
 const CUTIN_SCENE := preload("res://scenes/ui/ultimate_cutin.tscn")
 const CHARACTER_MENU_SCENE := preload("res://scenes/ui/character_menu.tscn")
-const WALL_TEX := preload("res://assets/environments/forgotten_forest/arena_wall.png")
 const FIREFLY_TEX := preload("res://assets/environments/forgotten_forest/firefly.png")
 const LEAF_TEX := preload("res://assets/environments/forgotten_forest/leaf.png")
-const BG_SKY := preload("res://assets/environments/forgotten_forest/bg_sky.png")
-const BG_FAR := preload("res://assets/environments/forgotten_forest/bg_far.png")
-const BG_MID := preload("res://assets/environments/forgotten_forest/bg_mid.png")
-const BG_NEAR := preload("res://assets/environments/forgotten_forest/bg_near.png")
-const FG_VINES := preload("res://assets/environments/forgotten_forest/fg_vines.png")
-const PROP_TEXTURES: Array[Texture2D] = [
-	preload("res://assets/bosses/verdan/art/part_bush.png"),
-	preload("res://assets/bosses/verdan/art/part_rock.png"),
-	preload("res://assets/bosses/verdan/art/part_rock2.png"),
-	preload("res://assets/bosses/verdan/art/part_bush.png"),
-]
-const TREE_TEX := preload("res://assets/bosses/verdan/art/part_tree.png")
+const SHARD_ID := &"item_time_shard"
+
+@export var data: StageData
 
 var level: LevelBuilder
 var player: Player
-var boss: Verdan
+var boss: Enemy
 var arena_left: float = 0.0
 var arena_right: float = 0.0
 var ground_y: float = 320.0
@@ -55,10 +43,12 @@ var _particles: Array[CPUParticles2D] = []
 
 
 func _ready() -> void:
+	add_to_group(&"stage")
+	Game.stage_title = data.title
 	FX.effects_parent = effects
 	FX.reset_time()
-	level = LevelBuilder.load_map(LEVEL_PATH)
-	var ts := LevelBuilder.build_tileset(TILES_TEX)
+	level = LevelBuilder.load_map(data.level_path)
+	var ts := LevelBuilder.build_tileset(data.tiles)
 	ground.tile_set = ts
 	decor.tile_set = ts
 	level.paint(ground, decor)
@@ -96,12 +86,13 @@ func _add_strip(parent: Node, tex: Texture2D, factor: Vector2, world_y: float, z
 
 
 func _build_background() -> void:
-	_add_strip(background, BG_SKY, Vector2(0.04, 0.0), 0.0, 0)
-	_add_strip(background, BG_FAR, Vector2(0.18, 1.0), ground_y + 30.0 - 360.0, 1)
-	_add_strip(background, BG_MID, Vector2(0.42, 1.0), ground_y + 40.0 - 360.0, 2)
-	_add_strip(background, BG_NEAR, Vector2(0.68, 1.0), ground_y + 24.0 - 360.0, 3)
-	var fg := _add_strip(foreground, FG_VINES, Vector2(1.12, 0.0), 0.0, 0)
-	fg.modulate = Color(1, 1, 1, 0.92)
+	_add_strip(background, data.bg_sky, Vector2(0.04, 0.0), 0.0, 0)
+	_add_strip(background, data.bg_far, Vector2(0.18, 1.0), ground_y + 30.0 - 360.0, 1)
+	_add_strip(background, data.bg_mid, Vector2(0.42, 1.0), ground_y + 40.0 - 360.0, 2)
+	_add_strip(background, data.bg_near, Vector2(0.68, 1.0), ground_y + 24.0 - 360.0, 3)
+	if data.foreground != null:
+		var fg := _add_strip(foreground, data.foreground, Vector2(1.12, 0.0), 0.0, 0)
+		fg.modulate = Color(1, 1, 1, 0.92)
 
 
 func _build_props() -> void:
@@ -116,15 +107,15 @@ func _build_props() -> void:
 				continue
 			used[x] = true
 			var spr := Sprite2D.new()
-			var tree := rng.randf() < 0.22
-			spr.texture = TREE_TEX if tree else PROP_TEXTURES[rng.randi_range(0, PROP_TEXTURES.size() - 1)]
+			var tree := rng.randf() < 0.22 and data.tall_prop != null
+			spr.texture = data.tall_prop if tree else data.props[rng.randi_range(0, data.props.size() - 1)]
 			spr.centered = false
 			spr.offset = Vector2(-spr.texture.get_width() / 2.0, -spr.texture.get_height() + 2.0)
 			spr.position = Vector2(x * LevelBuilder.TILE + 8, y * LevelBuilder.TILE)
 			spr.flip_h = rng.randf() < 0.5
 			spr.z_index = -2 if tree else -1
 			if tree:
-				spr.modulate = Color(0.72, 0.8, 0.78)
+				spr.modulate = data.tall_prop_tint
 			props.add_child(spr)
 			break
 
@@ -147,14 +138,25 @@ func _spawn_actors() -> void:
 					continue
 				var slime := SLIME_SCENE.instantiate() as Slime
 				slime.variant = Slime.Variant.SMALL if c == "s" else (Slime.Variant.ELITE if c == "e" else Slime.Variant.NORMAL)
+				slime.clockwork = data.clockwork_slimes
 				slime.position = pos
 				enemies.add_child(slime)
+			"g":
+				if at_checkpoint and pos.x < cp_pos.x:
+					continue
+				var gs := SENTINEL_SCENE.instantiate() as Enemy
+				gs.position = pos
+				enemies.add_child(gs)
+			"h":
+				var saw := SawHazard.new()
+				saw.position = pos
+				props.add_child(saw)
 			"C":
 				var cp := Checkpoint.new()
 				cp.position = pos
 				props.add_child(cp)
 			"B":
-				boss = VERDAN_SCENE.instantiate() as Verdan
+				boss = data.boss_scene.instantiate() as Enemy
 				boss.position = pos
 				enemies.add_child(boss)
 			_:
@@ -174,8 +176,8 @@ func _setup_arena() -> void:
 			arena_right = x * LevelBuilder.TILE
 			break
 	if boss:
-		boss.arena_left = arena_left
-		boss.arena_right = arena_right
+		boss.set(&"arena_left", arena_left)
+		boss.set(&"arena_right", arena_right)
 	# entrance trigger
 	var trigger := Area2D.new()
 	trigger.collision_layer = 0
@@ -200,16 +202,18 @@ func _setup_arena() -> void:
 	gcs.disabled = true
 	_gate.add_child(gcs)
 	var wall := Sprite2D.new()
-	wall.texture = WALL_TEX
+	wall.texture = data.arena_wall
 	wall.centered = false
-	wall.offset = Vector2(-16, -WALL_TEX.get_height())
+	wall.offset = Vector2(-16, -data.arena_wall.get_height())
 	_gate.add_child(wall)
-	_gate.position = Vector2(arena_left + 8, ground_y + WALL_TEX.get_height())
+	_gate.position = Vector2(arena_left + 8, ground_y + data.arena_wall.get_height())
 	_gate.visible = false
 	props.add_child(_gate)
 
 
 func _build_particles() -> void:
+	var clock := data.particles == "clock"
+	var tint := Color(0.55, 0.75, 1.0) if clock else Color(0.8, 1.0, 0.5)
 	var ff := CPUParticles2D.new()
 	ff.texture = FIREFLY_TEX
 	ff.amount = 26
@@ -224,10 +228,10 @@ func _build_particles() -> void:
 	ff.initial_velocity_min = 4.0
 	ff.initial_velocity_max = 14.0
 	var ramp := Gradient.new()
-	ramp.set_color(0, Color(0.8, 1.0, 0.5, 0.0))
-	ramp.set_color(1, Color(0.8, 1.0, 0.5, 0.0))
-	ramp.add_point(0.3, Color(0.8, 1.0, 0.5, 0.9))
-	ramp.add_point(0.7, Color(0.8, 1.0, 0.5, 0.6))
+	ramp.set_color(0, Color(tint, 0.0))
+	ramp.set_color(1, Color(tint, 0.0))
+	ramp.add_point(0.3, Color(tint, 0.9))
+	ramp.add_point(0.7, Color(tint, 0.6))
 	ff.color_ramp = ramp
 	ff.z_index = -4
 	var mat := CanvasItemMaterial.new()
@@ -235,6 +239,8 @@ func _build_particles() -> void:
 	ff.material = mat
 	props.add_child(ff)
 	_particles.append(ff)
+	if clock:
+		return
 	var leaves := CPUParticles2D.new()
 	leaves.texture = LEAF_TEX
 	leaves.amount = 14
@@ -296,7 +302,7 @@ func start_boss_fight() -> void:
 	camera.focus_on(boss, Vector2(-40, -84))
 	player.input_enabled = false
 	player.clear_input()
-	boss.start_intro()
+	boss.call(&"start_intro")
 
 
 func _on_boss_started(_b: Node) -> void:
@@ -321,10 +327,10 @@ func _on_core_collected(_p: Pickup) -> void:
 	player.input_enabled = false
 	player.clear_input()
 	_collect_leftover_loot()
-	if not Profile.cleared_stages.has(SaveSystem.STAGE_ID):
-		# the first clear keeps the core fragment (needed to rebuild the lab)
-		Profile.inventory.add(&"item_time_shard", 1)
-	Profile.mark_stage_cleared(SaveSystem.STAGE_ID)
+	if not Profile.cleared_stages.has(data.id):
+		# the first clear of a region keeps its core fragment
+		Profile.inventory.add(SHARD_ID, 1)
+	Profile.mark_stage_cleared(data.id)
 	Events.stage_cleared.emit(Game.run.duplicate())
 	Game.location = "village"
 	Game.checkpoint_id = -1

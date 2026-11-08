@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventory/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/clock_cog.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"item_clock_cog"
+display_name = "태엽 부품"
+description = "멈춘 시계 도시의 정밀한 톱니. 대장장이가 탐내는 재료다."
+type = 4
+icon = ExtResource("2_icon")
+max_stack = 99
+price = 8
+unique = false
+bonuses = {}

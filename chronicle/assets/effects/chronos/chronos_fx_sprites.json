@@ -1,0 +1,294 @@
+{
+ "name": "chronos_fx",
+ "source_sheet": "art_source/original/06_boss_chronos.png",
+ "kind": "fx",
+ "scale": 0.5,
+ "atlas": "res://assets/effects/chronos/chronos_fx_atlas.png",
+ "cell": [
+  106,
+  111
+ ],
+ "anchor": [
+  53,
+  55
+ ],
+ "frames": {
+  "crystal_spikes": {
+   "region": [
+    433,
+    0,
+    67,
+    66
+   ],
+   "offset": [
+    19,
+    22
+   ],
+   "source_box": [
+    503,
+    641,
+    642,
+    778
+   ]
+  },
+  "star_burst": {
+   "region": [
+    502,
+    0,
+    79,
+    66
+   ],
+   "offset": [
+    13,
+    22
+   ],
+   "source_box": [
+    630,
+    646,
+    793,
+    782
+   ]
+  },
+  "shatter": {
+   "region": [
+    703,
+    0,
+    1,
+    1
+   ],
+   "offset": [
+    53,
+    55
+   ],
+   "source_box": [
+    987,
+    651,
+    1190,
+    788
+   ]
+  },
+  "clock_burst": {
+   "region": [
+    194,
+    0,
+    78,
+    74
+   ],
+   "offset": [
+    14,
+    18
+   ],
+   "source_box": [
+    1188,
+    638,
+    1343,
+    788
+   ]
+  },
+  "clock_burst2": {
+   "region": [
+    343,
+    0,
+    88,
+    69
+   ],
+   "offset": [
+    9,
+    20
+   ],
+   "source_box": [
+    1344,
+    643,
+    1527,
+    788
+   ]
+  },
+  "time_pillar": {
+   "region": [
+    0,
+    0,
+    84,
+    111
+   ],
+   "offset": [
+    11,
+    0
+   ],
+   "source_box": [
+    878,
+    788,
+    1046,
+    1009
+   ]
+  },
+  "crescent": {
+   "region": [
+    583,
+    0,
+    45,
+    58
+   ],
+   "offset": [
+    31,
+    26
+   ],
+   "source_box": [
+    1248,
+    406,
+    1342,
+    530
+   ]
+  },
+  "clock_face": {
+   "region": [
+    274,
+    0,
+    67,
+    74
+   ],
+   "offset": [
+    20,
+    18
+   ],
+   "source_box": [
+    374,
+    634,
+    516,
+    781
+   ]
+  },
+  "gear_watch": {
+   "region": [
+    630,
+    0,
+    44,
+    49
+   ],
+   "offset": [
+    31,
+    30
+   ],
+   "source_box": [
+    277,
+    659,
+    372,
+    763
+   ]
+  },
+  "hourglass": {
+   "region": [
+    676,
+    0,
+    25,
+    47
+   ],
+   "offset": [
+    41,
+    31
+   ],
+   "source_box": [
+    1392,
+    542,
+    1446,
+    645
+   ]
+  },
+  "purple_burst": {
+   "region": [
+    86,
+    0,
+    106,
+    104
+   ],
+   "offset": [
+    0,
+    3
+   ],
+   "source_box": [
+    1309,
+    796,
+    1528,
+    1010
+   ]
+  }
+ },
+ "animations": {
+  "crystal_spikes": {
+   "frames": [
+    "crystal_spikes"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "star_burst": {
+   "frames": [
+    "star_burst"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "shatter": {
+   "frames": [
+    "shatter"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "clock_burst": {
+   "frames": [
+    "clock_burst"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "clock_burst2": {
+   "frames": [
+    "clock_burst2"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "time_pillar": {
+   "frames": [
+    "time_pillar"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "crescent": {
+   "frames": [
+    "crescent"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "clock_face": {
+   "frames": [
+    "clock_face"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "gear_watch": {
+   "frames": [
+    "gear_watch"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "hourglass": {
+   "frames": [
+    "hourglass"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "purple_burst": {
+   "frames": [
+    "purple_burst"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

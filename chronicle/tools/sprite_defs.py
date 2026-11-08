@@ -384,3 +384,74 @@ GROUPS += [
     dict(name="pet_icons", sheet="05_pets", kind="art", scale=0.36, colors=56, out="assets/ui/pets",
          frames=PET_ICONS, anchor="bottom"),
 ]
+
+
+# --------------------------------------------------------------------------
+# Phase 3-2: clock city boss Chronos (sheet 06). Faces right.
+# --------------------------------------------------------------------------
+CHRONOS_FRAMES = {
+    # row 1: standing / idle sway (10)
+    "idle0": B(510, 20, 90, 127), "idle1": B(608, 19, 92, 128), "idle2": B(714, 18, 93, 129),
+    "idle3": B(821, 19, 91, 128), "idle4": B(927, 20, 83, 127), "idle5": B(1024, 20, 80, 126),
+    "idle6": B(1123, 22, 82, 124), "idle7": B(1214, 22, 89, 123), "idle8": B(1304, 22, 100, 122),
+    "idle9": B(1405, 23, 91, 122),
+    # row 2: walking (9)
+    "walk0": B(512, 154, 84, 115), "walk1": B(605, 160, 99, 109), "walk2": B(718, 162, 104, 106),
+    "walk3": B(844, 163, 90, 105), "walk4": B(956, 166, 110, 102), "walk5": B(1094, 162, 89, 105),
+    "walk6": B(1193, 162, 89, 104), "walk7": B(1295, 161, 86, 105), "walk8": B(1394, 162, 92, 105),
+    # row 3: staff attack
+    "atk_stance": B(513, 288, 114, 113), "atk_step": B(634, 288, 119, 113),
+    "atk_thrust": F(753, 280, 905, 405, hard=True),
+    "atk_dash": F(905, 276, 1072, 404, hard=True),
+    "atk_swing": F(1198, 276, 1345, 404, hard=True),
+    # row 4: casting
+    "cast0": B(513, 410, 116, 119), "cast1": B(626, 411, 119, 117),
+    "cast_clock": F(750, 408, 905, 530, hard=True),
+    "cast_point": B(1018, 415, 127, 112),
+    # row 5: summoning / time stop
+    "summon0": F(512, 530, 640, 650, hard=True), "summon1": F(634, 530, 728, 650, hard=True),
+    "time_stop": B(1001, 532, 158, 115),
+}
+CHRONOS_ANIMS = {
+    "idle": (["idle%d" % i for i in range(10)], 8, True),
+    "walk": (["walk%d" % i for i in range(9)], 10, True),
+    "staff_windup": (["atk_stance", "atk_step"], 6, False),
+    "staff_attack": (["atk_thrust", "atk_dash"], 10, False),
+    "swing": (["atk_swing"], 1, False),
+    "cast": (["cast0", "cast1"], 5, True),
+    "cast_clock": (["cast_clock"], 1, False),
+    "point": (["cast_point"], 1, False),
+    "summon": (["summon0", "summon1"], 5, True),
+    "time_stop": (["time_stop"], 1, False),
+    "hit": (["walk1"], 1, False),
+    "die": (["time_stop"], 1, False),
+}
+CHRONOS_FX = {
+    "crystal_spikes": F(503, 641, 642, 778, hard=True),
+    "star_burst": F(630, 646, 793, 782, hard=True),
+    "shatter": B(989, 653, 199, 133, pad=2),
+    "clock_burst": F(1188, 638, 1343, 788, hard=True),
+    "clock_burst2": B(1346, 645, 179, 141, pad=2),
+    "time_pillar": F(878, 788, 1046, 1009, hard=True),
+    "crescent": F(1248, 406, 1342, 530, hard=True),
+    "clock_face": B(376, 636, 138, 143, pad=2),
+    "gear_watch": B(279, 661, 91, 100, pad=2),
+    "hourglass": F(1392, 542, 1446, 645, hard=True),
+    "purple_burst": B(1311, 798, 215, 210, pad=2),
+}
+CHRONOS_ART = {
+    "full_art": F(0, 0, 506, 634, hard=True),
+    "portrait": B(9, 783, 221, 221, pad=1),
+    "phase2_art": F(447, 776, 878, 1010, hard=True),
+    "broken_clock": B(1176, 815, 150, 189, pad=2),
+    "pocket_watch": B(1048, 787, 124, 222, pad=2),
+}
+GROUPS += [
+    dict(name="chronos", sheet="06_boss_chronos", kind="character", scale=0.72, colors=64,
+         out="assets/bosses/chronos", frames=CHRONOS_FRAMES, anims=CHRONOS_ANIMS, anchor="mass_top",
+         outline=(10, 10, 24)),
+    dict(name="chronos_fx", sheet="06_boss_chronos", kind="fx", scale=0.5, colors=40,
+         out="assets/effects/chronos", frames=CHRONOS_FX, anchor="center", thr=40, dil=3),
+    dict(name="chronos_art", sheet="06_boss_chronos", kind="art", scale=0.4, colors=64,
+         out="assets/bosses/chronos/art", frames=CHRONOS_ART, anchor="bottom", outline=(10, 10, 24)),
+]

@@ -1,0 +1,682 @@
+{
+ "name": "chronos",
+ "source_sheet": "art_source/original/06_boss_chronos.png",
+ "kind": "character",
+ "scale": 0.72,
+ "atlas": "res://assets/bosses/chronos/chronos_atlas.png",
+ "cell": [
+  126,
+  92
+ ],
+ "anchor": [
+  67,
+  90
+ ],
+ "frames": {
+  "idle0": {
+   "region": [
+    202,
+    0,
+    64,
+    90
+   ],
+   "offset": [
+    33,
+    1
+   ],
+   "source_box": [
+    504,
+    14,
+    606,
+    153
+   ]
+  },
+  "idle1": {
+   "region": [
+    0,
+    0,
+    66,
+    91
+   ],
+   "offset": [
+    30,
+    0
+   ],
+   "source_box": [
+    602,
+    13,
+    706,
+    153
+   ]
+  },
+  "idle2": {
+   "region": [
+    68,
+    0,
+    66,
+    91
+   ],
+   "offset": [
+    31,
+    0
+   ],
+   "source_box": [
+    708,
+    12,
+    813,
+    153
+   ]
+  },
+  "idle3": {
+   "region": [
+    136,
+    0,
+    64,
+    91
+   ],
+   "offset": [
+    31,
+    0
+   ],
+   "source_box": [
+    815,
+    13,
+    918,
+    153
+   ]
+  },
+  "idle4": {
+   "region": [
+    268,
+    0,
+    58,
+    90
+   ],
+   "offset": [
+    35,
+    1
+   ],
+   "source_box": [
+    921,
+    14,
+    1016,
+    153
+   ]
+  },
+  "idle5": {
+   "region": [
+    328,
+    0,
+    56,
+    90
+   ],
+   "offset": [
+    38,
+    1
+   ],
+   "source_box": [
+    1018,
+    14,
+    1110,
+    152
+   ]
+  },
+  "idle6": {
+   "region": [
+    386,
+    0,
+    58,
+    89
+   ],
+   "offset": [
+    33,
+    2
+   ],
+   "source_box": [
+    1117,
+    16,
+    1211,
+    152
+   ]
+  },
+  "idle7": {
+   "region": [
+    446,
+    0,
+    63,
+    88
+   ],
+   "offset": [
+    32,
+    3
+   ],
+   "source_box": [
+    1208,
+    16,
+    1309,
+    151
+   ]
+  },
+  "idle8": {
+   "region": [
+    685,
+    0,
+    72,
+    86
+   ],
+   "offset": [
+    23,
+    5
+   ],
+   "source_box": [
+    1298,
+    16,
+    1410,
+    150
+   ]
+  },
+  "idle9": {
+   "region": [
+    511,
+    0,
+    64,
+    87
+   ],
+   "offset": [
+    27,
+    4
+   ],
+   "source_box": [
+    1399,
+    17,
+    1502,
+    151
+   ]
+  },
+  "walk0": {
+   "region": [
+    115,
+    93,
+    60,
+    82
+   ],
+   "offset": [
+    31,
+    9
+   ],
+   "source_box": [
+    506,
+    148,
+    602,
+    275
+   ]
+  },
+  "walk1": {
+   "region": [
+    729,
+    93,
+    70,
+    77
+   ],
+   "offset": [
+    23,
+    14
+   ],
+   "source_box": [
+    599,
+    154,
+    710,
+    275
+   ]
+  },
+  "walk2": {
+   "region": [
+    0,
+    177,
+    74,
+    75
+   ],
+   "offset": [
+    22,
+    15
+   ],
+   "source_box": [
+    712,
+    156,
+    828,
+    274
+   ]
+  },
+  "walk3": {
+   "region": [
+    144,
+    177,
+    63,
+    74
+   ],
+   "offset": [
+    26,
+    16
+   ],
+   "source_box": [
+    838,
+    157,
+    940,
+    274
+   ]
+  },
+  "walk4": {
+   "region": [
+    462,
+    177,
+    78,
+    72
+   ],
+   "offset": [
+    20,
+    18
+   ],
+   "source_box": [
+    950,
+    160,
+    1072,
+    274
+   ]
+  },
+  "walk5": {
+   "region": [
+    209,
+    177,
+    63,
+    74
+   ],
+   "offset": [
+    28,
+    16
+   ],
+   "source_box": [
+    1088,
+    156,
+    1189,
+    273
+   ]
+  },
+  "walk6": {
+   "region": [
+    274,
+    177,
+    63,
+    74
+   ],
+   "offset": [
+    29,
+    17
+   ],
+   "source_box": [
+    1187,
+    156,
+    1288,
+    272
+   ]
+  },
+  "walk7": {
+   "region": [
+    801,
+    93,
+    61,
+    76
+   ],
+   "offset": [
+    30,
+    16
+   ],
+   "source_box": [
+    1289,
+    155,
+    1387,
+    272
+   ]
+  },
+  "walk8": {
+   "region": [
+    76,
+    177,
+    66,
+    75
+   ],
+   "offset": [
+    27,
+    15
+   ],
+   "source_box": [
+    1388,
+    156,
+    1492,
+    273
+   ]
+  },
+  "atk_stance": {
+   "region": [
+    177,
+    93,
+    81,
+    80
+   ],
+   "offset": [
+    16,
+    11
+   ],
+   "source_box": [
+    507,
+    282,
+    633,
+    407
+   ]
+  },
+  "atk_step": {
+   "region": [
+    260,
+    93,
+    85,
+    80
+   ],
+   "offset": [
+    14,
+    11
+   ],
+   "source_box": [
+    628,
+    282,
+    759,
+    407
+   ]
+  },
+  "atk_thrust": {
+   "region": [
+    502,
+    93,
+    110,
+    77
+   ],
+   "offset": [
+    5,
+    11
+   ],
+   "source_box": [
+    753,
+    280,
+    905,
+    405
+   ]
+  },
+  "atk_dash": {
+   "region": [
+    339,
+    177,
+    121,
+    73
+   ],
+   "offset": [
+    0,
+    17
+   ],
+   "source_box": [
+    905,
+    276,
+    1072,
+    404
+   ]
+  },
+  "atk_swing": {
+   "region": [
+    577,
+    0,
+    106,
+    86
+   ],
+   "offset": [
+    20,
+    5
+   ],
+   "source_box": [
+    1198,
+    276,
+    1345,
+    404
+   ]
+  },
+  "cast0": {
+   "region": [
+    759,
+    0,
+    82,
+    84
+   ],
+   "offset": [
+    30,
+    7
+   ],
+   "source_box": [
+    507,
+    404,
+    635,
+    535
+   ]
+  },
+  "cast1": {
+   "region": [
+    843,
+    0,
+    85,
+    84
+   ],
+   "offset": [
+    25,
+    7
+   ],
+   "source_box": [
+    620,
+    405,
+    751,
+    534
+   ]
+  },
+  "cast_clock": {
+   "region": [
+    614,
+    93,
+    113,
+    77
+   ],
+   "offset": [
+    10,
+    13
+   ],
+   "source_box": [
+    750,
+    408,
+    905,
+    530
+   ]
+  },
+  "cast_point": {
+   "region": [
+    347,
+    93,
+    86,
+    80
+   ],
+   "offset": [
+    30,
+    10
+   ],
+   "source_box": [
+    1012,
+    409,
+    1151,
+    533
+   ]
+  },
+  "summon0": {
+   "region": [
+    864,
+    93,
+    86,
+    75
+   ],
+   "offset": [
+    36,
+    16
+   ],
+   "source_box": [
+    512,
+    530,
+    640,
+    650
+   ]
+  },
+  "summon1": {
+   "region": [
+    435,
+    93,
+    65,
+    78
+   ],
+   "offset": [
+    33,
+    13
+   ],
+   "source_box": [
+    634,
+    530,
+    728,
+    650
+   ]
+  },
+  "time_stop": {
+   "region": [
+    0,
+    93,
+    113,
+    82
+   ],
+   "offset": [
+    0,
+    8
+   ],
+   "source_box": [
+    995,
+    526,
+    1165,
+    653
+   ]
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "idle0",
+    "idle1",
+    "idle2",
+    "idle3",
+    "idle4",
+    "idle5",
+    "idle6",
+    "idle7",
+    "idle8",
+    "idle9"
+   ],
+   "fps": 8,
+   "loop": true
+  },
+  "walk": {
+   "frames": [
+    "walk0",
+    "walk1",
+    "walk2",
+    "walk3",
+    "walk4",
+    "walk5",
+    "walk6",
+    "walk7",
+    "walk8"
+   ],
+   "fps": 10,
+   "loop": true
+  },
+  "staff_windup": {
+   "frames": [
+    "atk_stance",
+    "atk_step"
+   ],
+   "fps": 6,
+   "loop": false
+  },
+  "staff_attack": {
+   "frames": [
+    "atk_thrust",
+    "atk_dash"
+   ],
+   "fps": 10,
+   "loop": false
+  },
+  "swing": {
+   "frames": [
+    "atk_swing"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "cast": {
+   "frames": [
+    "cast0",
+    "cast1"
+   ],
+   "fps": 5,
+   "loop": true
+  },
+  "cast_clock": {
+   "frames": [
+    "cast_clock"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "point": {
+   "frames": [
+    "cast_point"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "summon": {
+   "frames": [
+    "summon0",
+    "summon1"
+   ],
+   "fps": 5,
+   "loop": true
+  },
+  "time_stop": {
+   "frames": [
+    "time_stop"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "hit": {
+   "frames": [
+    "walk1"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "die": {
+   "frames": [
+    "time_stop"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

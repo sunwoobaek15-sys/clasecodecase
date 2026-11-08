@@ -40,6 +40,10 @@ const ROOT_BONUS_DAMAGE := 1
 const WRATH_BONUS_DAMAGE := 2
 const STAGGER_HEAL_CHANCE := 0.6
 
+## Boss banner shown by the HUD when the fight starts.
+var banner_art: Texture2D = preload("res://assets/bosses/verdan/art/full_art.png")
+var banner_sub := "숲의 수호자"
+var banner_name := "베르단"
 var phase: int = 1
 var arena_left: float = -100000.0
 var arena_right: float = 100000.0

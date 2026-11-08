@@ -32,6 +32,7 @@ var mp: float = 0.0
 var ult: float = 0.0
 var fsm := StateMachine.new()
 var input_enabled: bool = true
+var frozen_time: float = 0.0
 var move_axis: float = 0.0
 var combo_hits: int = 0
 var kill_y: float = 100000.0  ## falling below this costs HP and respawns
@@ -176,9 +177,42 @@ func _on_level_up(_level: int) -> void:
 
 
 ## Armour and skills reduce incoming damage (falling into pits excluded).
+## Chronos' time stop: the hero cannot act for `duration` seconds (dodging
+## at the right moment - i-frames - avoids it). Returns true if frozen.
+func freeze(duration: float) -> bool:
+	if is_dead or is_invulnerable():
+		return false
+	frozen_time = duration
+	clear_input()
+	velocity = Vector2.ZERO
+	sprite.pause()
+	modulate = Color(0.55, 0.68, 1.15)
+	return true
+
+
+func is_frozen() -> bool:
+	return frozen_time > 0.0
+
+
+func _tick_frozen(delta: float) -> void:
+	frozen_time = maxf(0.0, frozen_time - delta)
+	tick_invulnerability(delta)
+	velocity = Vector2.ZERO
+	if frozen_time <= 0.0:
+		_unfreeze()
+
+
+func _unfreeze() -> void:
+	frozen_time = 0.0
+	sprite.play()
+	modulate = Color(1, 1, 1)
+
+
 func take_hit(hit: HitData) -> bool:
 	if is_dead or is_invulnerable():
 		return false
+	if frozen_time > 0.0:
+		_unfreeze()  # a hit restarts time for the hero
 	var d := Profile.defense()
 	if d > 0.0 and hit.tag != &"fall":
 		hit.damage = maxi(1, roundi(hit.damage * (1.0 - d)))
@@ -204,6 +238,9 @@ func clear_input() -> void:
 
 # ---------------------------------------------------------------- physics ---
 func _physics_process(delta: float) -> void:
+	if frozen_time > 0.0:
+		_tick_frozen(delta)
+		return
 	_tick_timers(delta)
 	if input_enabled and not is_dead:
 		move_axis = Input.get_axis(&"move_left", &"move_right")

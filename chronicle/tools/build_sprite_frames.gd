@@ -22,6 +22,10 @@ const SOURCES := [
 	"res://assets/pets/dragon/pet_dragon_sprites.json",
 	"res://assets/pets/spirit_slime/pet_spirit_slime_sprites.json",
 	"res://assets/pets/bird/pet_bird_sprites.json",
+	"res://assets/bosses/chronos/chronos_sprites.json",
+	"res://assets/effects/chronos/chronos_fx_sprites.json",
+	"res://assets/enemies/clockwork_slime/clockwork_slime_sprites.json",
+	"res://assets/enemies/clockwork_slime_small/clockwork_slime_small_sprites.json",
 ]
 
 
