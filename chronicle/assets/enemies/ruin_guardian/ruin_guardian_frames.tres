@@ -1,0 +1,80 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/enemies/ruin_guardian/ruin_guardian_atlas.png" id="1_s6vu2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ybdvx"]
+atlas = ExtResource("1_s6vu2")
+region = Rect2(0, 0, 64, 68)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yc4ru"]
+atlas = ExtResource("1_s6vu2")
+region = Rect2(64, 0, 64, 68)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hiiot"]
+atlas = ExtResource("1_s6vu2")
+region = Rect2(192, 0, 64, 68)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_afe37"]
+atlas = ExtResource("1_s6vu2")
+region = Rect2(128, 0, 64, 68)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ybdvx")
+}],
+"loop": 1,
+"name": &"dormant",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yc4ru")
+}],
+"loop": 0,
+"name": &"hurt",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yc4ru")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hiiot")
+}],
+"loop": 0,
+"name": &"slam",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yc4ru")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ybdvx")
+}],
+"loop": 1,
+"name": &"walk",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_afe37")
+}],
+"loop": 0,
+"name": &"windup",
+"speed": 1.0
+}]
+metadata/anchor = Vector2(32, 66)
+metadata/cell = Vector2(64, 68)
+metadata/source_sheet = ""

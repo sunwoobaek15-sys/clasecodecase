@@ -26,6 +26,11 @@ const SOURCES := [
 	"res://assets/effects/chronos/chronos_fx_sprites.json",
 	"res://assets/enemies/clockwork_slime/clockwork_slime_sprites.json",
 	"res://assets/enemies/clockwork_slime_small/clockwork_slime_small_sprites.json",
+	"res://assets/bosses/sky_dragon/sky_dragon_sprites.json",
+	"res://assets/enemies/cloud_slime/cloud_slime_sprites.json",
+	"res://assets/enemies/cloud_slime_small/cloud_slime_small_sprites.json",
+	"res://assets/enemies/wind_wisp/wind_wisp_sprites.json",
+	"res://assets/enemies/ruin_guardian/ruin_guardian_sprites.json",
 ]
 
 

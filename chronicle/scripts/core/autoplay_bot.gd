@@ -12,6 +12,7 @@ extends Node
 ## Options:  --screenshots=DIR  save key frames (needs a renderer, not --headless)
 ##           --stage=clock_1   start a mid-game hero (Lv.7, forest gear) directly
 ##                             in stage 2-1 and finish when Chronos is beaten
+##           --stage=sky_1     same for stage 3-1 (Lv.11, + Chronos' watch)
 ##           --timeout=SECONDS  give up after this much game time (default 900)
 
 const BUTTONS: Array[StringName] = [&"jump", &"attack", &"dodge", &"skill", &"ultimate"]
@@ -177,7 +178,7 @@ func _physics_process(delta: float) -> void:
 			var direct := str(Game.cmd_options.get("stage", ""))
 			if direct != "":
 				_log("title -> %s (mid-game hero)" % direct)
-				_prepare_mid_game_hero()
+				_prepare_mid_game_hero(direct)
 				Game.start_stage(direct)
 			else:
 				_log("title -> 게임 시작")
@@ -256,6 +257,10 @@ func _play(stage: Node, delta: float) -> void:
 		_release(&"attack")
 		var cdx := core.global_position.x - p.global_position.x
 		_axis(signf(cdx) if absf(cdx) > 4.0 else 0.0)
+		if core.global_position.y < p.global_position.y - 30.0 and absf(cdx) < 50.0 and p.is_on_floor() and _jump_cooldown <= 0.0:
+			_jump_cooldown = 0.6
+			_press(&"jump")
+			_release_later_jump()
 		return
 	var target: Node2D = null
 	if _boss_active(boss):
@@ -517,6 +522,15 @@ func _clock_threats(p: Player, stage: Node) -> bool:
 					_press(&"jump")
 					_release_later_jump()
 					return true
+		elif n is Telegraph and (n as Telegraph).shape == Telegraph.Shape.CIRCLE and boss is SkyDragon \
+				and (n as Telegraph).radius >= 40.0:
+			# dive bomb shadow: dodge through the crash
+			var sh := n as Telegraph
+			if absf(px - sh.global_position.x) < sh.radius + 18.0 and sh.progress() > 0.86 and _dodge_cooldown <= 0.0:
+				_dodge_cooldown = 0.5
+				_axis(signf(px - sh.global_position.x) if px != sh.global_position.x else 1.0)
+				_tap(&"dodge")
+				return true
 		elif n is Telegraph and (n as Telegraph).shape == Telegraph.Shape.LINE and boss is Chronos:
 			var t := n as Telegraph
 			var rel := (px - t.global_position.x) * t.direction
@@ -525,6 +539,14 @@ func _clock_threats(p: Player, stage: Node) -> bool:
 				_axis(-float(t.direction))
 				_tap(&"dodge")
 				return true
+	for e in get_tree().get_nodes_in_group(&"enemies"):
+		var wsp := e as WindWisp
+		if wsp != null and not wsp.is_dead and wsp.fsm.current == &"charge" and wsp.fsm.time_in_state > 0.5 \
+				and wsp.global_position.distance_to(p.global_position) < 160.0 and dodge_ready:
+			_dodge_cooldown = 0.5
+			_axis(signf(px - wsp.global_position.x) if px != wsp.global_position.x else 1.0)
+			_tap(&"dodge")
+			return true
 	for h in get_tree().get_nodes_in_group(&"hazards"):
 		var saw := h as SawHazard
 		if saw == null:
@@ -576,15 +598,27 @@ func _boss_active(boss: Enemy) -> bool:
 
 ## A mid-game hero for testing stage 2-1 directly (about what three forest
 ## runs and the first village quests give).
-func _prepare_mid_game_hero() -> void:
+func _prepare_mid_game_hero(stage: String) -> void:
 	Game.reset_progress(true)
 	Village.arrived = true
 	Profile.add_exp(30 + 55 + 80 + 105 + 130 + 155)
-	for id in [&"item_sword_forest", &"item_armor_guardian", &"item_ring_time"]:
+	var gear: Array[StringName] = [&"item_sword_forest", &"item_armor_guardian", &"item_ring_time"]
+	if stage == "sky_1":
+		Profile.add_exp(180 + 205 + 230 + 255)
+		gear[2] = &"item_chronos_watch"
+	for id in gear:
 		Profile.inventory.add(id, 1)
 		Profile.equip(id)
+	if stage == "sky_1":
+		Profile.add_gold(2000)
+		Profile.inventory.add(Profile.ENHANCE_MATERIAL, 40)
+		for i in 3:
+			Profile.enhance_item(&"item_sword_forest")
+			Profile.enhance_item(&"item_armor_guardian")
 	Profile.inventory.add(Profile.POTION_ID, 5)
-	for node in [&"node_combo_mastery", &"node_combo_mastery", &"node_time_blessing", &"node_crescent_mastery", &"node_wind_step", &"node_time_blessing"]:
+	for node in [&"node_combo_mastery", &"node_combo_mastery", &"node_time_blessing", &"node_crescent_mastery",
+			&"node_wind_step", &"node_time_blessing", &"node_combo_mastery", &"node_moon_descent", &"node_crescent_mastery",
+			&"node_time_blessing", &"node_wind_step"]:
 		Profile.upgrade_skill(node)
 	Pets.grant(&"spirit_slime")
 
@@ -593,13 +627,15 @@ func _nearest_enemy(p: Player) -> Node2D:
 	var best: Node2D = null
 	var best_d := 230.0
 	for e in get_tree().get_nodes_in_group(&"enemies"):
-		if e is GearSentinel and not (e as Enemy).is_dead:
+		if (e is GearSentinel or e is WindWisp) and not (e as Enemy).is_dead:
+			if not _floor_below((e as Node2D).global_position):
+				continue  # hovering over a pit: don't follow it in
 			var d2 := (e as Node2D).global_position - p.global_position
 			if absf(d2.x) < best_d and absf(d2.y) < 120.0:
 				best_d = absf(d2.x) + 10.0
 				best = e
 			continue
-		if e is Slime and not (e as Slime).is_dead:
+		if (e is Slime or e is RuinGuardian) and not (e as Enemy).is_dead:
 			var d := (e as Node2D).global_position - p.global_position
 			if absf(d.y) > 70.0:
 				continue
@@ -617,8 +653,8 @@ func _fight(p: Player, target: Node2D, _delta: float) -> void:
 	var is_boss := target.is_in_group(&"boss")
 	var near := 30.0 if not is_boss else 52.0
 	var far := 50.0 if not is_boss else 70.0
-	if target is GearSentinel:
-		_fight_sentinel(p, target as GearSentinel, dx, dir)
+	if target is GearSentinel or target is WindWisp:
+		_fight_sentinel(p, target as Enemy, dx, dir)
 		return
 	if target.is_in_group(&"afterimage"):
 		near = 0.0
@@ -667,7 +703,12 @@ func _fight(p: Player, target: Node2D, _delta: float) -> void:
 
 
 ## Gear sentinels hover above the ground: get under them and jump-attack.
-func _fight_sentinel(p: Player, gs: GearSentinel, dx: float, dir: float) -> void:
+func _floor_below(pos: Vector2) -> bool:
+	var q := PhysicsRayQueryParameters2D.create(pos, pos + Vector2(0, 140), 1)
+	return not get_viewport().get_world_2d().direct_space_state.intersect_ray(q).is_empty()
+
+
+func _fight_sentinel(p: Player, gs: Enemy, dx: float, dir: float) -> void:
 	var dist := absf(dx)
 	if dist > 26.0:
 		_axis(dir)

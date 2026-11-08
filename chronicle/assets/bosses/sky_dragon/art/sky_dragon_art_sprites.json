@@ -1,0 +1,44 @@
+{
+ "name": "sky_dragon_art",
+ "source_sheet": "art_source/original/05_pets.png",
+ "kind": "art",
+ "scale": 0.75,
+ "atlas": "res://assets/bosses/sky_dragon/art/sky_dragon_art_atlas.png",
+ "cell": [
+  184,
+  101
+ ],
+ "anchor": [
+  92,
+  100
+ ],
+ "frames": {
+  "full_art": {
+   "region": [
+    0,
+    0,
+    184,
+    101
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    6,
+    430,
+    258,
+    573
+   ]
+  }
+ },
+ "animations": {
+  "full_art": {
+   "frames": [
+    "full_art"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ach_treasure"
+title = "보물 사냥꾼"
+type = 3
+description = "세 지역의 숨겨진 보물 상자를 모두 찾았다."
+giver = &""
+objectives = [{"type": "chest_count", "target": "", "count": 3, "text": "숨겨진 보물 3개"}]
+requires = Array[StringName]([])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 300
+reward_items = {"item_pet_treat": 5}
+reward_pet = &""
+auto_accept = true
+turn_in = false
+order = 38

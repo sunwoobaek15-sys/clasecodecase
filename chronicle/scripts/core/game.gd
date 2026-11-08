@@ -12,7 +12,8 @@ const TITLE_SCENE := "res://scenes/boot/title.tscn"
 const STAGE_SCENE := "res://scenes/world/forest_stage.tscn"
 const VILLAGE_SCENE := "res://scenes/village/village.tscn"
 ## Stage id -> scene. Regions 2 and 3 are listed on the world map as locked.
-const STAGES := {"forest_1": STAGE_SCENE, "clock_1": "res://scenes/world/clock_stage.tscn"}
+const STAGES := {"forest_1": STAGE_SCENE, "clock_1": "res://scenes/world/clock_stage.tscn",
+		"sky_1": "res://scenes/world/sky_stage.tscn"}
 
 ## Keyboard bindings (physical keys) for desktop testing.
 const KEY_BINDINGS := {

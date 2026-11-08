@@ -1,0 +1,109 @@
+{
+ "name": "ruin_guardian",
+ "kind": "character",
+ "scale": 1.0,
+ "atlas": "res://assets/enemies/ruin_guardian/ruin_guardian_atlas.png",
+ "cell": [
+  64,
+  68
+ ],
+ "anchor": [
+  32,
+  66
+ ],
+ "frames": {
+  "dormant": {
+   "region": [
+    0,
+    0,
+    64,
+    68
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  },
+  "idle": {
+   "region": [
+    64,
+    0,
+    64,
+    68
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  },
+  "windup": {
+   "region": [
+    128,
+    0,
+    64,
+    68
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  },
+  "slam": {
+   "region": [
+    192,
+    0,
+    64,
+    68
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  }
+ },
+ "animations": {
+  "dormant": {
+   "frames": [
+    "dormant"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "idle": {
+   "frames": [
+    "idle"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "walk": {
+   "frames": [
+    "idle",
+    "dormant"
+   ],
+   "fps": 3,
+   "loop": true
+  },
+  "windup": {
+   "frames": [
+    "windup"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "slam": {
+   "frames": [
+    "slam"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "hurt": {
+   "frames": [
+    "idle"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

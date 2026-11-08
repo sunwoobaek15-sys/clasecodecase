@@ -1,0 +1,44 @@
+{
+ "name": "chest_prop",
+ "source_sheet": "art_source/original/03_village_npcs.png",
+ "kind": "art",
+ "scale": 0.42,
+ "atlas": "res://assets/environments/common/chest_prop_atlas.png",
+ "cell": [
+  35,
+  37
+ ],
+ "anchor": [
+  17,
+  36
+ ],
+ "frames": {
+  "chest": {
+   "region": [
+    0,
+    0,
+    35,
+    37
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    554,
+    693,
+    642,
+    785
+   ]
+  }
+ },
+ "animations": {
+  "chest": {
+   "frames": [
+    "chest"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

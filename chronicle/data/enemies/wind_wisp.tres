@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_stats.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"wind_wisp"
+display_name = "바람 정령"
+max_hp = 80
+contact_damage = 12
+attack_damage = 16
+move_speed = 40.0
+chase_speed = 90.0
+aggro_range = 220.0
+lose_range = 360.0
+attack_range = 0.0
+shot_range = 0.0
+attack_cooldown = 2.0
+knockback_resist = 0.2
+poise = 0.0
+heal_drop_chance = 0.3
+exp_reward = 26
+gold_reward = 10
+drops = [{"id": &"item_sky_feather", "chance": 0.5, "count": 1}, {"id": &"item_ether", "chance": 0.1, "count": 1}]

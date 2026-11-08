@@ -121,7 +121,8 @@ class WorldMapPanel extends ModalPanel:
 		{"name": "잊혀진 숲", "sub": "숲의 정령과 고대 나무 베르단", "stage": "forest_1", "stage_name": "1-1 숲의 수호자"},
 		{"name": "무너진 시계 도시", "sub": "시간이 멈춘 도시와 크로노스", "stage": "clock_1", "stage_name": "2-1 시간의 지배자",
 		 "unlock": "q_main_05", "locked": "메인 퀘스트 '다음 여정'을 마치면 열려요", "level": 6},
-		{"name": "하늘의 폐허", "sub": "구름 위에 떠 있는 옛 신전", "stage": "", "stage_name": "준비 중 (Phase 3-3)"},
+		{"name": "하늘의 폐허", "sub": "구름 위에 떠 있는 옛 신전", "stage": "sky_1", "stage_name": "3-1 폭풍의 수호룡",
+		 "unlock": "q_main_06", "locked": "메인 퀘스트 '멈춰버린 시계탑'을 마치면 열려요", "level": 10},
 	]
 	const COLORS := [Color(0.16, 0.36, 0.24), Color(0.2, 0.24, 0.4), Color(0.34, 0.36, 0.5)]
 

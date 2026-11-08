@@ -7,8 +7,9 @@ extends Enemy
 ##   SMALL   same animations at a smaller size; faster, splash only
 ##   ELITE   amethyst slime (single reference frame, animated with
 ##           squash/stretch); tough, poise, 3-way shot and a wide splash
-## clockwork = true: region 2 'clockwork slime' (bronze recolour, stronger
-## stats from data/enemies/clockwork_slime*.tres, blue time shots)
+## theme: "forest" (region 1), "clockwork" (region 2: bronze recolour,
+## stronger stats, blue time shots) or "cloud" (region 3: white/sky recolour,
+## strongest). Elite exists only in the forest.
 ##
 ## AI states: idle -> patrol <-> chase -> shot / splash / hop, hurt, dead
 
@@ -27,17 +28,29 @@ const STATS_BY_VARIANT := {
 	Variant.ELITE: preload("res://data/enemies/forest_slime_elite.tres"),
 }
 const ELITE_TINT := Color(0.78, 0.5, 1.0)
-const CLOCK_FRAMES_NORMAL := preload("res://assets/enemies/clockwork_slime/clockwork_slime_frames.tres")
-const CLOCK_FRAMES_SMALL := preload("res://assets/enemies/clockwork_slime_small/clockwork_slime_small_frames.tres")
-const CLOCK_STATS := {
-	Variant.NORMAL: preload("res://data/enemies/clockwork_slime.tres"),
-	Variant.SMALL: preload("res://data/enemies/clockwork_slime_small.tres"),
-	Variant.ELITE: preload("res://data/enemies/clockwork_slime.tres"),
+const THEMES := {
+	"clockwork": {
+		"frames": [preload("res://assets/enemies/clockwork_slime/clockwork_slime_frames.tres"),
+				preload("res://assets/enemies/clockwork_slime_small/clockwork_slime_small_frames.tres")],
+		"stats": [preload("res://data/enemies/clockwork_slime.tres"), preload("res://data/enemies/clockwork_slime_small.tres")],
+		"tint": Color(0.6, 0.8, 1.5),
+	},
+	"cloud": {
+		"frames": [preload("res://assets/enemies/cloud_slime/cloud_slime_frames.tres"),
+				preload("res://assets/enemies/cloud_slime_small/cloud_slime_small_frames.tres")],
+		"stats": [preload("res://data/enemies/cloud_slime.tres"), preload("res://data/enemies/cloud_slime_small.tres")],
+		"tint": Color(1.4, 1.4, 1.0),
+	},
 }
-const CLOCK_TINT := Color(0.6, 0.8, 1.5)
 
 @export var variant: Variant = Variant.NORMAL
-@export var clockwork: bool = false
+@export var theme: String = "forest"
+## Compatibility alias for region 2 slimes.
+var clockwork: bool:
+	get:
+		return theme == "clockwork"
+	set(value):
+		theme = "clockwork" if value else "forest"
 @export var patrol_range: float = 70.0
 
 var _patrol_dir: int = 1
@@ -52,9 +65,11 @@ var _splash_hitbox: Hitbox
 
 
 func _ready() -> void:
-	if clockwork and variant == Variant.ELITE:
+	var th: Dictionary = THEMES.get(theme, {})
+	if not th.is_empty() and variant == Variant.ELITE:
 		variant = Variant.NORMAL
-	stats = CLOCK_STATS[variant] if clockwork else STATS_BY_VARIANT[variant]
+	var vi := 1 if variant == Variant.SMALL else 0
+	stats = th["stats"][vi] if not th.is_empty() else STATS_BY_VARIANT[variant]
 	super._ready()
 	var hurt_shape := hurtbox.get_child(0) as CollisionShape2D
 	body_shape.shape = body_shape.shape.duplicate()
@@ -62,7 +77,7 @@ func _ready() -> void:
 	var contact_shape := contact_hitbox.get_child(0) as CollisionShape2D
 	match variant:
 		Variant.SMALL:
-			apply_sprite_frames(CLOCK_FRAMES_SMALL if clockwork else FRAMES_SMALL)
+			apply_sprite_frames(th["frames"][1] if not th.is_empty() else FRAMES_SMALL)
 			_resize(body_shape, Vector2(14, 12))
 			_resize(hurt_shape, Vector2(18, 16))
 			contact_hitbox.set_rect(Rect2(-7, -12, 14, 12))
@@ -76,7 +91,7 @@ func _ready() -> void:
 			body_height = 50.0
 			_bar_width = 34.0
 		_:
-			apply_sprite_frames(CLOCK_FRAMES_NORMAL if clockwork else FRAMES_NORMAL)
+			apply_sprite_frames(th["frames"][0] if not th.is_empty() else FRAMES_NORMAL)
 			_resize(body_shape, Vector2(22, 18))
 			_resize(hurt_shape, Vector2(26, 24))
 			contact_hitbox.set_rect(Rect2(-11, -18, 22, 18))
@@ -239,8 +254,8 @@ func _fire_balls() -> void:
 		p.z_index = 20
 		if variant == Variant.ELITE:
 			p.modulate = ELITE_TINT
-		elif clockwork:
-			p.modulate = CLOCK_TINT
+		elif THEMES.has(theme):
+			p.modulate = THEMES[theme]["tint"]
 		var flight := clampf(absf(aim.x - muzzle.x) / 170.0, 0.45, 1.1)
 		var vel := Projectile.ballistic_velocity(muzzle, aim + Vector2(off, 0), flight, p.gravity)
 		var h := HitData.make(stats.attack_damage, Vector2(facing * 110.0, -70.0), self, &"slime_shot")

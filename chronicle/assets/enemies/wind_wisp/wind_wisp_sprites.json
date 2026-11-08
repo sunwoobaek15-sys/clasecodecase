@@ -1,0 +1,122 @@
+{
+ "name": "wind_wisp",
+ "kind": "character",
+ "scale": 1.0,
+ "atlas": "res://assets/enemies/wind_wisp/wind_wisp_atlas.png",
+ "cell": [
+  40,
+  40
+ ],
+ "anchor": [
+  20,
+  22
+ ],
+ "frames": {
+  "spin0": {
+   "region": [
+    0,
+    0,
+    40,
+    40
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  },
+  "spin1": {
+   "region": [
+    40,
+    0,
+    40,
+    40
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  },
+  "spin2": {
+   "region": [
+    80,
+    0,
+    40,
+    40
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  },
+  "spin3": {
+   "region": [
+    120,
+    0,
+    40,
+    40
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  },
+  "charge": {
+   "region": [
+    160,
+    0,
+    40,
+    40
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  },
+  "dash": {
+   "region": [
+    200,
+    0,
+    40,
+    40
+   ],
+   "offset": [
+    0,
+    0
+   ]
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "spin0",
+    "spin1",
+    "spin2",
+    "spin3"
+   ],
+   "fps": 10,
+   "loop": true
+  },
+  "charge": {
+   "frames": [
+    "charge",
+    "spin1"
+   ],
+   "fps": 12,
+   "loop": true
+  },
+  "dash": {
+   "frames": [
+    "dash"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "hurt": {
+   "frames": [
+    "charge"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

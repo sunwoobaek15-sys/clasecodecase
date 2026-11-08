@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_stats.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"sky_dragon"
+display_name = "폭풍의 수호룡 템페스타"
+max_hp = 4800
+contact_damage = 12
+attack_damage = 24
+move_speed = 80.0
+chase_speed = 120.0
+aggro_range = 800.0
+lose_range = 3000.0
+attack_range = 60.0
+shot_range = 400.0
+attack_cooldown = 1.0
+knockback_resist = 1.0
+poise = 170.0
+heal_drop_chance = 0.0
+exp_reward = 650
+gold_reward = 320
+drops = [{"id": &"item_storm_armor", "chance": 1.0, "count": 1}, {"id": &"item_potion_small", "chance": 1.0, "count": 3}, {"id": &"item_ether", "chance": 1.0, "count": 3}]

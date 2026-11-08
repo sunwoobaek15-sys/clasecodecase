@@ -1,0 +1,145 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/bosses/sky_dragon/sky_dragon_atlas.png" id="1_3x0ui"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aueif"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(425, 0, 90, 113)
+margin = Rect2(42, 13, 83, 14)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7c4g4"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(298, 0, 125, 114)
+margin = Rect2(24, 12, 48, 13)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6rs7e"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(0, 128, 57, 36)
+margin = Rect2(57, 90, 116, 91)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r6n68"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(861, 0, 104, 55)
+margin = Rect2(35, 71, 69, 72)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xt6qb"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(175, 0, 121, 115)
+margin = Rect2(26, 10, 52, 12)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7r6w4"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(772, 0, 87, 80)
+margin = Rect2(42, 47, 86, 47)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6hy2k"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(0, 0, 173, 126)
+margin = Rect2(0, 0, 0, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x3oqf"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(688, 0, 82, 96)
+margin = Rect2(45, 30, 91, 31)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_04be2"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(603, 0, 83, 106)
+margin = Rect2(45, 20, 90, 21)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4imi4"]
+atlas = ExtResource("1_3x0ui")
+region = Rect2(517, 0, 84, 107)
+margin = Rect2(45, 19, 89, 20)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aueif")
+}],
+"loop": 0,
+"name": &"breath",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7c4g4")
+}],
+"loop": 1,
+"name": &"charge",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6rs7e")
+}],
+"loop": 0,
+"name": &"die",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r6n68")
+}],
+"loop": 1,
+"name": &"fly",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xt6qb")
+}],
+"loop": 0,
+"name": &"hit",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xt6qb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7r6w4")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6hy2k")
+}],
+"loop": 0,
+"name": &"roar",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x3oqf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_04be2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4imi4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_04be2")
+}],
+"loop": 1,
+"name": &"sit",
+"speed": 5.0
+}]
+metadata/anchor = Vector2(86, 126)
+metadata/cell = Vector2(173, 127)
+metadata/source_sheet = "art_source/original/05_pets.png"

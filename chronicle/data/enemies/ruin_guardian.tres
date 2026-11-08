@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_stats.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ruin_guardian"
+display_name = "폐허 수호상"
+max_hp = 260
+contact_damage = 14
+attack_damage = 22
+move_speed = 26.0
+chase_speed = 26.0
+aggro_range = 130.0
+lose_range = 300.0
+attack_range = 64.0
+shot_range = 0.0
+attack_cooldown = 2.2
+knockback_resist = 0.85
+poise = 60.0
+heal_drop_chance = 0.5
+exp_reward = 50
+gold_reward = 20
+drops = [{"id": &"item_sky_feather", "chance": 0.6, "count": 2}, {"id": &"item_potion_small", "chance": 0.3, "count": 1}]

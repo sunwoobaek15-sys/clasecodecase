@@ -59,6 +59,7 @@ var equipment: Dictionary = {}     ## slot -> item id (&"" = empty)
 var inventory := Inventory.new()
 var cleared_stages: Array[String] = []
 var enhance: Dictionary = {}       ## item id -> +level (blacksmith)
+var opened_chests: Dictionary = {} ## hidden chest id -> true
 var skill_tree: Array[SkillNodeData] = []
 
 
@@ -79,6 +80,7 @@ func reset(starting_kit: bool = true) -> void:
 	equipment = {&"weapon": &"", &"armor": &"", &"accessory": &""}
 	cleared_stages.clear()
 	enhance.clear()
+	opened_chests.clear()
 	inventory.clear()
 	if starting_kit:
 		equipment[&"weapon"] = &"item_sword_cheongwol"
@@ -396,6 +398,7 @@ func to_dict() -> Dictionary:
 		"inventory": inventory.to_array(),
 		"cleared_stages": Array(cleared_stages),
 		"enhance": _enhance_dict(),
+		"chests": opened_chests.keys().map(func(k: Variant) -> String: return str(k)),
 	}
 
 
@@ -439,6 +442,11 @@ func from_dict(d: Dictionary) -> void:
 			var item := ItemDB.get_item(StringName(str(key)))
 			if item != null and item.is_equipment():
 				enhance[item.id] = clampi(int((en as Dictionary)[key]), 0, MAX_ENHANCE)
+	opened_chests.clear()
+	var ch: Variant = d.get("chests", [])
+	if typeof(ch) == TYPE_ARRAY:
+		for c in ch:
+			opened_chests[str(c)] = true
 	cleared_stages.clear()
 	var cs: Variant = d.get("cleared_stages", [])
 	if typeof(cs) == TYPE_ARRAY:

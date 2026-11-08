@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_sub_wisps"
+title = "바람 길들이기"
+type = 1
+description = "하늘 길을 막는 바람 정령 10마리를 진정시키자."
+giver = &"guard_gareth"
+objectives = [{"type": "kill", "target": "wind_wisp", "count": 10, "text": "바람 정령 처치"}]
+requires = Array[StringName]([&"q_main_06"])
+requires_facility = &""
+reward_exp = 0
+reward_gold = 250
+reward_items = {"item_ether": 3}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 17

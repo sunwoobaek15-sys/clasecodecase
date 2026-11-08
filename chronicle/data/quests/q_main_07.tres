@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"q_main_07"
+title = "폭풍의 수호자"
+type = 0
+description = "구름 위 하늘의 폐허에 마지막 핵 조각이 있다. 신전을 지키는 폭풍의 수호룡 템페스타를 넘어서자."
+giver = &"traveler_shade"
+objectives = [{"type": "boss", "target": "sky_dragon", "count": 1, "text": "템페스타 처치"}]
+requires = Array[StringName]([&"q_main_06"])
+requires_facility = &""
+reward_exp = 300
+reward_gold = 300
+reward_items = {}
+reward_pet = &""
+auto_accept = false
+turn_in = true
+order = 7

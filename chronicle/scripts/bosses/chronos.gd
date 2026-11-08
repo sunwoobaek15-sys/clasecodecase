@@ -83,12 +83,12 @@ func _ready() -> void:
 	for spec in [
 			[&"dormant", _st_dormant, _enter_dormant], [&"intro", _st_intro, _enter_intro],
 			[&"idle", _st_idle, _enter_idle], [&"walk", _st_walk, _enter_walk],
-			[&"blink", _st_blink, _enter_blink], [&"staff_dash", _st_staff_dash, _enter_staff_dash],
+			[&"blink", _st_blink, _enter_blink, _exit_blink], [&"staff_dash", _st_staff_dash, _enter_staff_dash],
 			[&"gear_shot", _st_gear_shot, _enter_gear_shot], [&"time_stop", _st_time_stop, _enter_time_stop],
 			[&"time_rewind", _st_time_rewind, _enter_time_rewind], [&"time_burst", _st_time_burst, _enter_time_burst],
 			[&"stagger", _st_stagger, _enter_stagger], [&"phase_shift", _st_phase_shift, _enter_phase_shift],
 			[&"dead", _st_dead, _enter_dead]]:
-		fsm.add_state(spec[0], spec[1], spec[2])
+		fsm.add_state(spec[0], spec[1], spec[2], spec[3] if spec.size() > 3 else Callable())
 	fsm.change(&"dormant")
 
 
@@ -271,6 +271,13 @@ func _enter_blink() -> void:
 		if tx < arena_left + 60.0 or tx > arena_right - 60.0:
 			tx = target.global_position.x - side * 140.0
 	_blink_to = Vector2(_arena_x(tx, 60.0), global_position.y)
+
+
+func _exit_blink() -> void:
+	if not is_dead:
+		visible = true
+		set_hurtbox_enabled(true)
+		set_contact_damage(true)
 
 
 func _st_blink(_delta: float) -> StringName:

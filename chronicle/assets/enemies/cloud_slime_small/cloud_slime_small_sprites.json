@@ -1,0 +1,751 @@
+{
+ "name": "cloud_slime_small",
+ "source_sheet": "art_source/original/02_forest_slime.png",
+ "kind": "character",
+ "scale": 0.28,
+ "atlas": "res://assets/enemies/cloud_slime_small/cloud_slime_small_atlas.png",
+ "cell": [
+  50,
+  40
+ ],
+ "anchor": [
+  26,
+  35
+ ],
+ "frames": {
+  "idle0": {
+   "region": [
+    850,
+    0,
+    26,
+    24
+   ],
+   "offset": [
+    13,
+    12
+   ],
+   "source_box": [
+    380,
+    89,
+    483,
+    184
+   ]
+  },
+  "idle1": {
+   "region": [
+    689,
+    0,
+    25,
+    25
+   ],
+   "offset": [
+    14,
+    11
+   ],
+   "source_box": [
+    475,
+    85,
+    572,
+    184
+   ]
+  },
+  "idle2": {
+   "region": [
+    625,
+    0,
+    23,
+    26
+   ],
+   "offset": [
+    15,
+    10
+   ],
+   "source_box": [
+    563,
+    79,
+    655,
+    183
+   ]
+  },
+  "idle3": {
+   "region": [
+    716,
+    0,
+    23,
+    25
+   ],
+   "offset": [
+    15,
+    11
+   ],
+   "source_box": [
+    644,
+    85,
+    738,
+    183
+   ]
+  },
+  "idle4": {
+   "region": [
+    741,
+    0,
+    24,
+    25
+   ],
+   "offset": [
+    14,
+    11
+   ],
+   "source_box": [
+    727,
+    85,
+    823,
+    184
+   ]
+  },
+  "idle5": {
+   "region": [
+    878,
+    0,
+    24,
+    24
+   ],
+   "offset": [
+    14,
+    11
+   ],
+   "source_box": [
+    811,
+    89,
+    907,
+    184
+   ]
+  },
+  "idle6": {
+   "region": [
+    767,
+    0,
+    24,
+    25
+   ],
+   "offset": [
+    15,
+    10
+   ],
+   "source_box": [
+    898,
+    85,
+    994,
+    184
+   ]
+  },
+  "move0": {
+   "region": [
+    29,
+    38,
+    22,
+    20
+   ],
+   "offset": [
+    15,
+    16
+   ],
+   "source_box": [
+    1006,
+    87,
+    1093,
+    186
+   ]
+  },
+  "move1": {
+   "region": [
+    904,
+    0,
+    23,
+    24
+   ],
+   "offset": [
+    14,
+    12
+   ],
+   "source_box": [
+    1086,
+    85,
+    1177,
+    186
+   ]
+  },
+  "move2": {
+   "region": [
+    793,
+    0,
+    23,
+    25
+   ],
+   "offset": [
+    15,
+    11
+   ],
+   "source_box": [
+    1170,
+    83,
+    1262,
+    187
+   ]
+  },
+  "move3": {
+   "region": [
+    929,
+    0,
+    23,
+    24
+   ],
+   "offset": [
+    14,
+    12
+   ],
+   "source_box": [
+    1256,
+    86,
+    1349,
+    186
+   ]
+  },
+  "move4": {
+   "region": [
+    53,
+    38,
+    23,
+    20
+   ],
+   "offset": [
+    14,
+    16
+   ],
+   "source_box": [
+    1344,
+    94,
+    1437,
+    187
+   ]
+  },
+  "move5": {
+   "region": [
+    985,
+    0,
+    24,
+    22
+   ],
+   "offset": [
+    14,
+    14
+   ],
+   "source_box": [
+    1430,
+    92,
+    1522,
+    187
+   ]
+  },
+  "run0": {
+   "region": [
+    552,
+    0,
+    39,
+    27
+   ],
+   "offset": [
+    3,
+    9
+   ],
+   "source_box": [
+    34,
+    304,
+    176,
+    411
+   ]
+  },
+  "run1": {
+   "region": [
+    390,
+    0,
+    34,
+    29
+   ],
+   "offset": [
+    7,
+    7
+   ],
+   "source_box": [
+    170,
+    298,
+    302,
+    412
+   ]
+  },
+  "run2": {
+   "region": [
+    650,
+    0,
+    37,
+    26
+   ],
+   "offset": [
+    5,
+    9
+   ],
+   "source_box": [
+    300,
+    300,
+    445,
+    406
+   ]
+  },
+  "run3": {
+   "region": [
+    257,
+    0,
+    34,
+    30
+   ],
+   "offset": [
+    7,
+    6
+   ],
+   "source_box": [
+    443,
+    295,
+    570,
+    411
+   ]
+  },
+  "run4": {
+   "region": [
+    293,
+    0,
+    30,
+    30
+   ],
+   "offset": [
+    10,
+    6
+   ],
+   "source_box": [
+    558,
+    293,
+    675,
+    412
+   ]
+  },
+  "jump0": {
+   "region": [
+    52,
+    0,
+    36,
+    35
+   ],
+   "offset": [
+    9,
+    5
+   ],
+   "source_box": [
+    748,
+    276,
+    861,
+    400
+   ]
+  },
+  "jump1": {
+   "region": [
+    494,
+    0,
+    25,
+    28
+   ],
+   "offset": [
+    14,
+    8
+   ],
+   "source_box": [
+    856,
+    249,
+    958,
+    363
+   ]
+  },
+  "jump2": {
+   "region": [
+    163,
+    0,
+    34,
+    33
+   ],
+   "offset": [
+    9,
+    5
+   ],
+   "source_box": [
+    956,
+    279,
+    1067,
+    400
+   ]
+  },
+  "hurt0": {
+   "region": [
+    90,
+    0,
+    33,
+    33
+   ],
+   "offset": [
+    8,
+    3
+   ],
+   "source_box": [
+    1114,
+    275,
+    1237,
+    405
+   ]
+  },
+  "hurt1": {
+   "region": [
+    199,
+    0,
+    24,
+    32
+   ],
+   "offset": [
+    14,
+    4
+   ],
+   "source_box": [
+    1239,
+    279,
+    1336,
+    405
+   ]
+  },
+  "hurt2": {
+   "region": [
+    125,
+    0,
+    36,
+    33
+   ],
+   "offset": [
+    9,
+    3
+   ],
+   "source_box": [
+    1354,
+    278,
+    1465,
+    405
+   ]
+  },
+  "shot0": {
+   "region": [
+    426,
+    0,
+    35,
+    29
+   ],
+   "offset": [
+    6,
+    7
+   ],
+   "source_box": [
+    17,
+    457,
+    141,
+    572
+   ]
+  },
+  "shot1": {
+   "region": [
+    463,
+    0,
+    29,
+    29
+   ],
+   "offset": [
+    12,
+    6
+   ],
+   "source_box": [
+    143,
+    464,
+    254,
+    577
+   ]
+  },
+  "shot2": {
+   "region": [
+    954,
+    0,
+    29,
+    24
+   ],
+   "offset": [
+    13,
+    11
+   ],
+   "source_box": [
+    256,
+    480,
+    425,
+    577
+   ]
+  },
+  "shot3": {
+   "region": [
+    818,
+    0,
+    30,
+    25
+   ],
+   "offset": [
+    9,
+    11
+   ],
+   "source_box": [
+    414,
+    474,
+    524,
+    572
+   ]
+  },
+  "splash0": {
+   "region": [
+    325,
+    0,
+    29,
+    30
+   ],
+   "offset": [
+    12,
+    6
+   ],
+   "source_box": [
+    578,
+    464,
+    689,
+    579
+   ]
+  },
+  "splash1": {
+   "region": [
+    225,
+    0,
+    30,
+    31
+   ],
+   "offset": [
+    11,
+    5
+   ],
+   "source_box": [
+    689,
+    459,
+    804,
+    579
+   ]
+  },
+  "splash2": {
+   "region": [
+    356,
+    0,
+    32,
+    30
+   ],
+   "offset": [
+    10,
+    6
+   ],
+   "source_box": [
+    799,
+    463,
+    921,
+    579
+   ]
+  },
+  "splash3": {
+   "region": [
+    0,
+    0,
+    50,
+    36
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    913,
+    443,
+    1097,
+    584
+   ]
+  },
+  "death0": {
+   "region": [
+    521,
+    0,
+    29,
+    27
+   ],
+   "offset": [
+    10,
+    9
+   ],
+   "source_box": [
+    1103,
+    476,
+    1216,
+    584
+   ]
+  },
+  "death1": {
+   "region": [
+    593,
+    0,
+    30,
+    26
+   ],
+   "offset": [
+    11,
+    10
+   ],
+   "source_box": [
+    1207,
+    481,
+    1322,
+    584
+   ]
+  },
+  "death2": {
+   "region": [
+    0,
+    38,
+    27,
+    20
+   ],
+   "offset": [
+    12,
+    16
+   ],
+   "source_box": [
+    1316,
+    510,
+    1424,
+    583
+   ]
+  },
+  "death3": {
+   "region": [
+    78,
+    38,
+    26,
+    16
+   ],
+   "offset": [
+    14,
+    20
+   ],
+   "source_box": [
+    1420,
+    516,
+    1524,
+    583
+   ]
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "idle0",
+    "idle1",
+    "idle2",
+    "idle3",
+    "idle4",
+    "idle5",
+    "idle6"
+   ],
+   "fps": 8,
+   "loop": true
+  },
+  "move": {
+   "frames": [
+    "move0",
+    "move1",
+    "move2",
+    "move3",
+    "move4",
+    "move5"
+   ],
+   "fps": 9,
+   "loop": true
+  },
+  "run": {
+   "frames": [
+    "run0",
+    "run1",
+    "run2",
+    "run3",
+    "run4"
+   ],
+   "fps": 12,
+   "loop": true
+  },
+  "jump": {
+   "frames": [
+    "jump0",
+    "jump1",
+    "jump2"
+   ],
+   "fps": 6,
+   "loop": false
+  },
+  "hurt": {
+   "frames": [
+    "hurt0",
+    "hurt1",
+    "hurt2"
+   ],
+   "fps": 12,
+   "loop": false
+  },
+  "shot": {
+   "frames": [
+    "shot0",
+    "shot1",
+    "shot2",
+    "shot3"
+   ],
+   "fps": 8,
+   "loop": false
+  },
+  "splash": {
+   "frames": [
+    "splash0",
+    "splash1",
+    "splash2",
+    "splash3"
+   ],
+   "fps": 8,
+   "loop": false
+  },
+  "death": {
+   "frames": [
+    "death0",
+    "death1",
+    "death2",
+    "death3"
+   ],
+   "fps": 8,
+   "loop": false
+  }
+ }
+}

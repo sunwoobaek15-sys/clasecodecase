@@ -7,6 +7,8 @@ extends Node2D
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const SLIME_SCENE := preload("res://scenes/enemies/slime.tscn")
 const SENTINEL_SCENE := preload("res://scenes/enemies/gear_sentinel.tscn")
+const WISP_SCENE := preload("res://scenes/enemies/wind_wisp.tscn")
+const GUARDIAN_SCENE := preload("res://scenes/enemies/ruin_guardian.tscn")
 const TIME_CORE_SCENE := preload("res://scenes/world/time_core.tscn")
 const HUD_SCENE := preload("res://scenes/ui/hud.tscn")
 const CONTROLS_SCENE := preload("res://scenes/ui/touch_controls.tscn")
@@ -138,7 +140,7 @@ func _spawn_actors() -> void:
 					continue
 				var slime := SLIME_SCENE.instantiate() as Slime
 				slime.variant = Slime.Variant.SMALL if c == "s" else (Slime.Variant.ELITE if c == "e" else Slime.Variant.NORMAL)
-				slime.clockwork = data.clockwork_slimes
+				slime.theme = data.slime_theme
 				slime.position = pos
 				enemies.add_child(slime)
 			"g":
@@ -151,6 +153,42 @@ func _spawn_actors() -> void:
 				var saw := SawHazard.new()
 				saw.position = pos
 				props.add_child(saw)
+			"w", "r":
+				if at_checkpoint and pos.x < cp_pos.x:
+					continue
+				var e := (WISP_SCENE if c == "w" else GUARDIAN_SCENE).instantiate() as Enemy
+				e.position = pos
+				enemies.add_child(e)
+			"~":
+				var cell: Vector2i = m["cell"]
+				if level.char_at(cell.x - 1, cell.y) == "~":
+					continue
+				var n := 0
+				while level.char_at(cell.x + n, cell.y) == "~":
+					n += 1
+				var cp_node := CrumblePlatform.new()
+				cp_node.tiles = n
+				cp_node.position = Vector2(cell.x * LevelBuilder.TILE, cell.y * LevelBuilder.TILE)
+				props.add_child(cp_node)
+			"^":
+				var ucell: Vector2i = m["cell"]
+				if level.char_at(ucell.x, ucell.y + 1) == "^":
+					continue
+				var k := 0
+				while level.char_at(ucell.x, ucell.y - k) == "^":
+					k += 1
+				var up := Updraft.new()
+				up.height = k * LevelBuilder.TILE + 24.0
+				up.position = pos
+				props.add_child(up)
+			"$":
+				var chest := TreasureChest.new()
+				chest.chest_id = "%s:%d" % [data.id, int(m["cell"].x)]
+				chest.stage_id = data.id
+				chest.gold = data.chest_gold
+				chest.items = data.chest_items
+				chest.position = pos
+				props.add_child(chest)
 			"C":
 				var cp := Checkpoint.new()
 				cp.position = pos
@@ -212,8 +250,12 @@ func _setup_arena() -> void:
 
 
 func _build_particles() -> void:
-	var clock := data.particles == "clock"
-	var tint := Color(0.55, 0.75, 1.0) if clock else Color(0.8, 1.0, 0.5)
+	var clock := data.particles != "forest"
+	var tint := Color(0.8, 1.0, 0.5)
+	if data.particles == "clock":
+		tint = Color(0.55, 0.75, 1.0)
+	elif data.particles == "sky":
+		tint = Color(1.0, 1.0, 1.0)
 	var ff := CPUParticles2D.new()
 	ff.texture = FIREFLY_TEX
 	ff.amount = 26
@@ -314,7 +356,9 @@ func _on_boss_started(_b: Node) -> void:
 func _on_boss_defeated(b: Node) -> void:
 	await get_tree().create_timer(0.8).timeout
 	var core := TIME_CORE_SCENE.instantiate() as Pickup
-	core.position = (b as Node2D).global_position + Vector2(0, -70)
+	# at the boss's feet: falling from higher up it could land on a ledge
+	# above the hero and be awkward to reach
+	core.position = (b as Node2D).global_position + Vector2(0, -12)
 	core.collected.connect(_on_core_collected)
 	actors.add_child(core)
 	Events.toast.emit("시간의 핵 조각이 나타났다!")

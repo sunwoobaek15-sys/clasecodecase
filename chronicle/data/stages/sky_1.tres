@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/stage_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/tiles.png" id="2_tiles"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/bg_sky.png" id="3_sky"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/bg_far.png" id="4_far"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/bg_mid.png" id="5_mid"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/bg_near.png" id="6_near"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/fg_clouds.png" id="7_fg"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/arena_wall.png" id="8_wall"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/broken_column.png" id="9_col"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/vase.png" id="10_vase"]
+[ext_resource type="Texture2D" path="res://assets/environments/sky_ruins/angel_statue.png" id="11_statue"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/sky_dragon.tscn" id="12_boss"]
+
+[resource]
+script = ExtResource("1_script")
+id = "sky_1"
+title = "3-1  하늘의 폐허"
+region = "하늘의 폐허"
+level_path = "res://data/levels/sky_stage_01.txt"
+tiles = ExtResource("2_tiles")
+bg_sky = ExtResource("3_sky")
+bg_far = ExtResource("4_far")
+bg_mid = ExtResource("5_mid")
+bg_near = ExtResource("6_near")
+foreground = ExtResource("7_fg")
+arena_wall = ExtResource("8_wall")
+props = Array[Texture2D]([ExtResource("9_col"), ExtResource("10_vase"), ExtResource("9_col")])
+tall_prop = ExtResource("11_statue")
+tall_prop_tint = Color(1, 1, 1, 1)
+particles = "sky"
+boss_scene = ExtResource("12_boss")
+clear_text = "폭풍의 수호룡 템페스타를 잠재우고
+세 번째 시간의 핵 조각을 되찾았다!"
+slime_theme = "cloud"
+chest_gold = 200
+chest_items = {"item_sky_feather": 3, "item_pet_treat": 2}

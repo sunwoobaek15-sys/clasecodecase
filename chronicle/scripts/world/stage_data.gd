@@ -22,5 +22,8 @@ extends Resource
 @export var particles: String = "forest"
 @export var boss_scene: PackedScene
 @export_multiline var clear_text: String = ""
-## Enemy markers in the map that spawn clockwork slimes instead of forest ones.
-@export var clockwork_slimes: bool = false
+## Slime look/stats for the n/s/e markers: "forest", "clockwork" or "cloud".
+@export var slime_theme: String = "forest"
+## Reward of the stage's hidden chest ($ marker).
+@export var chest_gold: int = 50
+@export var chest_items: Dictionary = {}

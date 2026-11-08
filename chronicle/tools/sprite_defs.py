@@ -455,3 +455,42 @@ GROUPS += [
     dict(name="chronos_art", sheet="06_boss_chronos", kind="art", scale=0.4, colors=64,
          out="assets/bosses/chronos/art", frames=CHRONOS_ART, anchor="bottom", outline=(10, 10, 24)),
 ]
+
+
+# --------------------------------------------------------------------------
+# Phase 3-3: region 3 boss 'sky dragon'. The reference sheets contain no
+# boss for the sky ruins, so the baby dragon design of sheet 05 is used at
+# boss size and recoloured to storm colours by tools/build_sky_ruins.py
+# (a stand-in until an official design exists).
+# --------------------------------------------------------------------------
+SKY_DRAGON_FRAMES = {
+    "sit0": B(264, 451, 104, 121), "sit1": B(370, 437, 107, 135), "sit2": B(477, 436, 108, 136),
+    "perch": F(568, 422, 676, 524, hard=True),
+    "breath": F(683, 428, 796, 590, hard=True),
+    "fly": B(791, 434, 132, 71),
+    "rear": B(934, 425, 153, 146),
+    "charge": F(1086, 428, 1250, 584, hard=True, erase=[(1195, 445, 1250, 530)]),
+    "roar": F(1308, 434, 1530, 596, hard=True),
+    "curl": B(593, 528, 73, 47),
+}
+SKY_DRAGON_ANIMS = {
+    "idle": (["rear", "perch"], 3, True),
+    "sit": (["sit0", "sit1", "sit2", "sit1"], 5, True),
+    "fly": (["fly"], 1, True),
+    "breath": (["breath"], 1, False),
+    "charge": (["charge"], 1, True),
+    "roar": (["roar"], 1, False),
+    "hit": (["rear"], 1, False),
+    "die": (["curl"], 1, False),
+}
+GROUPS += [
+    dict(name="sky_dragon", sheet="05_pets", kind="character", scale=0.8, colors=48,
+         out="assets/bosses/sky_dragon", frames=SKY_DRAGON_FRAMES, anims=SKY_DRAGON_ANIMS, anchor="bottom",
+         outline=(10, 12, 30)),
+    dict(name="sky_dragon_art", sheet="05_pets", kind="art", scale=0.75, colors=64,
+         out="assets/bosses/sky_dragon/art", frames={"full_art": F(6, 430, 258, 573, hard=True, erase=[(6, 430, 258, 441)])},
+         anchor="bottom", outline=(10, 12, 30)),
+    dict(name="chest_prop", sheet="03_village_npcs", kind="art", scale=0.42, colors=40,
+         out="assets/environments/common", frames={"chest": B(557, 696, 82, 86, pad=3)}, anchor="bottom",
+         outline=(20, 14, 30)),
+]

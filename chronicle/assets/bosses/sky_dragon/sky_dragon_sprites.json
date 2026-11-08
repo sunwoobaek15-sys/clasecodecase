@@ -1,0 +1,259 @@
+{
+ "name": "sky_dragon",
+ "source_sheet": "art_source/original/05_pets.png",
+ "kind": "character",
+ "scale": 0.8,
+ "atlas": "res://assets/bosses/sky_dragon/sky_dragon_atlas.png",
+ "cell": [
+  173,
+  127
+ ],
+ "anchor": [
+  86,
+  126
+ ],
+ "frames": {
+  "sit0": {
+   "region": [
+    688,
+    0,
+    82,
+    96
+   ],
+   "offset": [
+    45,
+    30
+   ],
+   "source_box": [
+    258,
+    445,
+    374,
+    578
+   ]
+  },
+  "sit1": {
+   "region": [
+    603,
+    0,
+    83,
+    106
+   ],
+   "offset": [
+    45,
+    20
+   ],
+   "source_box": [
+    364,
+    431,
+    483,
+    578
+   ]
+  },
+  "sit2": {
+   "region": [
+    517,
+    0,
+    84,
+    107
+   ],
+   "offset": [
+    45,
+    19
+   ],
+   "source_box": [
+    471,
+    430,
+    591,
+    578
+   ]
+  },
+  "perch": {
+   "region": [
+    772,
+    0,
+    87,
+    80
+   ],
+   "offset": [
+    42,
+    47
+   ],
+   "source_box": [
+    568,
+    422,
+    676,
+    524
+   ]
+  },
+  "breath": {
+   "region": [
+    425,
+    0,
+    90,
+    113
+   ],
+   "offset": [
+    42,
+    13
+   ],
+   "source_box": [
+    683,
+    428,
+    796,
+    590
+   ]
+  },
+  "fly": {
+   "region": [
+    861,
+    0,
+    104,
+    55
+   ],
+   "offset": [
+    35,
+    71
+   ],
+   "source_box": [
+    785,
+    428,
+    929,
+    511
+   ]
+  },
+  "rear": {
+   "region": [
+    175,
+    0,
+    121,
+    115
+   ],
+   "offset": [
+    26,
+    10
+   ],
+   "source_box": [
+    928,
+    419,
+    1093,
+    577
+   ]
+  },
+  "charge": {
+   "region": [
+    298,
+    0,
+    125,
+    114
+   ],
+   "offset": [
+    24,
+    12
+   ],
+   "source_box": [
+    1086,
+    428,
+    1250,
+    584
+   ]
+  },
+  "roar": {
+   "region": [
+    0,
+    0,
+    173,
+    126
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "source_box": [
+    1308,
+    434,
+    1530,
+    596
+   ]
+  },
+  "curl": {
+   "region": [
+    0,
+    128,
+    57,
+    36
+   ],
+   "offset": [
+    57,
+    90
+   ],
+   "source_box": [
+    587,
+    522,
+    672,
+    581
+   ]
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "rear",
+    "perch"
+   ],
+   "fps": 3,
+   "loop": true
+  },
+  "sit": {
+   "frames": [
+    "sit0",
+    "sit1",
+    "sit2",
+    "sit1"
+   ],
+   "fps": 5,
+   "loop": true
+  },
+  "fly": {
+   "frames": [
+    "fly"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "breath": {
+   "frames": [
+    "breath"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "charge": {
+   "frames": [
+    "charge"
+   ],
+   "fps": 1,
+   "loop": true
+  },
+  "roar": {
+   "frames": [
+    "roar"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "hit": {
+   "frames": [
+    "rear"
+   ],
+   "fps": 1,
+   "loop": false
+  },
+  "die": {
+   "frames": [
+    "curl"
+   ],
+   "fps": 1,
+   "loop": false
+  }
+ }
+}

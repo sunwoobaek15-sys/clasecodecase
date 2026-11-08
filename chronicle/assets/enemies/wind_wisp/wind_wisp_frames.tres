@@ -1,0 +1,83 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/enemies/wind_wisp/wind_wisp_atlas.png" id="1_38i7j"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uw5pg"]
+atlas = ExtResource("1_38i7j")
+region = Rect2(160, 0, 40, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d4q8g"]
+atlas = ExtResource("1_38i7j")
+region = Rect2(40, 0, 40, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5qaae"]
+atlas = ExtResource("1_38i7j")
+region = Rect2(200, 0, 40, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7iv5g"]
+atlas = ExtResource("1_38i7j")
+region = Rect2(0, 0, 40, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2otkm"]
+atlas = ExtResource("1_38i7j")
+region = Rect2(80, 0, 40, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ja6nh"]
+atlas = ExtResource("1_38i7j")
+region = Rect2(120, 0, 40, 40)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uw5pg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d4q8g")
+}],
+"loop": 1,
+"name": &"charge",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5qaae")
+}],
+"loop": 1,
+"name": &"dash",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uw5pg")
+}],
+"loop": 0,
+"name": &"hurt",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7iv5g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d4q8g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2otkm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ja6nh")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 10.0
+}]
+metadata/anchor = Vector2(20, 22)
+metadata/cell = Vector2(40, 40)
+metadata/source_sheet = ""

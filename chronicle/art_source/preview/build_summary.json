@@ -246,5 +246,29 @@
    255
   ],
   "animations": 5
+ },
+ "sky_dragon": {
+  "frames": 10,
+  "cell": [
+   173,
+   127
+  ],
+  "animations": 8
+ },
+ "sky_dragon_art": {
+  "frames": 1,
+  "cell": [
+   184,
+   101
+  ],
+  "animations": 1
+ },
+ "chest_prop": {
+  "frames": 1,
+  "cell": [
+   35,
+   37
+  ],
+  "animations": 1
  }
 }
